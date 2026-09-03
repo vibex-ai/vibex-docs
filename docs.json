@@ -109,12 +109,12 @@
         {
           "anchor": "GitHub",
           "href": "https://github.com/vibex-ai/vibex",
-          "icon": "book-open-cover"
+          "icon": "/logo/github-mark.svg"
         },
         {
           "anchor": "Issues",
           "href": "https://github.com/vibex-ai/vibex/issues",
-          "icon": "newspaper"
+          "icon": "/logo/github-mark.svg"
         }
       ]
     }
