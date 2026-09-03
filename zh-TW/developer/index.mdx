@@ -1,0 +1,29 @@
+---
+title: "開發者指南"
+description: "從本機開發到跨平台發行，了解 Vibex 的工程約束。"
+---
+
+Vibex 是由 Rust workspace 驅動的原生應用程式。桌面端 `DesktopRuntime` 是唯一權威狀態所有者；行動端與遠端傳輸透過共享契約存取它。
+
+<Columns>
+  <Card title="架構邊界" icon="sitemap" href="/zh-TW/developer/architecture">了解核心 crate、桌面端、行動端與 Relay 的職責。</Card>
+  <Card title="本機設定" icon="terminal" href="/zh-TW/developer/setup">準備 Rust、Node、pnpm 與圖形建置環境。</Card>
+  <Card title="建置與測試" icon="flask" href="/zh-TW/developer/build-and-test">執行日常檢查、smoke test 與發行門禁。</Card>
+</Columns>
+
+## 必須維持的約束
+
+- 桌面端負責 Agent、會話、時間線、檔案、Git、PTY、Provider、權限和持久化。
+- 行動端只消費共享遠端投影並傳送型別化操作，不複製業務狀態。
+- Remote v2 的 DTO、錯誤、能力與序號契約位於共享 core 層。
+- Relay 只轉發加密框，不擁有業務授權、檔案或會話資料庫。
+- 跨層行為變更需補充確定性檢查或證據，並執行與風險匹配的測試集。
+
+## 建議閱讀順序
+
+1. [架構與所有權邊界](/zh-TW/developer/architecture)
+2. [本機開發環境](/zh-TW/developer/setup)
+3. [建置與測試](/zh-TW/developer/build-and-test)
+4. [平台支援](/zh-TW/developer/platforms)
+5. [Remote v2 與 Relay](/zh-TW/developer/remote-protocol)
+6. [貢獻程式碼](/zh-TW/developer/contributing)

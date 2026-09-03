@@ -1,0 +1,69 @@
+---
+title: "Quickstart"
+description: "Install Vibex and complete your first Agent session."
+---
+
+This guide starts the desktop from source, opens a workspace, configures a provider profile, and runs a small task that you can review. Use a disposable Git repository for the first run.
+
+## Prerequisites
+
+- Git with submodule support.
+- Node.js 22 and pnpm 11.3.0.
+- Rust 1.97.0, pinned by `rust-toolchain.toml`.
+- A Linux, macOS, or Windows graphical session. Linux needs a working Vulkan driver.
+- An installed Agent runtime and provider credential. Keep credentials local and out of docs or logs.
+
+## Start the desktop
+
+<Steps>
+  <Step title="Get the repository">
+    ```bash
+    git clone https://github.com/vibex-ai/vibex.git
+    cd vibex
+    git submodule update --init --recursive
+    ```
+  </Step>
+  <Step title="Install dependencies">
+    ```bash
+    pnpm install --frozen-lockfile
+    ```
+  </Step>
+  <Step title="Run the workbench">
+    ```bash
+    pnpm dev:desktop
+    ```
+
+    The first build can take time. After startup, this process owns sessions, files, Git, and terminals.
+  </Step>
+</Steps>
+
+## Complete a first session
+
+1. In **Config Center > Agents** or **Model Providers**, add an available profile. Run a health check if an installed Agent is unavailable.
+2. Open a Git repository as the workspace. Use a test branch or temporary repository.
+3. In Composer, send a bounded task such as “Add installation steps to `README.md`, and show a plan first.”
+4. Read the timeline plan and tool calls. Vibex shows requests for files, terminals, or permissions.
+5. Open **Git diff** after the run, review every change, then save, commit, or continue.
+
+<Frame caption="Screenshot placeholder: Composer, plan, and Git diff in a first session">
+  <img src="/images/screenshot-placeholder.svg" alt="Placeholder for a first Agent session screenshot" />
+</Frame>
+
+## Composer input
+
+| Syntax | Purpose |
+| --- | --- |
+| `/` | Select a Prompt or slash command. |
+| `@` | Reference a file or directory in the workspace. |
+| `$` | Insert an enabled Skill. |
+| Attachment button | Add an image or other session attachment. |
+
+Before sending, choose an Agent, provider profile, model, reasoning depth, and conversation mode. The available choices depend on the Agent capability probe.
+
+<Tip>Ask for a plan before allowing file changes on your first task. You can check the scope and risk in the timeline.</Tip>
+
+## Next steps
+
+- [Install and platforms](/en/install)
+- [Workspaces](/en/workspaces)
+- [Config Center](/en/config-center)

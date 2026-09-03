@@ -1,0 +1,29 @@
+---
+title: "Platform support"
+description: "Understand build boundaries for Linux, macOS, Windows, Android, and iOS."
+---
+
+| Platform | Product form | Key dependency | Note |
+| --- | --- | --- | --- |
+| Linux | Native desktop | Vulkan graphical session | Supports development and preview smoke tests. |
+| macOS | Native desktop | Xcode toolchain as needed | Also supports iOS builds. |
+| Windows | Native desktop | Native Rust/Node environment | Use the platform shell. |
+| Android | Native mobile | Android SDK/NDK, `cargo-ndk` | Debug defaults to arm64-v8a/x86_64. |
+| iOS | Native mobile | macOS, Xcode, XcodeGen | Produces `VibexFFI.xcframework`. |
+| Self-hosted Linux/container | Relay | Rust/Axum or Docker | Forwards encrypted frames only. |
+
+The desktop owns Agents, files, Git, PTY, providers, permissions, and persistence. Keep platform differences in `apps/desktop/src/platform` or a shared facade.
+
+## Mobile builds
+
+```bash
+pnpm build:mobile:android
+pnpm package:mobile:android
+pnpm build:mobile:ios
+```
+
+Release APKs are unsigned. Xcode controls iOS signing and device/simulator selection. On lifecycle resume, mobile must fetch authoritative sessions/timelines through Remote v2 before subscribing to live events.
+
+## Relay deployment
+
+Bind Relay to loopback and publish it through controlled HTTPS or Tailnet Serve. Validate Host and Origin independently; never use `*` for CORS. Relay must not serve a mobile Web UI or business API.

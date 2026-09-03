@@ -1,0 +1,60 @@
+---
+title: "設定"
+description: "調整 Vibex 的介面、工作台、會話、終端機、快捷鍵和診斷選項。"
+---
+
+開啟 **Settings**（macOS 為 cmd-,，Windows/Linux 通常為 ctrl-,）可修改桌面端的本機偏好。設定不取代 Config Center 中的 Agent、供應商或工作流程資源。
+
+## 設定分區
+
+| 分區 | 可調整內容 |
+| --- | --- |
+| **General** | 語言、啟動行為和一般應用偏好。 |
+| **Appearance** | 主題、字型、字級、密度和專案圖示。 |
+| **Workbench** | 側欄、預覽、面板和編輯器配置。 |
+| **Session** | 會話寬度、預覽條、時間線顯示和執行體驗。 |
+| **Terminal** | 預設 shell、字型、滾動緩衝與終端機顯示。 |
+| **Shortcuts** | 查看和修改鍵盤快捷鍵。 |
+| **Data & Diagnostics** | 本機資料、診斷等級和脫敏匯出入口。 |
+| **About** | 版本、授權和建置資訊。 |
+
+<Frame caption="截圖佔位：Settings 分區與 Appearance/Workbench 選項">
+  <img src="/images/screenshot-placeholder.svg" alt="Settings 頁面截圖佔位" />
+</Frame>
+
+## 修改偏好
+
+1. 選擇設定分區。
+2. 修改選項，查看預覽或說明。
+3. 需要恢復時使用該選項的預設值或 **Reset**。
+4. 關閉設定頁；桌面端會保存本機偏好並在下次啟動恢復。
+
+外觀偏好只改變本機 UI，不會修改 Agent 系統提示詞、工作區檔案或供應商設定。字型受作業系統安裝內容影響，無法使用時會回退。
+
+## 快捷鍵
+
+| 操作 | macOS | Windows/Linux |
+| --- | --- | --- |
+| 側欄 | cmd-b | ctrl-b |
+| 預覽 | cmd-shift-p | ctrl-shift-p |
+| 右側欄 | cmd-shift-r | ctrl-shift-r |
+| 對話/終端機模式 | cmd-shift-t | ctrl-shift-t |
+| 設定 | cmd-, | ctrl-, |
+| 會話內搜尋 | cmd-f | ctrl-f |
+| 重試執行環境 | cmd-r | ctrl-r |
+| 儲存檔案 | cmd-s | ctrl-s |
+| 前進/後退 | alt-left / alt-right | alt-left / alt-right |
+
+快捷鍵可在 **Settings > Shortcuts** 查看或調整，修改後請在對應視窗測試。
+
+## 資料與診斷
+
+診斷匯出前選擇最小範圍並確認脫敏結果。不要匯出 token、私鑰、Prompt、檔案內容、Git diff、終端機位元組或配對資料。備份或遷移 SQLite 前關閉桌面端，恢復後檢查工作區路徑、裝置授權和 secret reference。
+
+<Warning>
+  重設設定只影響偏好；刪除本機資料庫或工作區目錄是不同的破壞性操作。先閱讀 [隱私與恢復](/zh-TW/privacy-and-recovery)。
+</Warning>
+
+## 關於版本
+
+**About** 顯示建置版本、授權和平台資訊。回報問題時附上這些不敏感資訊和結構化錯誤碼，不要附完整日誌。

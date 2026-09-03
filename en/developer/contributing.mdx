@@ -1,0 +1,32 @@
+---
+title: "Contributing"
+description: "Submit Vibex changes with the required architecture, testing, and privacy discipline."
+---
+
+## Before coding
+
+1. Read the root `README.md` and relevant `docs/` design and check notes.
+2. Search existing facades, DTOs, reducers, and platform adapters before adding an abstraction.
+3. Preserve unrelated uncommitted work in the shared worktree.
+
+## Implementation principles
+
+- Keep `DesktopRuntime` as the only authoritative state owner.
+- Route mobile behavior through shared backends and Remote v2 contracts.
+- Use structured errors, capabilities, and sequence numbers instead of UI text to infer success.
+- Check and audit permissions for file, Git, terminal, provider, and device operations.
+- Redact logs, evidence, and screenshots; never record secrets, Prompts, file contents, or terminal bytes.
+
+## Before submitting
+
+```bash
+pnpm check
+pnpm release:build-smoke
+pnpm check:mobile-native
+```
+
+Add `check:acp`, `check:code-workbench`, `check:terminal`, `smoke:relay:local`, or focused Cargo tests as appropriate. Cross-layer changes should cover disconnect, restart, insufficient permissions, sequence gaps, and recovery.
+
+## Documentation and pull requests
+
+Update Simplified Chinese, Traditional Chinese, and English pages for user-visible behavior. Mark unconfirmed details with `TODO`; do not present test spikes as stable features. Describe behavior, ownership, tests, compatibility, migration, rollback, and known limits in the pull request. Use [GitHub](https://github.com/vibex-ai/vibex).

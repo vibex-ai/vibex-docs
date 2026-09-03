@@ -1,0 +1,35 @@
+---
+title: "开发者指南"
+description: "从本地开发到跨平台发布，了解 Vibex 的工程约束。"
+---
+
+Vibex 是 Rust workspace 驱动的原生应用。桌面端 `DesktopRuntime` 是唯一权威状态所有者；移动端和远程传输通过共享契约访问它。
+
+<Columns>
+  <Card title="架构边界" icon="sitemap" href="/developer/architecture">
+    了解核心 crate、桌面端、移动端和 Relay 的职责。
+  </Card>
+  <Card title="本地设置" icon="terminal" href="/developer/setup">
+    准备 Rust、Node、pnpm 和图形构建环境。
+  </Card>
+  <Card title="构建与测试" icon="flask" href="/developer/build-and-test">
+    运行日常检查、smoke test 和发布构建门禁。
+  </Card>
+</Columns>
+
+## 开发时必须保持的约束
+
+- 桌面端负责 Agent、会话、时间线、文件、Git、PTY、Provider、权限和持久化。
+- 移动端只消费共享的远程投影并发送类型化操作，不复制业务状态。
+- Remote v2 的 DTO、错误、能力和序列号契约位于共享 core 层。
+- Relay 只转发加密帧，不拥有业务授权、文件或会话数据库。
+- 跨层行为变更必须补充确定性检查或证据，并运行与风险匹配的最小测试集。
+
+## 推荐阅读顺序
+
+1. [架构与所有权边界](/developer/architecture)
+2. [本地开发环境](/developer/setup)
+3. [构建与测试](/developer/build-and-test)
+4. [平台支持](/developer/platforms)
+5. [Remote v2 与 Relay](/developer/remote-protocol)
+6. [贡献代码](/developer/contributing)

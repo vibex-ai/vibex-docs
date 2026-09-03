@@ -1,0 +1,44 @@
+---
+title: "本機開發環境"
+description: "安裝 Vibex 的 Rust、Node、pnpm 和平台依賴。"
+---
+
+## 工具鏈
+
+| 工具 | 版本或說明 |
+| --- | --- |
+| Node.js | 22。 |
+| pnpm | 11.3.0，由 `packageManager` 宣告。 |
+| Rust | 1.97.0，由 `rust-toolchain.toml` 固定。 |
+| Git | 需要子模組支援。 |
+| Linux 圖形 | 可用 Vulkan 驅動和圖形工作階段。 |
+
+```bash
+git clone https://github.com/vibex-ai/vibex.git
+cd vibex
+git submodule update --init --recursive
+pnpm install --frozen-lockfile
+```
+
+## 啟動桌面端
+
+```bash
+pnpm dev:desktop
+```
+
+針對性 Rust 檢查：
+
+```bash
+cargo check -p vibex-desktop --locked
+cargo test -p vibex-desktop --locked
+```
+
+Android 需要 SDK/NDK、`cargo-ndk` 與目標 ABI targets。iOS 需要 macOS、Xcode、XcodeGen 及兩個 Apple Rust targets。Relay 本機開發可使用 Docker，維持 loopback 綁定。
+
+```bash
+docker compose -f deploy/relay/docker-compose.yml up --build -d relay-server
+curl -fsS http://127.0.0.1:9700/health
+docker compose -f deploy/relay/docker-compose.yml down
+```
+
+生產網路設定請參閱 [Remote v2 與 Relay](/zh-TW/developer/remote-protocol)。不要提交 `target`、簽章套件、PDFium 執行環境或本機憑證。

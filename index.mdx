@@ -1,20 +1,46 @@
 ---
-title: "Introduction"
-description: "Welcome to your project"
+title: "Vibex 文档"
+description: "面向使用者和开发者的 Vibex 本地优先 AI 编程工作台指南。"
 ---
 
-Write a short description of your product here. What it does, who it's for, and what they can accomplish with it.
+Vibex 把 Agent 会话、工作区文件、编辑器、Git、终端和预览放在同一个原生工作台里。你可以让 Agent 修改代码，再检查计划、工具调用和差异，最后在同一个工作区中运行和交付改动。
 
-<Tip>
-  Ready to make this your own? Start by editing this page. Update your `docs.json` file to customize your site. Then fill out the [Quickstart](/quickstart) page.
-</Tip>
+Vibex 的桌面端是唯一的权威运行时。它负责启动 Agent、保存会话和时间线、访问文件与 Git、管理终端和权限。iOS 与 Android 移动端是远程伴侣，不会在手机上运行 Agent，也不会复制一份工作区。
 
-<Card title="Quickstart" icon="rocket" href="/quickstart">
-  This card links to the quickstart page in your project.
-</Card>
-<Card title="Components" icon="puzzle-piece" href="https://mintlify.com/docs/components">
-  Add cards, callouts, steps, tabs, and more to design and structure your pages.
-</Card>
-<Card title="Settings" icon="gear" href="https://mintlify.com/docs/organize/settings">
-  Set your site name, branding, and navigation in the `docs.json` file.
+<Columns>
+  <Card title="从这里开始" icon="rocket" href="/quickstart">
+    用一个本地工作区完成第一次 Agent 任务。
+  </Card>
+  <Card title="安装与平台" icon="download" href="/install">
+    查看桌面端、移动端和 Relay 的前置条件。
+  </Card>
+  <Card title="开发者指南" icon="code" href="/developer">
+    了解架构、构建、测试和 Remote v2 契约。
+  </Card>
+</Columns>
+
+## 你可以用 Vibex 做什么
+
+- 在结构化时间线中查看 Markdown 回复、推理、计划、工具调用、进程详情、附件、审批和询问表单。
+- 用 `/` 命令、`@` 文件引用、`$` Skills 和附件组织 Composer 输入。
+- 在文件树和编辑器中搜索、编辑、保存、重命名和预览文件。
+- 查看 Git 状态、差异、历史和 blame，创建分支并提交或推送改动。
+- 使用带 ANSI 仿真的原生 PTY，在多个终端标签中运行项目命令。
+- 配置 Agent、模型供应商、MCP、Skills、Prompts、Hooks、定时任务和自动化图。
+- 将桌面会话安全地配对到移动端，在手机上查看进度、回复问题和处理审批。
+
+<Frame caption="截图占位：桌面端工作台总览">
+  <img src="/images/screenshot-placeholder.svg" alt="桌面端工作台截图占位" />
+</Frame>
+
+<Info>
+  Vibex 当前以源码仓库为中心维护。可用的发布包和具体下载地址取决于项目发布流程；请以 [Vibex GitHub 仓库](https://github.com/vibex-ai/vibex) 的最新说明为准。
+</Info>
+
+## 文档导航
+
+使用者指南按“开始使用、日常工作、扩展与自动化、远程与连续性”组织。开发者指南说明如何在保持桌面端权威模型的前提下构建和测试各个平台。
+
+<Card title="快速开始" icon="arrow-right" href="/quickstart">
+  如果你已经准备好运行环境，直接开始第一次会话。
 </Card>

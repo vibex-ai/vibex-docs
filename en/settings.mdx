@@ -1,0 +1,58 @@
+---
+title: "Settings"
+description: "Adjust Vibex interface, workbench, session, terminal, shortcut, and diagnostic preferences."
+---
+
+Open **Settings** (cmd-, on macOS, usually ctrl-, on Windows/Linux) to change local desktop preferences. Settings are separate from Agent, provider, and workflow resources in Config Center.
+
+## Sections
+
+| Section | Controls |
+| --- | --- |
+| **General** | Language, startup behavior, and general application preferences. |
+| **Appearance** | Theme, fonts, size, density, and project icons. |
+| **Workbench** | Sidebar, previews, panels, and editor layout. |
+| **Session** | Content width, preview rail, timeline presentation, and run experience. |
+| **Terminal** | Default shell, font, scrollback, and terminal display behavior. |
+| **Shortcuts** | View and edit keyboard shortcuts. |
+| **Data & Diagnostics** | Local data, diagnostic level, and redacted export entry points. |
+| **About** | Version, license, and build information. |
+
+<Frame caption="Screenshot placeholder: Settings sections and Appearance/Workbench controls">
+  <img src="/images/screenshot-placeholder.svg" alt="Placeholder for Settings screenshots" />
+</Frame>
+
+## Change a preference
+
+1. Choose a section.
+2. Change an option and check its preview or description.
+3. Use the option's default value or **Reset** to restore it.
+4. Close Settings. The desktop persists local preferences for the next launch.
+
+Appearance preferences change only the local UI. They do not edit Agent system Prompts, workspace files, or provider profiles. Available fonts depend on the operating system; unsupported fonts fall back to an available choice.
+
+## Shortcuts
+
+| Action | macOS | Windows/Linux |
+| --- | --- | --- |
+| Sidebar | cmd-b | ctrl-b |
+| Preview | cmd-shift-p | ctrl-shift-p |
+| Right sidebar | cmd-shift-r | ctrl-shift-r |
+| Conversation/terminal mode | cmd-shift-t | ctrl-shift-t |
+| Settings | cmd-, | ctrl-, |
+| Search in session | cmd-f | ctrl-f |
+| Retry runtime | cmd-r | ctrl-r |
+| Save file | cmd-s | ctrl-s |
+| Back/forward | alt-left / alt-right | alt-left / alt-right |
+
+Shortcuts can conflict with the operating system or terminal. Test a changed shortcut in its target window.
+
+## Data and diagnostics
+
+Choose the smallest diagnostic scope and inspect the redaction before exporting. Never export tokens, private keys, Prompts, file contents, Git diffs, terminal bytes, or pairing data. Close the desktop or use the project backup procedure before copying SQLite. After restore, verify workspace paths, device grants, and secret references.
+
+<Warning>Resetting a preference is different from deleting the local database or workspace. Read [Privacy and recovery](/en/privacy-and-recovery) before destructive recovery actions.</Warning>
+
+## Version information
+
+**About** shows the build version, license, and platform. Include these non-sensitive values and structured errors in an Issue, not complete logs.

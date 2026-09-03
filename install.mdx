@@ -1,0 +1,71 @@
+---
+title: "安装与平台"
+description: "准备 Vibex 桌面端、移动端和可选 Relay 的运行环境。"
+---
+
+Vibex 当前仓库提供源码构建流程。桌面端支持 Linux、macOS 和 Windows；移动端使用原生 Android 与 iOS 工程；Relay 是可选的自托管组件。
+
+## 桌面端
+
+| 项目 | 要求 |
+| --- | --- |
+| Node.js | 22。Node 26 不受当前 Mintlify 和部分构建脚本支持。 |
+| pnpm | 11.3.0，以 `package.json` 中的 `packageManager` 为准。 |
+| Rust | 1.97.0，使用仓库提供的 toolchain 文件。 |
+| 图形环境 | Linux、macOS 或 Windows 的可用原生图形会话；Linux 需要 Vulkan。 |
+| Git | 支持子模块，并能访问要打开的仓库。 |
+
+```bash
+git clone https://github.com/vibex-ai/vibex.git
+cd vibex
+git submodule update --init --recursive
+pnpm install --frozen-lockfile
+pnpm dev:desktop
+```
+
+<Note>
+  上面的命令启动开发版。正式安装包由项目发布流程生成，版本、签名和下载渠道可能随发布变化，请查看仓库 Release 页面。
+</Note>
+
+## Android
+
+Android 构建需要 Android SDK/NDK、`cargo-ndk` 和目标 ABI 对应的 Rust targets。Debug 默认构建 `arm64-v8a` 与 `x86_64`，Release 默认构建 `arm64-v8a`。
+
+```bash
+pnpm build:mobile:android
+pnpm package:mobile:android
+```
+
+可以用 `VIBEX_MOBILE_ANDROID_TARGETS`（空格分隔）覆盖 Debug ABI。Release APK 默认未签名，分发前必须使用发布密钥完成对齐和签名。
+
+## iOS
+
+iOS 构建需要 macOS、Xcode、XcodeGen，以及 `aarch64-apple-ios` 和 `aarch64-apple-ios-sim` Rust targets。
+
+```bash
+pnpm build:mobile:ios
+```
+
+脚本会构建 `VibexFFI.xcframework` 并生成 Xcode 项目。代码签名、真机或模拟器选择以及分发凭据由本机环境管理。
+
+## 自托管 Relay
+
+Relay 只在你需要跨网络连接，且不想把传输交给第三方时使用。它转发加密帧，不存储或解密工作区、会话、Git、终端或供应商数据。
+
+```bash
+docker compose -f deploy/relay/docker-compose.yml up --build -d relay-server
+curl -fsS http://127.0.0.1:9700/health
+docker compose -f deploy/relay/docker-compose.yml down
+```
+
+生产部署应使用受控 HTTPS/WSS 入口，例如 Caddy 或私有 Tailnet。详细配置见 [Remote v2 与 Relay](/developer/remote-protocol)。
+
+## 验证安装
+
+```bash
+pnpm check
+pnpm release:build-smoke
+pnpm check:mobile-native
+```
+
+这些命令分别覆盖常规 Rust/前端/许可证检查、桌面/移动端/Relay 构建图，以及移动端 crate 和原生项目契约。它们不替代真实设备上的网络和签名验证。

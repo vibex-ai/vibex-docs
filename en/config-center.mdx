@@ -1,0 +1,40 @@
+---
+title: "Config Center"
+description: "Manage Vibex Agents, provider profiles, MCP, and workflow resources in one place."
+---
+
+**Config Center** is Vibex's configuration entry point. It shows connections, Prompts, and automation resources together with scope, state, and validation results.
+
+## Sections
+
+| Section | Use it for |
+| --- | --- |
+| **Agents** | Discover, enable, and manage Agent runtimes. |
+| **Model Providers** | Configure providers, models, reasoning options, and authentication. |
+| **MCP** | Add MCP servers, environment variables, and headers. |
+| **Skills** | Import reusable `SKILL.md` packages. |
+| **Prompts & Hooks** | Manage slash commands, system snippets, and event Hooks. |
+| **Advanced** | Review advanced runtime and capability options. |
+| **Scheduled** | Create one-shot, interval, or daily tasks. |
+| **Automation** | Orchestrate Agent workflows with approval and check nodes. |
+| **Relay** | Configure optional self-hosted encrypted transport. |
+| **Recovery** | Review recovery, stale runs, and diagnostics. |
+
+<Frame caption="Screenshot placeholder: Config Center sections and resource scopes">
+  <img src="/images/screenshot-placeholder.svg" alt="Placeholder for Config Center screenshots" />
+</Frame>
+
+## Scopes
+
+Resources can normally use **global**, **user**, **project**, or **workspace** scope. Scope controls where a resource is visible and which value wins when names overlap. Start with the smallest scope: user for personal defaults, project for repository conventions, workspace for one checkout, and global only for true global defaults.
+
+## Save, validate, and import
+
+1. Fill the fields and save a draft.
+2. Run **Validation** for commands, URLs, required capabilities, and scope.
+3. Run a provider **Health probe** or **Capability probe**.
+4. Read the preview before applying. Native imports expose apply and rollback boundaries.
+
+<Warning>Vibex does not rewrite a real Agent home by default. It writes to the selected target only after you explicitly apply the change.</Warning>
+
+Use secret references or the operating system secure store for credentials. Do not place tokens, private keys, full environment values, Prompts, or file contents in descriptions, screenshots, or diagnostics. The desktop persists configuration and metadata locally; mobile receives permission-filtered projections.

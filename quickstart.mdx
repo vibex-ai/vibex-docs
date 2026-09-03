@@ -1,47 +1,73 @@
 ---
-title: "Quickstart"
-description: "Begin with a guide on the fastest path to a successful outcome"
+title: "快速开始"
+description: "安装并完成你的第一个 Vibex Agent 会话。"
 ---
 
-Describe how someone begins using your product. What is the first thing they need to do? Are there any prerequisites?
+这篇指南带你从源码启动桌面端，打开一个工作区，配置供应商，然后让 Agent 完成一个可检查的小任务。首次运行建议使用可丢弃的 Git 仓库。
 
-A quickstart should take someone from zero to using your product. They'll get a quick win and a sense of what they can accomplish.
+## 前置条件
 
-## Prerequisites
+- Git，并能初始化或克隆带子模块的仓库。
+- Node.js 22 和 pnpm 11.3.0。
+- Rust 1.97.0。仓库中的 `rust-toolchain.toml` 会固定工具链版本。
+- Linux、macOS 或 Windows 图形会话；Linux 需要可用的 Vulkan 驱动。
+- 至少一个可用的 Agent 运行时和供应商凭据。凭据只在本机配置，不要写入文档或日志。
 
-Before you begin, you must have:
-
-- Requirement one (for example, Node.js 18+, a free account, an API key)
-- Requirement two (for example, a compatible device, a compatible browser, a compatible operating system)
-
-## Get started
+## 启动桌面端
 
 <Steps>
-  <Step title="Install">
-    Describe how to install your product or sign up.
-
+  <Step title="获取仓库">
     ```bash
-    npm install your-package
+    git clone https://github.com/vibex-ai/vibex.git
+    cd vibex
+    git submodule update --init --recursive
     ```
   </Step>
-  <Step title="Configure">
-    Describe any setup or configuration needed before first use.
-
+  <Step title="安装依赖">
     ```bash
-    your-cli init
+    pnpm install --frozen-lockfile
     ```
   </Step>
-  <Step title="Run it">
-    Show the first thing a user does to see it working.
-
+  <Step title="运行桌面工作台">
     ```bash
-    your-cli start
+    pnpm dev:desktop
     ```
+
+    首次编译可能需要较长时间。桌面端启动后，所有会话、文件、Git 和终端操作都由这个进程负责。
   </Step>
 </Steps>
 
-<Tip>
-  Give people a way to get help. This could be a link to a support page, a chat with a customer support agent, or a forum for your product.
+## 完成第一次会话
 
-  Example: Need help? Reach out to us at [support@yourcompany.com](mailto:support@yourcompany.com).
+1. 在 **Config Center** 的 **Agents** 或 **Model Providers** 中添加一个可用配置。若 Agent 已安装但列表中不可用，先运行健康检查，确认命令和凭据。
+2. 打开一个 Git 仓库作为工作区。首次操作使用测试分支或临时仓库。
+3. 在 Composer 中输入一个范围明确的任务，例如“在 `README.md` 中补充安装步骤，并先展示计划”。
+4. 查看时间线中的计划和工具调用。需要文件、终端或权限时，Vibex 会显示具体请求。
+5. Agent 完成后打开 **Git diff**，检查每一处改动，再决定是否保存、提交或继续追问。
+
+<Frame caption="截图占位：首次会话中的 Composer、计划和 Git diff">
+  <img src="/images/screenshot-placeholder.svg" alt="首次 Agent 会话截图占位" />
+</Frame>
+
+## 了解 Composer 输入
+
+在 Composer 中可以组合多种上下文：
+
+| 写法 | 作用 |
+| --- | --- |
+| `/` | 选择可用的 Prompt 或 slash command。 |
+| `@` | 从当前工作区引用文件或目录。 |
+| `$` | 插入已启用的 Skill。 |
+| 附件按钮 | 添加图片等会话附件。 |
+
+发送前可以选择 Agent、供应商配置、模型、推理深度和 conversation mode。不同 Agent 支持的选项可能不同，界面会根据能力探测结果显示可用项。
+
+<Tip>
+  第一次任务先要求 Agent 给出计划，再允许它修改文件。这样你可以在时间线中确认范围和风险。
 </Tip>
+
+## 下一步
+
+- 需要安装包或移动端构建条件时，阅读 [安装与平台](/install)。
+- 需要理解文件和 Git 作用范围时，阅读 [工作区](/workspaces)。
+- 需要处理模型、MCP 或自动化时，阅读 [Config Center](/config-center)。

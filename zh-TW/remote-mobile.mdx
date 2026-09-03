@@ -1,0 +1,44 @@
+---
+title: "遠端存取與行動端"
+description: "將行動端配對到桌面執行環境，安全查看與操作會話。"
+---
+
+行動端是桌面端的原生遠端伴侶。桌面端仍負責 Agent、檔案、Git、PTY、供應商和權限；行動端透過 Remote v2 請求投影與操作，不會執行本機 Agent。
+
+## 選擇連線方式
+
+| 方式 | 適用情境 |
+| --- | --- |
+| **Direct** | 手機與桌面端可透過區域網路直接連線。 |
+| **Tailnet** | 使用 Tailscale 等私有網路，不暴露公共連接埠。 |
+| **Self-hosted Relay** | 無法直連時，由自託管 Relay 轉發加密框。 |
+
+Relay 不儲存或解密業務資料，只處理房間、連線和加密框等路由中繼資料。
+
+## 配對
+
+1. 桌面端開啟遠端配對，選擇 Direct、Tailnet 或自託管 Relay。
+2. 產生短效的一次性 QR 或 deep link。
+3. 手機掃描或開啟 `vibex://open/...`。
+4. 確認裝置名稱、工作區範圍和權限級別。
+5. 握手完成後等待桌面端傳送初始投影與會話清單。
+
+QR/deep link 不包含長期 grant、供應商密鑰、私鑰或工作區內容。不要公開分享。
+
+<Frame caption="截圖佔位：桌面端配對 QR 與行動端權限確認">
+  <img src="/images/screenshot-placeholder.svg" alt="遠端配對截圖佔位" />
+</Frame>
+
+## 權限級別
+
+- **read_only**：查看會話、檔案摘要、Git 狀態/差異與供應商摘要。
+- **approve_only**：處理允許範圍內的權限核准，不直接執行一般寫入。
+- **full_control**：傳送訊息、寫入檔案、輸入終端機和 Git 寫入，仍受桌面端能力門控。
+
+授予最小權限。桌面端可撤銷裝置，撤銷會立即結束該裝置連線。
+
+## 行動端操作與重連
+
+你可以查看 Agent 時間線、傳送訊息、填寫 elicitation、核准或拒絕請求、查看檔案和 Git 狀態，並在權限允許時使用遠端終端機。網路切換或應用程式恢復後，行動端會重新驗證並先執行 catch-up。看到 stale、revoked 或 resync required 時，依提示重新配對或檢查 Remote gateway。
+
+保持 Remote gateway 預設關閉或只綁定 loopback；透過 Tailnet 或受控 HTTPS/WSS 發布。不要使用公開未驗證監聽，也不要把 room id 當作權限憑據。

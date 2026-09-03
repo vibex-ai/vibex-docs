@@ -1,0 +1,55 @@
+---
+title: "Git 工作流"
+description: "在 Vibex 中检查、隔离、提交和交付代码改动。"
+---
+
+Vibex 提供 Git 原生审查界面。它不会替你决定何时提交，也不会在停止 Agent 时自动回滚工作区。
+
+## 查看改动
+
+打开 Git 面板后可以查看：
+
+- **Status**：未跟踪、已修改、已暂存和冲突文件。
+- **Diff**：工作区与索引或基线的差异。
+- **History**：提交历史。
+- **Blame**：逐行查看最后一次提交和作者。
+
+选择文件后确认路径、工作区和差异内容。移动端可以读取这些投影，但写操作需要相应权限。
+
+<Frame caption="截图占位：Git status、diff、history 和 blame 面板">
+  <img src="/images/screenshot-placeholder.svg" alt="Git 审查界面截图占位" />
+</Frame>
+
+## 分支和暂存
+
+1. 从 Git 面板创建或切换分支。
+2. 查看文件差异，按文件或块执行 **Stage** / **Unstage**。
+3. 需要放弃单个改动时使用 **Revert**，先确认目标和内容。
+4. 输入提交消息后执行 **Commit**；已有提交需要追加时使用 **Amend**。
+5. 使用 **Fetch** 更新远程引用，使用 **Push** 发布本地提交。
+
+<Warning>
+  **Revert**、切换分支、Amend 和 Push 都可能改变已有历史或远程状态。执行前确认分支、远程和待处理差异；团队策略要求时先创建备份分支。
+</Warning>
+
+## VibexWorktree
+
+使用 **VibexWorktree** 时，Git 面板还会提供：
+
+1. 创建隔离 worktree 和关联分支。
+2. 在隔离目录中运行 Agent。
+3. 检查改动后合并或 rebase 到目标分支。
+4. 出现冲突时逐文件处理，重新检查状态，再继续操作。
+5. 确认结果后丢弃 worktree；未提交内容会随隔离目录删除。
+
+<Info>
+  **CurrentCheckout** 直接修改当前检出目录；**VibexWorktree** 让并行任务拥有独立目录。无论哪种模式，都以桌面端 Git 状态为准。
+</Info>
+
+## 常见流程
+
+```text
+查看 status -> 阅读 diff -> 运行测试 -> stage -> commit -> fetch -> rebase/merge -> push
+```
+
+测试或 Agent 仍在运行时不要切换分支。提交前检查敏感文件、生成物和凭据是否被意外加入。

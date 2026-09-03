@@ -1,0 +1,42 @@
+---
+title: "Config Center"
+description: "集中管理 Vibex 的 Agent、供應商、MCP 與工作流程設定。"
+---
+
+**Config Center** 是 Vibex 的設定入口。它集中顯示連線、提示詞與自動化資源，並標記每項資源的範圍、狀態與驗證結果。
+
+## 設定分區
+
+| 分區 | 用途 |
+| --- | --- |
+| **Agents** | 發現、啟用與管理 Agent 執行環境。 |
+| **Model Providers** | 設定模型供應商、模型、推理選項與驗證。 |
+| **MCP** | 加入 MCP 伺服器、環境變數和請求標頭。 |
+| **Skills** | 匯入可重用的 `SKILL.md` 能力包。 |
+| **Prompts & Hooks** | 管理 slash command、系統片段與事件 Hook。 |
+| **Advanced** | 查看進階執行環境與能力選項。 |
+| **Scheduled** | 建立一次性、週期性或每日任務。 |
+| **Automation** | 編排帶有核准和檢查節點的 Agent 工作流程。 |
+| **Relay** | 設定可選的自託管加密傳輸。 |
+| **Recovery** | 查看恢復、陳舊執行和診斷入口。 |
+
+<Frame caption="截圖佔位：Config Center 分區清單與資源範圍">
+  <img src="/images/screenshot-placeholder.svg" alt="Config Center 截圖佔位" />
+</Frame>
+
+## 範圍
+
+資源通常可設為 **global**、**user**、**project** 或 **workspace**。範圍決定資源在哪些會話和工作區可見。先選擇最小範圍：個人資源用 user，專案約定用 project，目前檢出專用用 workspace，全域預設才用 global。
+
+## 儲存、驗證與匯入
+
+1. 填寫欄位並儲存草稿。
+2. 執行 **Validation**，檢查命令、URL、必填能力與範圍。
+3. 對供應商執行 **Health probe** 或 **Capability probe**。
+4. 閱讀預覽後套用變更。支援原生設定的匯入會提供 apply 和 rollback 邊界。
+
+<Warning>
+  Vibex 預設不會改寫真實 Agent home 設定。只有你明確套用時才會寫入選定目標。不要把 token、私鑰、提示詞或檔案內容放進描述或日誌。
+</Warning>
+
+桌面端在本機保存設定、會話中繼資料與終端機中繼資料；行動端只讀取經過權限過濾的投影。遇到重啟後狀態不一致時，先查看 **Recovery**，不要直接刪除 SQLite 資料庫。

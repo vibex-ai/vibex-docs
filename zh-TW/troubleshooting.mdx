@@ -1,0 +1,31 @@
+---
+title: "故障排除"
+description: "依工作區、Agent、遠端連線和恢復狀態定位常見問題。"
+---
+
+先確認桌面端仍在執行、目前工作區正確、資源範圍匹配，再查看結構化錯誤碼和最近時間線事件。不要把完整日誌直接貼到公開 Issue。
+
+## Agent 無法啟動
+
+1. 在 **Config Center > Agents** 確認命令存在且可執行。
+2. 檢查關聯的供應商 profile、模型與 secret reference。
+3. 執行 health probe，再查看 capability probe。
+4. 在終端機執行不含敏感參數的版本命令，確認 PATH 與權限。
+
+## 訊息卡住或狀態錯誤
+
+查看時間線是否在 waiting、permission request 或 elicitation，確認沒有其他執行佔用相同工作區。若剛重啟，等待持久化狀態載入；對沒有實際程序的 `running` 會話，使用 **Recovery** 支援的操作。
+
+## 檔案、Git 或終端機結果不對
+
+確認目前工作區、分支和 CurrentCheckout/VibexWorktree 模式。儲存編輯器檔案後重新整理檔案樹與 Git status。檢查外部程序修改或衝突。終端機若無輸出，確認分頁、PTY stale 與 shell 狀態，以新快照為準，不要根據舊快照重複命令。
+
+## 行動端無法連線
+
+1. 確認 Remote gateway 已啟用，監聽策略符合 Direct/Tailnet/Relay。
+2. 檢查手機網路與桌面端地址，Direct 失敗時測試 Tailnet 或 Relay。
+3. 重新產生短效 QR/deep link，不要重用舊 pairing offer。
+4. 顯示 revoked 必須重新配對；顯示 resync required 時等待權威 catch-up。
+5. Relay 模式可檢查 `/health` 與 `/api/info`，但不要把 room id 當作授權憑據。
+
+提交診斷時提供版本、作業系統、重現步驟、結構化錯誤碼和脫敏時間戳。移除 token、私鑰、配對資料、工作區路徑、Prompt、檔案內容、Git diff 和終端機輸出。入口在 [GitHub Issues](https://github.com/vibex-ai/vibex/issues)。

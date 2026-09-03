@@ -1,0 +1,43 @@
+---
+title: "Build and test"
+description: "Choose the right Vibex checks, smoke tests, and release build commands."
+---
+
+## Routine checks
+
+```bash
+pnpm check
+```
+
+This covers Rust quality, frontend type/lint, and license checks. Use `pnpm check:all` for a broader cross-layer run.
+
+## Release build smoke
+
+```bash
+pnpm release:build-smoke
+cargo check -p vibex-desktop --locked
+cargo test -p vibex-desktop --locked
+pnpm smoke:first-frame
+```
+
+## Feature smoke tests
+
+```bash
+pnpm check:acp
+pnpm check:code-workbench
+pnpm check:terminal
+pnpm check:mobile-native
+pnpm smoke:relay:local
+```
+
+Scripts can create evidence or capture files. Do not commit artifacts containing credentials, Prompts, paths, diffs, or terminal content.
+
+## Contracts to test
+
+- Insufficient permission returns a structured error.
+- Cursor/generation gaps trigger `resync_required`.
+- File writes use revision/CAS to avoid overwriting external edits.
+- Terminal and attachment streams open only after authorization and close on revocation.
+- Restart, disconnect, and stale states are reproducible.
+
+Read `docs/operations/release.md` before a release. Packages, binaries, APKs, and signing material are build artifacts, not source.

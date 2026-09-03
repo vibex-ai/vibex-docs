@@ -1,0 +1,52 @@
+---
+title: "Remote v2 与 Relay"
+description: "实现配对、认证、同步和自托管加密传输时遵循的协议边界。"
+---
+
+Remote v2 是桌面端与移动端之间的类型化协议。它把业务授权留在桌面端，把传输路线（Direct、Tailnet、Relay）作为可替换基础设施。
+
+## 配对和身份
+
+- 桌面端身份在运行时 home 中生成并以 Unix `0600` 权限保存。
+- 配对 offer 只存活约 60–120 秒，可取消且只能使用一次。
+- QR/deep link 使用 `vibex://open/<transport>#/pair/<base64url-offer>`。
+- offer 包含候选路线、桌面公钥、权限摘要、过期时间和一次性 challenge，不包含长期 grant、secret 或工作区数据。
+- 设备 grant 撤销后，所有活动连接立即收到 `device_revoked`。
+
+## 握手和密钥
+
+实现使用 X25519、HKDF-SHA256、HMAC-SHA256 和 ChaCha20-Poly1305 等成熟原语。WebSocket ticket 为 30 秒、单次使用，并通过受控 subprotocol 交换，不放在 URL 中。
+
+hello proof 绑定 ticket challenge、完整 hello transcript、服务器身份、session epoch、设备身份和客户端临时密钥。`server_info` 返回服务器临时密钥和会话密钥确认。
+
+## RPC、事件和同步
+
+所有业务操作都经过设备认证、权限和工作区授权。变更使用有界幂等键；文件操作额外使用内容修订/CAS。客户端发现序列号或 cursor 缺口时返回 `resync_required`，并从权威资源重新获取。
+
+附件流在开始前重新认证。Terminal attachment 带工作区作用域；终端输入需 generation 检查、授权和审计，不能保留原始字节。
+
+## Relay 约束
+
+Relay 只转发不透明加密帧，并可以暴露 `/health`、`/api/info` 和 WebSocket bridge 所需的路由元数据。它不执行业务授权、不读写工作区、不保存 Provider 或时间线。
+
+本地检查：
+
+```bash
+pnpm smoke:relay:local
+cargo test -p vibex-remote-client --test relay_smoke --locked -- --nocapture
+```
+
+不要在 Relay 日志和测试证据中记录 token、pairing code、私钥、提示词、文件路径、终端内容、Git diff、Provider 设置、原始密文或 nonce。
+
+## 连接策略
+
+Remote client 可以在 Direct、Tailnet 和 Relay 之间探测和回退。路线恢复后应重新探测并切换，不需要重复配对；如果设备被撤销，任何路线都必须失败。
+
+## 部署示例
+
+```bash
+docker compose -f deploy/relay/docker-compose.yml up --build -d relay-server
+curl -fsS http://127.0.0.1:9700/health
+```
+
+发布到公网前配置 HTTPS/WSS、Host/Origin 校验、连接和房间上限，并阅读仓库中的 `docs/smoke/relay-nat.md`。

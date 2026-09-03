@@ -1,0 +1,31 @@
+---
+title: "Privacy and recovery"
+description: "Understand local storage, remote privacy, and restart behavior in Vibex."
+---
+
+Vibex is local-first. The desktop stores projects, workspaces, sessions, timelines, provider profiles, terminal metadata, and remote device records. Remote clients receive only authorized projections.
+
+## Data locations
+
+- SQLite stores authoritative metadata and recoverable session state.
+- Workspace files stay in your local directory or Git worktree.
+- Agents, terminals, and Git processes run on the desktop.
+- Self-hosted Relay forwards encrypted frames and does not hold the business database.
+
+Relay rooms and connections are ephemeral; Relay logs should contain only routing, counts, and timing metadata.
+
+## Restart and stale state
+
+After restart, the desktop reloads workspaces, sessions, and configuration from persisted records. A database `running` value records the last observed state, not proof of a live process. Lost terminals become stale. Check the real process and workspace before recovery.
+
+<Info>When you see stale or resync required, refresh authoritative state before retrying. Do not repeat side-effecting commands because a mobile view is temporarily quiet.</Info>
+
+## Device revocation
+
+Revoking a device in the desktop remote-device list sends a revoked state and closes active connections. Re-pair to use it again; old QR codes, grants, and tickets must not be reused.
+
+## Diagnostics and backups
+
+Redact tokens, private keys, pairing codes, Prompts, file contents, Git diffs, and terminal bytes. Keep the version, platform, structured error, time, and non-sensitive resource ids. Close the desktop or use the project backup procedure before copying SQLite. After restore, verify workspace paths, device grants, and secret references.
+
+Agents and MCP may send context you explicitly provide to external providers. Read their privacy terms and limit data with workspace scope, approval gates, and minimal attachments.

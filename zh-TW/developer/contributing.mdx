@@ -1,0 +1,32 @@
+---
+title: "貢獻程式碼"
+description: "依 Vibex 的架構、測試和隱私要求提交變更。"
+---
+
+## 開始前
+
+1. 閱讀根目錄 `README.md` 與相關 `docs/` 設計/檢查說明。
+2. 搜尋既有 facade、DTO、reducer 和平台適配器，再決定是否需要新抽象。
+3. 保留工作樹中已有的未提交變更，不覆蓋其他人的檔案。
+
+## 實作原則
+
+- 保持 `DesktopRuntime` 為唯一權威狀態所有者。
+- 讓行動端透過共享後端與 Remote v2 契約存取能力。
+- 使用結構化錯誤、能力和序號，不依賴 UI 文案判斷成功。
+- 對檔案、Git、終端機、Provider 和裝置操作執行權限校驗與審計。
+- 日誌、測試證據與截圖脫敏，不寫入 secret、Prompt、檔案內容或終端機位元組。
+
+## 提交前檢查
+
+```bash
+pnpm check
+pnpm release:build-smoke
+pnpm check:mobile-native
+```
+
+依改動範圍補充 `check:acp`、`check:code-workbench`、`check:terminal`、`smoke:relay:local` 或 Cargo 測試。跨層變更應覆蓋斷線、重啟、權限不足、序號間隙和恢復路徑。
+
+## 文件與 Pull Request
+
+使用者可見行為要同步更新簡體中文、繁體中文和英文頁面。未確認細節用 `TODO` 標記，不把測試 spike 當成穩定功能。PR 說明行為變更、所有權邊界、測試命令、兼容性、遷移和回滾策略。入口見 [GitHub](https://github.com/vibex-ai/vibex)。

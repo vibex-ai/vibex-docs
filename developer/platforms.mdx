@@ -1,0 +1,49 @@
+---
+title: "平台支持"
+description: "了解 Linux、macOS、Windows、Android 和 iOS 的构建边界。"
+---
+
+## 支持矩阵
+
+| 平台 | 产品形态 | 关键依赖 | 说明 |
+| --- | --- | --- | --- |
+| Linux | 原生桌面端 | Vulkan 图形会话 | 可运行开发命令和预览 smoke。 |
+| macOS | 原生桌面端 | Xcode 工具链（按构建任务需要） | 支持桌面开发和 iOS 构建。 |
+| Windows | 原生桌面端 | Rust/Node 原生构建环境 | 使用平台对应 shell 和凭据存储。 |
+| Android | 原生移动端 | Android SDK/NDK、`cargo-ndk` | Debug 默认 arm64-v8a/x86_64。 |
+| iOS | 原生移动端 | macOS、Xcode、XcodeGen | 生成 `VibexFFI.xcframework` 和 Xcode 项目。 |
+| 自托管 Linux/容器 | Relay | Rust/Axum 或 Docker | 只转发加密帧。 |
+
+## 桌面平台边界
+
+桌面端是 Agent、文件、Git、PTY、Provider、权限和持久化的权威。平台差异应封装在 `apps/desktop/src/platform` 或共享 facade 中，不要在 UI 中复制业务分支。
+
+## Android 构建
+
+```bash
+pnpm build:mobile:android
+```
+
+打包 Release：
+
+```bash
+pnpm package:mobile:android
+```
+
+设置 `VIBEX_MOBILE_ANDROID_TARGETS` 可覆盖 Debug ABI。未签名 APK 不可直接作为正式分发包。
+
+## iOS 构建
+
+```bash
+pnpm build:mobile:ios
+```
+
+签名、Bundle identifier、真机/模拟器和分发凭据由本机 Xcode 流程决定。不要把证书或 provisioning profile 提交到仓库。
+
+## 移动端生命周期
+
+移动端需要处理后台、网络切换、断线和重连。恢复时先用 Remote v2 获取权威会话/时间线，再订阅实时事件；不要使用过期的本地投影覆盖桌面状态。
+
+## Relay 部署
+
+推荐把 Relay 绑定 loopback，再通过受控 HTTPS 反向代理或 Tailnet Serve 发布。Host 和 Origin 必须独立校验，CORS 不得使用 `*`。Relay 不应提供移动端 Web UI 或业务 API。

@@ -1,0 +1,60 @@
+---
+title: "设置"
+description: "调整 Vibex 的界面、工作台、会话、终端、快捷键和诊断选项。"
+---
+
+打开 **Settings**（macOS 为 cmd-,，Windows/Linux 通常为 ctrl-,）可以修改桌面端的本地偏好。设置不会替代 Config Center 中的 Agent、供应商或工作流资源配置。
+
+## 设置分区
+
+| 分区 | 可调整内容 |
+| --- | --- |
+| **General** | 语言、启动行为和通用应用偏好。 |
+| **Appearance** | 主题、字体、字号、密度和项目图标等显示选项。 |
+| **Workbench** | 侧栏、预览、面板和编辑器布局。 |
+| **Session** | 会话内容宽度、预览条、时间线显示和运行体验。 |
+| **Terminal** | 默认 shell、字体、滚动缓冲区和终端显示行为。 |
+| **Shortcuts** | 查看和修改键盘快捷键。 |
+| **Data & Diagnostics** | 本地数据、诊断级别和脱敏导出入口。 |
+| **About** | 版本、许可证和构建信息。 |
+
+<Frame caption="截图占位：Settings 分区和 Appearance/Workbench 选项">
+  <img src="/images/screenshot-placeholder.svg" alt="Settings 页面截图占位" />
+</Frame>
+
+## 修改偏好
+
+1. 选择设置分区。
+2. 修改单项选项，观察右侧预览或说明。
+3. 需要恢复时使用该选项的默认值或 **Reset**。
+4. 关闭设置页；桌面端会保存本地偏好，并在下次启动时恢复。
+
+外观偏好只改变本机 UI，不会修改 Agent 的系统提示词、工作区文件或供应商配置。字体列表受操作系统安装内容影响，无法使用的字体会回退到可用字体。
+
+## 快捷键
+
+| 操作 | macOS | Windows/Linux |
+| --- | --- | --- |
+| 侧栏 | cmd-b | ctrl-b |
+| 预览 | cmd-shift-p | ctrl-shift-p |
+| 右侧栏 | cmd-shift-r | ctrl-shift-r |
+| 对话/终端模式 | cmd-shift-t | ctrl-shift-t |
+| 设置 | cmd-, | ctrl-, |
+| 会话内搜索 | cmd-f | ctrl-f |
+| 重试运行时 | cmd-r | ctrl-r |
+| 保存文件 | cmd-s | ctrl-s |
+| 前进/后退 | alt-left / alt-right | alt-left / alt-right |
+
+快捷键可以在 **Settings > Shortcuts** 中查看或调整。它们可能与操作系统或终端应用冲突，修改后请在对应窗口测试。
+
+## 数据与诊断
+
+诊断导出前选择最小范围并确认脱敏结果。不要导出 token、私钥、提示词、文件内容、Git diff、终端字节或配对数据。备份或迁移 SQLite 前关闭桌面端，恢复后检查工作区路径、设备授权和 secret reference。
+
+<Warning>
+  重置设置只影响偏好；删除本地数据库或工作区目录是不同的破坏性操作。执行前先阅读 [隐私与恢复](/privacy-and-recovery)。
+</Warning>
+
+## 关于版本
+
+**About** 显示当前构建版本、许可证和平台信息。报告问题时附上这些不敏感信息和结构化错误码，不要附上完整日志。

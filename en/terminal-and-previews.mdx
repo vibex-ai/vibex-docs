@@ -1,0 +1,38 @@
+---
+title: "Terminals and previews"
+description: "Run commands in a native PTY and inspect generated content in the workbench."
+---
+
+Vibex uses a native PTY with ANSI emulation for development servers, tests, and Git commands. Terminals belong to the desktop runtime. Mobile requests a remote view or input only after authorization.
+
+## Open a terminal
+
+1. Open the terminal panel.
+2. Choose a workspace directory and shell.
+3. Run commands in terminal tabs. Create tabs and resize them independently.
+4. Use the scrollback buffer or terminal search to inspect earlier output.
+
+```bash
+git status --short
+pnpm test
+```
+
+<Frame caption="Screenshot placeholder: terminal tabs, shell selector, and search toolbar">
+  <img src="/images/screenshot-placeholder.svg" alt="Placeholder for terminal interface screenshots" />
+</Frame>
+
+## Terminal controls
+
+- Create, close, and switch tabs.
+- Resize the PTY; programs receive the latest rows and columns.
+- Search output, copy a selection, or paste input.
+- Switch available shells; the operating system controls installation and permissions.
+- Treat raw bytes and ANSI control sequences correctly.
+
+When an Agent requests a command, the timeline shows process details and the exit result. Check the command, working directory, and parameters before approving. Terminating a process does not undo completed external operations.
+
+## Preview content and mobile terminal access
+
+Open Markdown, images, PDFs, or supported Office documents in the code workbench. Mobile receives terminal snapshots and an authorized input channel. Inputs carry workspace scope, generation checks, and audit records.
+
+<Note>Terminal snapshots may contain keys, paths, and user data. Do not paste complete output into public Issues, screenshots, or logs.</Note>

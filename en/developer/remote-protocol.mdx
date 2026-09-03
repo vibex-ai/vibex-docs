@@ -1,0 +1,31 @@
+---
+title: "Remote v2 and Relay"
+description: "Implement pairing, authentication, synchronization, and encrypted self-hosted transport within Vibex boundaries."
+---
+
+Remote v2 is the typed protocol between desktop and mobile. Business authorization remains on the desktop; Direct, Tailnet, and Relay are replaceable routes.
+
+## Pairing and identity
+
+- The desktop identity is generated in the runtime home and stored with Unix `0600` permissions.
+- A pairing offer lives for about 60–120 seconds, is cancelable, and is single-use.
+- QR/deep links use `vibex://open/<transport>#/pair/<base64url-offer>`.
+- An offer contains route candidates, the desktop public identity, permission summary, expiry, and a one-time challenge. It contains no long-lived grant, provider secret, private key, or workspace data.
+- Revocation sends `device_revoked` to every active connection for that device.
+
+## Handshake, RPC, and sync
+
+The implementation uses X25519, HKDF-SHA256, HMAC-SHA256, and ChaCha20-Poly1305. A WebSocket ticket is single-use for 30 seconds and travels through a controlled subprotocol, not a URL. The hello proof binds the challenge, full transcript, server identity, session epoch, device identity, and client ephemeral key.
+
+Every business operation checks device authentication, permissions, and workspace authorization. Mutations use bounded idempotency keys; file writes use revision/CAS. A sequence or cursor gap returns `resync_required`. Attachments and terminal streams open only after authorization.
+
+## Relay boundary and checks
+
+Relay forwards opaque encrypted frames and may expose routing metadata through `/health`, `/api/info`, and WebSocket bridges. It does not authorize business operations or read workspaces.
+
+```bash
+pnpm smoke:relay:local
+cargo test -p vibex-remote-client --test relay_smoke --locked -- --nocapture
+```
+
+Relay logs must not contain tokens, pairing codes, private keys, Prompts, file paths, terminal content, Git diffs, provider settings, raw ciphertext, or nonces. The remote client can probe and fall back between routes without pairing again; revocation must fail on every route.

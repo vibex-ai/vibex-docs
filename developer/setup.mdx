@@ -1,0 +1,54 @@
+---
+title: "本地开发环境"
+description: "安装 Vibex 的 Rust、Node、pnpm 和平台依赖。"
+---
+
+## 工具链
+
+| 工具 | 版本或说明 |
+| --- | --- |
+| Node.js | 22。 |
+| pnpm | 11.3.0。仓库通过 `packageManager` 声明。 |
+| Rust | 1.97.0，由 `rust-toolchain.toml` 固定。 |
+| Git | 需要子模块支持。 |
+| Linux 图形 | 可用 Vulkan 驱动和图形会话。 |
+
+```bash
+git clone https://github.com/vibex-ai/vibex.git
+cd vibex
+git submodule update --init --recursive
+pnpm install --frozen-lockfile
+```
+
+## 启动桌面端
+
+```bash
+pnpm dev:desktop
+```
+
+脚本会准备开发图标并运行 `vibex-desktop`。需要单独检查 Rust 时使用：
+
+```bash
+cargo check -p vibex-desktop --locked
+cargo test -p vibex-desktop --locked
+```
+
+## 可选移动端环境
+
+Android 需要 SDK/NDK、`cargo-ndk` 和目标 ABI 的 Rust targets。iOS 需要 macOS、Xcode、XcodeGen、`aarch64-apple-ios` 与 `aarch64-apple-ios-sim` targets。
+
+## 可选 Relay 环境
+
+Relay 本地开发需要 Docker 或可运行的 Rust 二进制。保持默认 loopback 绑定：
+
+```bash
+docker compose -f deploy/relay/docker-compose.yml up --build -d relay-server
+curl -fsS http://127.0.0.1:9700/health
+docker compose -f deploy/relay/docker-compose.yml down
+```
+
+生产网络、HTTPS、Tailnet 和环境变量请参阅 [Remote v2 与 Relay](/developer/remote-protocol)。
+
+## 工作区约定
+
+在仓库根目录执行脚本。不要提交 `target`、签名包、PDFium 运行时或本机凭据。变更产品仓库时，先确认工作树中的其他未提交改动并保留它们。

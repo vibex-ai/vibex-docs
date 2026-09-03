@@ -1,0 +1,69 @@
+---
+title: "Install and platforms"
+description: "Prepare desktop, mobile, and optional self-hosted Relay environments for Vibex."
+---
+
+The Vibex repository provides source builds. The desktop supports Linux, macOS, and Windows. Mobile uses native Android and iOS projects. Relay is optional.
+
+## Desktop
+
+| Item | Requirement |
+| --- | --- |
+| Node.js | 22. Node 26 is not supported by the current Mintlify and some build scripts. |
+| pnpm | 11.3.0, as declared by `package.json`. |
+| Rust | 1.97.0, using the repository toolchain file. |
+| Graphics | A native graphical session. Linux needs Vulkan. |
+| Git | Submodules and access to the repository you want to open. |
+
+```bash
+git clone https://github.com/vibex-ai/vibex.git
+cd vibex
+git submodule update --init --recursive
+pnpm install --frozen-lockfile
+pnpm dev:desktop
+```
+
+<Note>The command starts a development build. Release packages, signing, and download channels are defined by the repository Release process.</Note>
+
+## Android
+
+Android needs the SDK/NDK, `cargo-ndk`, and Rust targets for the selected ABIs. Debug defaults to `arm64-v8a` and `x86_64`; Release defaults to `arm64-v8a`.
+
+```bash
+pnpm build:mobile:android
+pnpm package:mobile:android
+```
+
+Set `VIBEX_MOBILE_ANDROID_TARGETS` to a space-separated ABI list to override Debug targets. Release APKs are unsigned until you align and sign them with your distribution key.
+
+## iOS
+
+iOS needs macOS, Xcode, XcodeGen, and the `aarch64-apple-ios` and `aarch64-apple-ios-sim` Rust targets.
+
+```bash
+pnpm build:mobile:ios
+```
+
+The script creates `VibexFFI.xcframework` and an Xcode project. Your local environment controls signing, device/simulator selection, and distribution credentials.
+
+## Self-hosted Relay
+
+Use Relay when the desktop and phone cannot connect directly and you want to operate the transport yourself. Relay forwards encrypted frames. It does not store or decrypt workspace, session, Git, terminal, or provider data.
+
+```bash
+docker compose -f deploy/relay/docker-compose.yml up --build -d relay-server
+curl -fsS http://127.0.0.1:9700/health
+docker compose -f deploy/relay/docker-compose.yml down
+```
+
+Use a controlled HTTPS/WSS entry point such as Caddy or a private Tailnet in production. See [Remote v2 and Relay](/en/developer/remote-protocol).
+
+## Verify the environment
+
+```bash
+pnpm check
+pnpm release:build-smoke
+pnpm check:mobile-native
+```
+
+These commands cover routine Rust/frontend/license checks, the desktop/mobile/Relay build graph, and native mobile contracts. They do not replace network or signing tests on physical devices.

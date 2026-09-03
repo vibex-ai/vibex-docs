@@ -1,0 +1,29 @@
+---
+title: "Developer guide"
+description: "Understand Vibex engineering constraints from local development through release."
+---
+
+Vibex is a native application driven by a Rust workspace. The desktop `DesktopRuntime` owns authoritative state. Mobile and remote transports access it through shared contracts.
+
+<Columns>
+  <Card title="Architecture boundaries" icon="sitemap" href="/en/developer/architecture">Learn the responsibilities of core crates, desktop, mobile, and Relay.</Card>
+  <Card title="Local setup" icon="terminal" href="/en/developer/setup">Prepare Rust, Node, pnpm, and graphics dependencies.</Card>
+  <Card title="Build and test" icon="flask" href="/en/developer/build-and-test">Run routine checks, smoke tests, and release gates.</Card>
+</Columns>
+
+## Constraints to preserve
+
+- The desktop owns Agents, sessions, timelines, files, Git, PTY, providers, permissions, and persistence.
+- Mobile consumes shared remote projections and sends typed operations. It does not duplicate business state.
+- Remote v2 DTOs, errors, capabilities, and sequence contracts live in the shared core layer.
+- Relay forwards encrypted frames. It does not own authorization, files, or the session database.
+- Cross-layer changes need deterministic checks or evidence and a test set proportional to their risk.
+
+## Reading order
+
+1. [Architecture boundaries](/en/developer/architecture)
+2. [Local setup](/en/developer/setup)
+3. [Build and test](/en/developer/build-and-test)
+4. [Platform support](/en/developer/platforms)
+5. [Remote v2 and Relay](/en/developer/remote-protocol)
+6. [Contributing](/en/developer/contributing)

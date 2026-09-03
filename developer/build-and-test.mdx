@@ -1,0 +1,52 @@
+---
+title: "构建与测试"
+description: "选择合适的 Vibex 检查、smoke test 和发布构建命令。"
+---
+
+## 常规检查
+
+```bash
+pnpm check
+```
+
+它包含 Rust 质量、前端类型/lint 和许可证检查。涉及多个层时再运行更广的 `pnpm check:all`。
+
+## 发布构建 smoke
+
+```bash
+pnpm release:build-smoke
+```
+
+该命令检查桌面端、移动端和 Relay crate 的构建图，不等于签名发布包。桌面端针对性检查：
+
+```bash
+cargo check -p vibex-desktop --locked
+cargo test -p vibex-desktop --locked
+pnpm smoke:first-frame
+```
+
+## 功能 smoke
+
+仓库提供针对 ACP、代码工作台、终端、PDF、原生内容、远程配对和 Relay 的脚本。例如：
+
+```bash
+pnpm check:acp
+pnpm check:code-workbench
+pnpm check:terminal
+pnpm check:mobile-native
+pnpm smoke:relay:local
+```
+
+命令可能生成本地证据或捕获文件；检查 `.gitignore` 和脚本说明，不要提交包含凭据、Prompt、路径、diff 或终端内容的产物。
+
+## 运行测试时关注的契约
+
+- 权限不足必须返回结构化错误，不得由 UI 猜测成功。
+- cursor/generation 间隙必须触发 `resync_required`。
+- 文件写入使用内容修订/CAS，避免覆盖外部修改。
+- 终端和附件流必须在授权后建立，并在撤销时关闭。
+- 重启、断线和 stale 状态必须可重复验证。
+
+## 发布前
+
+阅读 `docs/operations/release.md` 和目标平台说明。安装包、运行时二进制、Release APK 和签名资料属于构建或发布产物，不要把它们当作源代码提交。

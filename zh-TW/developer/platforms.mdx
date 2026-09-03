@@ -1,0 +1,29 @@
+---
+title: "平台支援"
+description: "了解 Linux、macOS、Windows、Android 和 iOS 的建置邊界。"
+---
+
+| 平台 | 產品形態 | 關鍵依賴 | 說明 |
+| --- | --- | --- | --- |
+| Linux | 原生桌面端 | Vulkan 圖形工作階段 | 可執行開發命令與預覽 smoke。 |
+| macOS | 原生桌面端 | Xcode 工具鏈 | 也支援 iOS 建置。 |
+| Windows | 原生桌面端 | Rust/Node 原生環境 | 使用平台對應 shell。 |
+| Android | 原生行動端 | Android SDK/NDK、`cargo-ndk` | Debug 預設 arm64-v8a/x86_64。 |
+| iOS | 原生行動端 | macOS、Xcode、XcodeGen | 產生 `VibexFFI.xcframework`。 |
+| 自託管 Linux/容器 | Relay | Rust/Axum 或 Docker | 只轉發加密框。 |
+
+桌面端是 Agent、檔案、Git、PTY、Provider、權限和持久化的權威。平台差異應封裝在 `apps/desktop/src/platform` 或共享 facade。
+
+## 行動端建置
+
+```bash
+pnpm build:mobile:android
+pnpm package:mobile:android
+pnpm build:mobile:ios
+```
+
+Release APK 未簽章；iOS 的簽章與真機/模擬器選擇由 Xcode 管理。行動端恢復時先用 Remote v2 取得權威會話/時間線，再訂閱即時事件。
+
+## Relay 部署
+
+建議 Relay 綁定 loopback，再透過受控 HTTPS 反向代理或 Tailnet Serve 發布。獨立校驗 Host 和 Origin，CORS 不得使用 `*`。Relay 不應提供行動端 Web UI 或業務 API。

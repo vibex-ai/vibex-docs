@@ -1,0 +1,36 @@
+---
+title: "Scheduled tasks and automation"
+description: "Schedule Agent runs and control approvals and checks with automation graphs."
+---
+
+Scheduled tasks decide when to run. An automation graph decides which nodes the run passes through.
+
+## Create a scheduled task
+
+Supported schedules are **one-shot**, **interval**, and **daily** with a time zone.
+
+<Steps>
+  <Step title="Choose a workspace and Agent">
+    Select the workspace, Agent, provider profile, and Prompt. Make sure scoped resources will still be available at run time.
+  </Step>
+  <Step title="Set the schedule">
+    Choose the type, time, time zone, and name. Check the next run after saving.
+  </Step>
+  <Step title="Confirm the state">
+    Tasks are active, paused, or deleted. Pausing keeps history; deleting should follow your audit needs.
+  </Step>
+</Steps>
+
+Run details include history, attention, audit, and stale-run recovery. A stopped desktop does not become a hosted scheduler; recovery uses persisted state to compensate or mark a run failed.
+
+## Automation graph nodes
+
+- **Agent prompt**, **approval gate**, **file check**, **Git check**, and **terminal check**.
+- **Manual trigger** and **Scheduled trigger**.
+- States: queued, running, waiting, succeeded, failed, canceled, and recovered.
+
+<Frame caption="Screenshot placeholder: graph editor, approval gate, and run history">
+  <img src="/images/screenshot-placeholder.svg" alt="Placeholder for automation graph screenshots" />
+</Frame>
+
+Automation does not bypass Agent or device permissions. Canceling a run does not undo completed file, Git, or external service operations. For a long-running state, inspect the desktop and stale terminals before retrying. Use temporary branches and non-sensitive data while testing.

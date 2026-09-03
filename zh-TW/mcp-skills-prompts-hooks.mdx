@@ -1,0 +1,38 @@
+---
+title: "MCP、Skills、Prompts 與 Hooks"
+description: "為 Agent 加入可重用工具、上下文與事件動作。"
+---
+
+這些資源擴充 Agent 的上下文和工作方式。每項資源都可按範圍啟用，套用前請驗證來源與權限。
+
+## MCP 伺服器
+
+MCP 支援 **stdio**、**HTTP** 和 **SSE**。新增時填寫啟動命令或 URL、環境變數/請求標頭與範圍，再執行 validation。
+
+1. 開啟 **MCP** 並選擇新增方式。
+2. 設定 global、user、project 或 workspace 範圍。
+3. 用 secret reference 保存敏感值。
+4. 查看 Provider matrix 與 Agent matrix，確認哪些執行環境會載入它。
+5. 若支援，執行 native discovery/import 後再啟用。
+
+<Warning>
+  MCP 工具可能讀取檔案、存取網路或修改外部系統。確認來源與權限後再關聯 Agent。
+</Warning>
+
+## Skills
+
+Skill 通常包含 `SKILL.md` 和輔助資源，來源可以是手動設定、Git 儲存庫、本機資料夾或 marketplace。匯入後掃描 `SKILL.md`，檢查名稱、說明和依賴，設定範圍並在矩陣中選擇使用者。校驗後啟用，不用時停用而不是刪除來源。Composer 中輸入 `$` 可尋找已啟用 Skill。
+
+## Prompts
+
+Prompt 可儲存為 reusable prompt、slash command 或 system snippet。在 Composer 輸入 `/` 尋找 slash command。寫清楚適用情境與輸出，執行 validation，暫時不用時停用，長期移除時歸檔。
+
+## Hooks
+
+Hooks 可綁定 terminal activity、session start、session stop 和 permission request。狀態包括 draft、enabled、disabled、install。先建立 Hook、閱讀安裝前預覽，再從 draft 測試到 enabled；停用時保留設定便於審計與恢復。
+
+<Frame caption="截圖佔位：MCP、Skills、Prompts 與 Hooks 的驗證狀態">
+  <img src="/images/screenshot-placeholder.svg" alt="工作流程資源設定截圖佔位" />
+</Frame>
+
+資源的範圍會影響載入順序與可見性。使用最小範圍，並從日誌與截圖移除 token、私鑰、環境變數值、提示詞和檔案內容。

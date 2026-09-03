@@ -1,0 +1,31 @@
+---
+title: "Remote v2 與 Relay"
+description: "實作配對、認證、同步和自託管加密傳輸時遵循的協議邊界。"
+---
+
+Remote v2 是桌面端與行動端之間的型別化協議。業務授權留在桌面端，傳輸路線（Direct、Tailnet、Relay）可替換。
+
+## 配對與身份
+
+- 桌面身份在執行環境 home 產生並以 Unix `0600` 保存。
+- pairing offer 有效約 60–120 秒，可取消且只能使用一次。
+- QR/deep link 格式為 `vibex://open/<transport>#/pair/<base64url-offer>`。
+- offer 不含長期 grant、供應商 secret、私鑰或工作區資料。
+- 撤銷裝置後，所有活動連線收到 `device_revoked`。
+
+## 握手、RPC 與同步
+
+使用 X25519、HKDF-SHA256、HMAC-SHA256 與 ChaCha20-Poly1305。WebSocket ticket 有效 30 秒且只能使用一次，不放在 URL。hello proof 綁定 challenge、完整 transcript、伺服器身份、session epoch、裝置身份與暫時金鑰。
+
+業務操作都經過裝置認證、權限與工作區授權。變更使用有界 idempotency key；檔案寫入使用修訂/CAS。序號或 cursor 有缺口時回傳 `resync_required`。附件和終端機串流必須在授權後建立。
+
+## Relay 約束與檢查
+
+Relay 只轉發不透明加密框，可提供 `/health`、`/api/info` 和 WebSocket bridge 的路由中繼資料，不執行業務授權或讀寫工作區。
+
+```bash
+pnpm smoke:relay:local
+cargo test -p vibex-remote-client --test relay_smoke --locked -- --nocapture
+```
+
+Relay 日誌不得記錄 token、配對碼、私鑰、Prompt、檔案路徑、終端機內容、Git diff、Provider 設定、原始密文或 nonce。Remote client 可在 Direct、Tailnet、Relay 間探測回退，路線恢復不需重新配對；撤銷後任何路線都必須失敗。

@@ -1,0 +1,71 @@
+---
+title: "快速開始"
+description: "安裝並完成你的第一個 Vibex Agent 會話。"
+---
+
+這篇指南帶你從原始碼啟動桌面端、開啟工作區、設定供應商，並讓 Agent 完成一個可檢查的小任務。第一次使用建議採用可丟棄的 Git 儲存庫。
+
+## 前置條件
+
+- 支援子模組的 Git。
+- Node.js 22 與 pnpm 11.3.0。
+- Rust 1.97.0；`rust-toolchain.toml` 會固定工具鏈版本。
+- Linux、macOS 或 Windows 圖形工作階段；Linux 需要可用 Vulkan 驅動程式。
+- 至少一個可用的 Agent 執行環境與供應商憑證。憑證只在本機設定，不要寫入文件或日誌。
+
+## 啟動桌面端
+
+<Steps>
+  <Step title="取得儲存庫">
+    ```bash
+    git clone https://github.com/vibex-ai/vibex.git
+    cd vibex
+    git submodule update --init --recursive
+    ```
+  </Step>
+  <Step title="安裝依賴">
+    ```bash
+    pnpm install --frozen-lockfile
+    ```
+  </Step>
+  <Step title="執行桌面工作台">
+    ```bash
+    pnpm dev:desktop
+    ```
+
+    第一次編譯可能需要較長時間。桌面端啟動後，會話、檔案、Git 與終端機操作都由這個程序負責。
+  </Step>
+</Steps>
+
+## 完成第一次會話
+
+1. 在 **Config Center** 的 **Agents** 或 **Model Providers** 中加入可用設定。若 Agent 已安裝但不可用，先執行健康檢查。
+2. 開啟 Git 儲存庫作為工作區。第一次操作請使用測試分支或暫存儲存庫。
+3. 在 Composer 輸入範圍明確的任務，例如「在 `README.md` 補充安裝步驟，並先顯示計畫」。
+4. 查看時間線中的計畫與工具呼叫。需要檔案、終端機或權限時，Vibex 會顯示具體請求。
+5. Agent 完成後開啟 **Git diff**，檢查每一處變更，再決定是否儲存、提交或繼續追問。
+
+<Frame caption="截圖佔位：首次會話中的 Composer、計畫與 Git diff">
+  <img src="/images/screenshot-placeholder.svg" alt="首次 Agent 會話截圖佔位" />
+</Frame>
+
+## Composer 輸入方式
+
+| 寫法 | 作用 |
+| --- | --- |
+| `/` | 選擇 Prompt 或 slash command。 |
+| `@` | 從目前工作區引用檔案或目錄。 |
+| `$` | 插入已啟用的 Skill。 |
+| 附件按鈕 | 加入圖片等會話附件。 |
+
+傳送前可以選擇 Agent、供應商設定、模型、推理深度與 conversation mode。可用選項取決於 Agent 的能力探測結果。
+
+<Tip>
+  第一次任務先要求 Agent 顯示計畫，再允許它修改檔案。你可以先確認範圍與風險。
+</Tip>
+
+## 下一步
+
+- [安裝與平台](/zh-TW/install)
+- [工作區](/zh-TW/workspaces)
+- [Config Center](/zh-TW/config-center)

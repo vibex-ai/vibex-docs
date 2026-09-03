@@ -1,0 +1,37 @@
+---
+title: "Agents and provider profiles"
+description: "Connect ACP Agents, choose models, and verify provider capabilities."
+---
+
+Vibex uses the [Agent Client Protocol](https://agentclientprotocol.com/) (ACP) for online Agent connections. Agent identity, provider profiles, and runtime capabilities are managed separately so you can switch implementations from one UI.
+
+## Available Agents
+
+Built-in presets commonly include **Claude Code**, **Codex**, **ZCode**, and **OpenCode**. The ACP catalog may include more integrations. Availability depends on local installation, provider profiles, and live capability probes. You can also register any ACP-compatible executable with its command, arguments, environment, and display metadata.
+
+<Frame caption="Screenshot placeholder: Agents, ACP executable, and capability state">
+  <img src="/images/screenshot-placeholder.svg" alt="Placeholder for Agent settings screenshots" />
+</Frame>
+
+## Create a provider profile
+
+1. In **Model Providers**, add a Codex, Claude, or ACP profile.
+2. Set the display name, base URL, model, and reasoning effort when supported.
+3. Select a secret reference instead of entering a raw token in a normal field.
+4. Choose global, project, or workspace scope and whether this is the default profile.
+5. Save, then run a health probe followed by a capability probe.
+
+The capability result can describe streaming, tools, reasoning, attachments, or structured elicitation. Composer uses it to limit choices.
+
+## Switch, inspect usage, and import
+
+Choose an Agent, provider profile, and model before sending a message. A switch affects later runs; the existing timeline keeps its original identity. A usage summary is informational and does not replace provider billing. Supported profiles offer native import/export previews; apply only after reviewing the target and use rollback when available.
+
+<Warning>A health probe can contact a provider and consume quota. Read-only mobile devices cannot run health probes.</Warning>
+
+## Troubleshooting
+
+- Agent missing: check the executable in PATH or the custom command and working directory.
+- Model missing: inspect the capability probe and profile scope.
+- Authentication failure: update the secret reference and probe again without sharing tokens or response headers.
+- Remote profile missing: check device permissions and the desktop Remote gateway.

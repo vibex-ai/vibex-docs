@@ -1,0 +1,55 @@
+---
+title: "Workspaces"
+description: "Choose, switch, and isolate the file, Git, and Agent scope in Vibex."
+---
+
+A workspace is the boundary for file access, terminals, and Git operations. The desktop stores workspace metadata and the current selection. Agents receive context from that workspace.
+
+## Workspace modes
+
+| Mode | Use it when | Behavior |
+| --- | --- | --- |
+| **CurrentCheckout** | You want to work directly on the checked-out branch. | Files and Git use the current directory; sessions can see the same changes. |
+| **VibexWorktree** | You want Agent changes isolated from the main checkout. | Vibex creates a managed Git worktree with merge, rebase, conflict, and discard flows. |
+
+<Warning>Concurrent Agents in **CurrentCheckout** can edit the same file. Prefer **VibexWorktree** for parallel attempts or review.</Warning>
+
+## Open or switch a workspace
+
+1. Open the workspace picker in the sidebar.
+2. Select a repository directory or create a managed worktree.
+3. Confirm the workspace root and Git branch.
+4. Check the current workspace shown at the top before opening files, terminals, or sessions.
+
+Switching does not copy uncommitted changes. Save files and inspect Git status before switching.
+
+<Frame caption="Screenshot placeholder: workspace picker and workspace modes">
+  <img src="/images/screenshot-placeholder.svg" alt="Placeholder for workspace mode screenshots" />
+</Frame>
+
+## Managed worktree lifecycle
+
+1. Choose a base branch and name when creating the worktree.
+2. Run a session or edit files in the isolated directory.
+3. Review **Git diff** and commit when appropriate.
+4. Merge or rebase. Resolve conflicts file by file before continuing.
+5. Confirm the main workspace result, then discard the worktree. Discard removes the isolated directory and uncommitted changes.
+
+<Info>The desktop stores worktree paths, branches, and status. Mobile can request these operations remotely, but cannot create a local worktree.</Info>
+
+## File access boundaries
+
+- The file tree, content search, and editor stay within the selected workspace.
+- Symlinks, encoding, line endings, and large files are checked by the file service.
+- Opening a workspace does not grant every Agent capability; tools still pass permission gates.
+- Terminals start in the workspace, but a terminal tab can change its working directory.
+
+## Common questions
+
+### Why cannot the Agent see a new file?
+
+Save it in the current workspace, then refresh the file tree or reopen the session. Move files from outside the workspace or attach their contents when allowed.
+
+### Why is Git diff empty?
+
+Check that you did not switch to another workspace or worktree, save the file, and run `git status --short` in the terminal.

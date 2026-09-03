@@ -1,0 +1,43 @@
+---
+title: "建置與測試"
+description: "選擇適合 Vibex 的檢查、smoke test 和發行建置命令。"
+---
+
+## 常規檢查
+
+```bash
+pnpm check
+```
+
+此命令包含 Rust 品質、前端型別/lint 和授權檢查。跨多層變更時再執行 `pnpm check:all`。
+
+## 發行建置 smoke
+
+```bash
+pnpm release:build-smoke
+cargo check -p vibex-desktop --locked
+cargo test -p vibex-desktop --locked
+pnpm smoke:first-frame
+```
+
+## 功能 smoke
+
+```bash
+pnpm check:acp
+pnpm check:code-workbench
+pnpm check:terminal
+pnpm check:mobile-native
+pnpm smoke:relay:local
+```
+
+腳本可能產生證據或擷取檔案；不要提交含有憑證、Prompt、路徑、diff 或終端機內容的產物。
+
+## 必測契約
+
+- 權限不足回傳結構化錯誤。
+- cursor/generation 間隙觸發 `resync_required`。
+- 檔案寫入使用內容修訂/CAS。
+- 終端機與附件串流在授權後建立並在撤銷時關閉。
+- 重啟、斷線與 stale 狀態可重複驗證。
+
+發行前閱讀 `docs/operations/release.md`；安裝套件、執行檔、APK 和簽章資料屬於產物，不要當作原始碼提交。

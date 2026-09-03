@@ -1,0 +1,44 @@
+---
+title: "Remote access and mobile"
+description: "Pair a mobile client with the desktop runtime and safely operate sessions."
+---
+
+Mobile is a native remote companion to the desktop. The desktop still owns Agents, files, Git, PTY, providers, and permissions. Mobile requests projections and operations through Remote v2 and never runs a local Agent.
+
+## Choose a route
+
+| Route | Use it when |
+| --- | --- |
+| **Direct** | Phone and desktop can reach each other on a LAN or private address. |
+| **Tailnet** | You use Tailscale or another private network without a public listener. |
+| **Self-hosted Relay** | Direct access is unavailable and you want encrypted frame forwarding. |
+
+Relay handles routing metadata such as rooms and connections. It does not store or decrypt business data.
+
+## Pair a device
+
+1. Open remote pairing on the desktop and choose Direct, Tailnet, or self-hosted Relay.
+2. Generate a short-lived, one-time QR code or deep link.
+3. Scan or open `vibex://open/...` on the phone.
+4. Confirm the device name, workspace scope, and permission level.
+5. Wait for the initial projection and session list after the handshake.
+
+The QR/deep link does not contain a long-lived grant, provider secret, private key, or workspace data. Do not publish it.
+
+<Frame caption="Screenshot placeholder: desktop pairing QR and mobile permission confirmation">
+  <img src="/images/screenshot-placeholder.svg" alt="Placeholder for remote pairing screenshots" />
+</Frame>
+
+## Permission levels
+
+- **read_only**: read sessions, file summaries, Git status/diffs, and provider summaries.
+- **approve_only**: resolve permitted approval requests without ordinary writes.
+- **full_control**: send messages, write files, enter terminal input, and perform Git writes, still subject to desktop capability gates.
+
+Grant the smallest level needed. Revoking a device immediately closes its active connections.
+
+## Mobile operations and reconnect
+
+Mobile can read the Agent timeline, send follow-ups, fill elicitation forms, resolve approvals, inspect files and Git, and use a remote terminal when permitted. After a network change or app resume, it re-authenticates and catches up from authoritative state before live events. A stale, revoked, or resync-required state needs the indicated desktop action or a new pairing.
+
+Keep Remote gateway disabled or loopback-bound by default. Publish through Tailnet or controlled HTTPS/WSS, never an unauthenticated public listener. A room id is routing metadata, not a credential.

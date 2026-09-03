@@ -1,0 +1,36 @@
+---
+title: "Git workflow"
+description: "Inspect, isolate, commit, and deliver code changes from Vibex."
+---
+
+Vibex provides a native Git review surface. Stopping an Agent does not roll back the workspace, and Vibex does not decide when you should commit.
+
+## Review changes
+
+The Git panel provides **Status** (untracked, modified, staged, and conflicted files), **Diff**, **History**, and **Blame**. Confirm the path, workspace, and diff before acting. Mobile write operations require the matching permission.
+
+<Frame caption="Screenshot placeholder: Git status, diff, history, and blame">
+  <img src="/images/screenshot-placeholder.svg" alt="Placeholder for Git review screenshots" />
+</Frame>
+
+## Branches and staging
+
+1. Create or check out a branch.
+2. Stage or unstage files and individual hunks.
+3. Review the content before using **Revert**.
+4. Enter a message for **Commit** or use **Amend** when appropriate.
+5. Use **Fetch** to update remote references and **Push** to publish commits.
+
+<Warning>**Revert**, branch switches, **Amend**, and **Push** can change history or remote state. Confirm the branch, remote, and pending diff first.</Warning>
+
+## VibexWorktree
+
+In **VibexWorktree**, create an isolated worktree and branch, run the Agent there, inspect the diff, and merge or rebase into the target branch. Resolve conflicts file by file and re-check status. Discard only after confirming the result; discard removes the isolated directory and uncommitted changes.
+
+<Info>**CurrentCheckout** edits the checked-out directory. **VibexWorktree** gives parallel tasks separate directories. Both use the desktop Git state as authority.</Info>
+
+## Recommended flow
+
+```text
+status -> diff -> tests -> stage -> commit -> fetch -> rebase/merge -> push
+```

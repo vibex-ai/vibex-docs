@@ -1,0 +1,71 @@
+---
+title: "安裝與平台"
+description: "準備 Vibex 桌面端、行動端與可選 Relay 的執行環境。"
+---
+
+Vibex 儲存庫提供原始碼建置流程。桌面端支援 Linux、macOS 與 Windows；行動端使用原生 Android 與 iOS 專案；Relay 是可選的自託管元件。
+
+## 桌面端
+
+| 項目 | 要求 |
+| --- | --- |
+| Node.js | 22。Node 26 不受目前 Mintlify 與部分建置腳本支援。 |
+| pnpm | 11.3.0，以 `package.json` 的 `packageManager` 為準。 |
+| Rust | 1.97.0，使用儲存庫提供的 toolchain 檔案。 |
+| 圖形環境 | Linux、macOS 或 Windows 的可用原生圖形工作階段。Linux 需要 Vulkan。 |
+| Git | 支援子模組，並能存取要開啟的儲存庫。 |
+
+```bash
+git clone https://github.com/vibex-ai/vibex.git
+cd vibex
+git submodule update --init --recursive
+pnpm install --frozen-lockfile
+pnpm dev:desktop
+```
+
+<Note>
+  上述命令會啟動開發版。正式安裝套件由發行流程產生，版本、簽章與下載渠道可能變更，請查看儲存庫 Release 頁面。
+</Note>
+
+## Android
+
+Android 建置需要 Android SDK/NDK、`cargo-ndk` 與目標 ABI 的 Rust targets。Debug 預設建置 `arm64-v8a` 與 `x86_64`，Release 預設建置 `arm64-v8a`。
+
+```bash
+pnpm build:mobile:android
+pnpm package:mobile:android
+```
+
+可用 `VIBEX_MOBILE_ANDROID_TARGETS`（以空格分隔）覆寫 Debug ABI。Release APK 預設未簽章，分發前要使用你的發行金鑰完成對齊與簽章。
+
+## iOS
+
+iOS 建置需要 macOS、Xcode、XcodeGen，以及 `aarch64-apple-ios` 和 `aarch64-apple-ios-sim` Rust targets。
+
+```bash
+pnpm build:mobile:ios
+```
+
+腳本會產生 `VibexFFI.xcframework` 與 Xcode 專案。程式碼簽章、真機/模擬器選擇和分發憑證由本機環境管理。
+
+## 自託管 Relay
+
+Relay 只在需要跨網路連線且不想交給第三方傳輸時使用。它轉發加密框，不儲存或解密工作區、會話、Git、終端機或供應商資料。
+
+```bash
+docker compose -f deploy/relay/docker-compose.yml up --build -d relay-server
+curl -fsS http://127.0.0.1:9700/health
+docker compose -f deploy/relay/docker-compose.yml down
+```
+
+生產環境應使用受控 HTTPS/WSS 入口，例如 Caddy 或私有 Tailnet。詳細設定見 [Remote v2 與 Relay](/zh-TW/developer/remote-protocol)。
+
+## 驗證安裝
+
+```bash
+pnpm check
+pnpm release:build-smoke
+pnpm check:mobile-native
+```
+
+這些命令分別涵蓋常規 Rust/前端/授權檢查、桌面/行動端/Relay 建置圖，以及行動端 crate 和原生專案契約。它們不取代真實裝置上的網路與簽章驗證。

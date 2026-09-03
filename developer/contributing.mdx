@@ -1,0 +1,36 @@
+---
+title: "贡献代码"
+description: "按 Vibex 的架构、测试和隐私要求提交变更。"
+---
+
+## 开始前
+
+1. 阅读根目录 `README.md` 和相关 `docs/` 设计/检查说明。
+2. 搜索现有 facade、DTO、reducer 和平台适配器，再决定是否需要新抽象。
+3. 保留工作树中已有的未提交改动，不要覆盖其他人的文件。
+
+## 实现原则
+
+- 保持 `DesktopRuntime` 为唯一权威状态所有者。
+- 让移动端通过共享后端和 Remote v2 契约访问能力。
+- 使用结构化错误、能力和序号，不依赖 UI 文案判断成功。
+- 对文件、Git、终端、Provider 和设备操作进行权限校验与审计。
+- 日志、测试证据和截图脱敏，不写入 secret、Prompt、文件内容或终端字节。
+
+## 提交前检查
+
+```bash
+pnpm check
+pnpm release:build-smoke
+pnpm check:mobile-native
+```
+
+根据改动范围补充 `check:acp`、`check:code-workbench`、`check:terminal`、`smoke:relay:local` 或对应 Cargo 测试。跨层改动应覆盖断线、重启、权限不足、序号间隙和恢复路径。
+
+## 文档和证据
+
+用户可见行为必须同步更新简体中文、繁体中文和英文页面。无法确认的实现细节用 `TODO` 标注，不把测试 spike 当作稳定功能。截图使用脱敏的临时工作区，并在文档中保留明确的占位说明。
+
+## Pull Request
+
+描述行为变化、所有权边界、测试命令和已知限制。若变更协议或持久化格式，说明兼容性、迁移和回滚策略。Issue 和 Pull Request 入口见 [GitHub](https://github.com/vibex-ai/vibex)。

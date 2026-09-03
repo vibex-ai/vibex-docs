@@ -1,0 +1,55 @@
+---
+title: "定时任务与自动化"
+description: "安排 Agent 运行，并用自动化图控制审批和检查。"
+---
+
+Vibex 将简单的定时任务和多步骤自动化分开：定时任务负责何时运行，自动化图负责运行中经过哪些节点。
+
+## 创建定时任务
+
+支持三种计划：
+
+| 类型 | 设置 |
+| --- | --- |
+| one-shot | 指定一次运行时间。 |
+| interval | 指定固定间隔。 |
+| daily | 指定每日时间和时区。 |
+
+<Steps>
+  <Step title="选择工作区和 Agent">
+    选择任务使用的工作区、Agent、供应商 profile 和 Prompt。确保作用域内资源在计划执行时仍可用。
+  </Step>
+  <Step title="设置计划">
+    选择类型、时间、时区和任务名称。保存后检查下一次运行时间。
+  </Step>
+  <Step title="确认状态">
+    任务会处于 active、paused 或 deleted。暂停不会删除运行历史；删除前确认不再需要审计记录。
+  </Step>
+</Steps>
+
+运行详情包括 history、attention、audit 和 stale-run recovery。时间到了但桌面端未运行时，任务不会凭空在服务器上执行；恢复后以持久化状态决定是否补偿或标记失败。
+
+## 自动化图节点
+
+- **Agent prompt**：向指定 Agent 发送输入。
+- **Approval gate**：等待用户或具备权限的设备批准。
+- **File check**：检查文件是否存在、内容或修订。
+- **Git check**：检查状态、差异、分支或提交。
+- **Terminal check**：检查命令或进程结果。
+- **Manual trigger / Scheduled trigger**：手动或按计划启动图。
+
+运行状态包括 queued、running、waiting、succeeded、failed、canceled 和 recovered。失败节点会保留原因和审计事件，便于从安全边界重新运行。
+
+<Frame caption="截图占位：自动化图编辑器、审批节点和运行历史">
+  <img src="/images/screenshot-placeholder.svg" alt="自动化图截图占位" />
+</Frame>
+
+## 权限和恢复
+
+自动化不会绕过 Agent 或设备权限。遇到 approval gate 时，只有满足权限级别的桌面或移动端设备可以批准。取消运行不会撤销已经完成的文件、Git 或外部服务操作。
+
+如果运行长时间保持 running，先查看桌面端是否重启或终端是否 stale，再从 **Recovery** 使用受支持的恢复动作。不要重复触发可能产生副作用的节点，除非它们支持幂等键。
+
+## 审计建议
+
+为每个图写清楚输入、工作区和预期输出。测试阶段使用临时分支和无敏感数据的目录。不要在任务名、Prompt 或运行备注中放入 token、私钥和真实用户数据。

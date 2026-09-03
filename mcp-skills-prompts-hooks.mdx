@@ -1,0 +1,56 @@
+---
+title: "MCP、Skills、Prompts 与 Hooks"
+description: "为 Agent 添加可复用工具、上下文和事件动作。"
+---
+
+这些资源扩展 Agent 的上下文和工作方式。每项资源都可以按作用域启用，并在应用前验证来源和权限。
+
+## MCP 服务器
+
+MCP 支持 **stdio**、**HTTP** 和 **SSE** 服务器。添加服务器时填写启动命令或 URL、环境变量/请求头和作用域，然后运行 validation。
+
+1. 打开 **MCP**，选择添加方式。
+2. 设置 global、user、project 或 workspace 作用域。
+3. 使用 secret reference 保存敏感值。
+4. 查看 Provider matrix 和 Agent matrix，确认哪些运行时会加载它。
+5. 运行 native discovery/import（如果该服务器支持），再启用。
+
+<Warning>
+  MCP 工具可能读取文件、访问网络或修改外部系统。先确认服务器来源和权限，再把它关联到 Agent。
+</Warning>
+
+## Skills
+
+Skill 通常包含 `SKILL.md` 和辅助资源。来源可以是手动配置、Git 仓库、本地文件夹或 marketplace。
+
+1. 在 **Skills** 中选择来源并导入。
+2. 让 Vibex 扫描 `SKILL.md`，检查名称、说明和依赖。
+3. 设置作用域，并在 Agent/Provider 关联矩阵中选择使用者。
+4. 校验后启用；不需要时停用，而不是删除来源记录。
+
+Composer 中输入 `$` 可以查找已启用的 Skill。
+
+## Prompts
+
+Prompt 可以保存为 reusable prompt、slash command 或 system snippet。为它设置作用域后，在 Composer 中输入 `/` 查找 slash command。
+
+- 先写清楚适用场景和预期输出。
+- 运行 validation，避免引用不存在的 Skill 或文件。
+- 暂时不用时停用；需要长期移除时使用归档。
+
+## Hooks
+
+Hooks 绑定事件，可用事件包括 terminal activity、session start、session stop 和 permission request。状态有 draft、enabled、disabled、install 等阶段。
+
+1. 创建 Hook 并选择事件。
+2. 查看安装前预览，确认命令、作用域和可能的数据流。
+3. 保持 draft 进行测试；确认行为后再启用。
+4. 需要停用时保留配置并选择 disabled，便于审计和恢复。
+
+<Frame caption="截图占位：MCP、Skills、Prompts 和 Hooks 的验证与启用状态">
+  <img src="/images/screenshot-placeholder.svg" alt="工作流资源配置截图占位" />
+</Frame>
+
+## 作用域和安全
+
+资源的 global、user、project、workspace 作用域会影响加载顺序和可见性。使用最小作用域，避免把项目专属工具暴露给所有工作区。任何日志和截图都必须去掉 token、私钥、环境变量值、提示词和文件内容。

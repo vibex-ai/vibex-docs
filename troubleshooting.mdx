@@ -1,0 +1,43 @@
+---
+title: "故障排查"
+description: "按工作区、Agent、远程连接和恢复状态定位常见问题。"
+---
+
+先确认桌面端仍在运行、当前工作区正确、资源作用域匹配，然后查看结构化错误码和最近一条时间线事件。不要把完整日志直接发到公开 Issue。
+
+## Agent 无法启动
+
+1. 在 **Config Center > Agents** 确认命令存在且可执行。
+2. 检查关联的供应商 profile、模型和 secret reference。
+3. 运行 health probe，再查看 capability probe。
+4. 用终端直接运行无敏感参数的版本检查命令，确认 PATH 和权限。
+
+## 消息卡住或状态不正确
+
+- 查看时间线是否处于 waiting、permission request 或 elicitation。
+- 确认没有另一个运行占用相同工作区资源。
+- 若应用刚重启，等待持久化状态加载完成。
+- 对 `running` 但没有进程的会话，使用 **Recovery** 的受支持恢复操作。
+
+## 文件或 Git 结果不对
+
+- 确认当前工作区和分支；CurrentCheckout 与 VibexWorktree 是不同目录。
+- 保存编辑器文件后刷新文件树和 Git status。
+- 检查文件是否被外部进程修改或存在冲突。
+- 删除、revert、amend 或 push 前先阅读 diff 并创建恢复点。
+
+## 终端无输出
+
+检查标签是否绑定正确工作区、PTY 是否被标记为 stale，以及 shell 是否退出。调整面板尺寸或重新打开标签后，以新的终端快照为准；不要根据旧快照重复执行命令。
+
+## 移动端无法连接
+
+1. 确认桌面端 Remote gateway 已启用，且监听策略符合 Direct/Tailnet/Relay 选择。
+2. 检查手机网络和桌面端地址；Direct 失败时测试 Tailnet 或 Relay。
+3. 重新生成短期 QR/deep link，不要复用旧 pairing offer。
+4. 若显示 revoked，必须重新配对；若显示 resync required，等待权威 catch-up。
+5. 在 Relay 模式检查 `/health` 和 `/api/info`，但不要把 room id 当作授权凭据。
+
+## 提交诊断信息
+
+提供 Vibex 版本、操作系统、复现步骤、结构化错误码和脱敏时间戳。移除 token、私钥、pairing 数据、工作区路径、Prompt、文件内容、Git diff 和终端输出。Issue 入口在 [GitHub Issues](https://github.com/vibex-ai/vibex/issues)。

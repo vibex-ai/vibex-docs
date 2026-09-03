@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-labelledby="title desc">
+  <title id="title">Vibex screenshot placeholder</title>
+  <desc id="desc">Placeholder for a Vibex interface screenshot.</desc>
+  <rect width="1280" height="720" fill="#111827"/>
+  <rect x="32" y="32" width="1216" height="656" rx="8" fill="#1f2937" stroke="#4b5563" stroke-width="2"/>
+  <rect x="64" y="72" width="240" height="584" fill="#273449"/>
+  <rect x="336" y="72" width="880" height="72" fill="#263244"/>
+  <rect x="368" y="176" width="816" height="18" fill="#4b5563"/>
+  <rect x="368" y="216" width="640" height="18" fill="#374151"/>
+  <rect x="368" y="288" width="816" height="280" fill="#182333" stroke="#4b5563"/>
+  <text x="640" y="625" fill="#d1d5db" font-family="sans-serif" font-size="28" text-anchor="middle">截图占位 / Screenshot placeholder</text>
+</svg>

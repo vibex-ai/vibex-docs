@@ -1,0 +1,53 @@
+---
+title: "Agent sessions"
+description: "Create, inspect, stop, fork, and resume Vibex Agent sessions."
+---
+
+A session stores task input, Agent output, and tool activity in a structured timeline. The desktop owns the authoritative timeline; mobile renders a remote projection.
+
+## Create a session
+
+1. Choose the target workspace.
+2. Select an Agent, provider profile, model, reasoning depth, and conversation mode in Composer.
+3. Enter a task. Use `/` for Prompts, `@` for workspace files, `$` for Skills, and attachments when needed.
+4. Confirm the workspace and permission scope before sending. The Agent may request file, terminal, or other capabilities.
+
+<Frame caption="Screenshot placeholder: Agent, model, and workspace selection">
+  <img src="/images/screenshot-placeholder.svg" alt="Placeholder for new session controls" />
+</Frame>
+
+## Read the timeline
+
+| Item | What it shows |
+| --- | --- |
+| User and Agent messages | Markdown text and attachments. |
+| reasoning | An Agent reasoning summary, when exposed by the Agent and profile. |
+| plan | Steps and progress. |
+| tool/process details | Tool names, parameter summaries, processes, and exit results. |
+| permission approval | A protected operation waiting for a decision. |
+| elicitation | A typed form the Agent needs you to fill out. |
+| Status events | Running, waiting, completed, failed, stopped, and reconnecting states. |
+
+Tool parameters, terminal output, and diffs can contain sensitive data. Redact them before sharing.
+
+## Control a run
+
+- **Stop** stops the current run. It does not undo files or completed commands.
+- **Continue** sends another task in the same session.
+- **Fork** creates a branch session from the current timeline.
+- **Rename** changes the title without changing Agent context.
+- **Resume** loads a persisted session after a restart.
+
+<Warning>Stopping an Agent does not roll back file, Git, or external service changes. Inspect the diff and terminal separately.</Warning>
+
+## Permissions and forms
+
+When an Agent requests a terminal, file write, or protected capability, the timeline shows the reason and scope. Choose **Approve** or **Deny**; the result is recorded. Canceling an elicitation returns a cancellation result, not an implicit approval.
+
+## History, search, and notifications
+
+Supported local Agent history can be imported with **Local history import**. Confirm the source and target workspace; credentials and a complete Agent home are not imported. Search the current timeline with `cmd-f` (usually `ctrl-f` on Windows/Linux). The desktop can notify you when a session completes, fails, or waits for input.
+
+## Mobile sessions
+
+Paired mobile clients can read the same timeline, send follow-ups, answer forms, and handle permitted approvals. They do not start a local Agent or own workspace files. Reconnection catches up from authoritative state before live events resume.

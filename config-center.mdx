@@ -1,0 +1,57 @@
+---
+title: "Config Center"
+description: "集中管理 Vibex 的 Agent、供应商、MCP 和工作流配置。"
+---
+
+**Config Center** 是 Vibex 的配置入口。它把容易散落在多个配置目录中的连接、提示词和自动化资源集中展示，并为每项资源标记作用域、状态和验证结果。
+
+## 配置分区
+
+| 分区 | 用途 |
+| --- | --- |
+| **Agents** | 发现、启用和管理 Agent 运行时。 |
+| **Model Providers** | 配置模型供应商、模型、推理选项和认证。 |
+| **MCP** | 添加 MCP 服务器及其环境变量或请求头。 |
+| **Skills** | 导入可复用的 `SKILL.md` 能力包。 |
+| **Prompts & Hooks** | 管理 slash command、系统片段和事件钩子。 |
+| **Advanced** | 查看高级运行时和能力选项。 |
+| **Scheduled** | 创建一次性、周期性或每日任务。 |
+| **Automation** | 编排带审批和检查节点的 Agent 工作流。 |
+| **Relay** | 配置可选的自托管加密传输。 |
+| **Recovery** | 查看恢复、陈旧运行和诊断入口。 |
+
+<Frame caption="截图占位：Config Center 的分区列表和资源作用域">
+  <img src="/images/screenshot-placeholder.svg" alt="Config Center 截图占位" />
+</Frame>
+
+## 作用域
+
+资源通常可以设为 **global**、**user**、**project** 或 **workspace**。作用域决定资源在哪些会话和工作区可见；同名资源冲突时，界面会显示生效来源。
+
+开始配置时先选择最小作用域：
+
+- 只给自己所有工作区使用的资源放在 user。
+- 团队或仓库约定放在 project。
+- 只服务当前检出的资源放在 workspace。
+- 需要全局默认时才使用 global。
+
+## 保存和验证
+
+1. 填写字段并保存草稿。
+2. 运行 **Validation**，检查命令、URL、必填能力和作用域。
+3. 对供应商运行 **Health probe** 或 **Capability probe**，确认连接和模型能力。
+4. 查看预览后应用变更。支持导入的原生配置会提供 apply 和 rollback 边界。
+
+<Warning>
+  导入外部配置前先阅读预览。Vibex 默认不会改写真实 Agent home 配置；只有你明确应用时才会写入选定目标。
+</Warning>
+
+## 凭据和日志
+
+使用 secret reference 或操作系统的安全存储引用凭据。不要把 token、私钥、完整环境变量、提示词或文件内容粘贴到配置描述、截图或诊断日志中。
+
+桌面端会在本地持久化配置、会话元数据和终端元数据。远程移动端只读取经过权限过滤的配置投影。
+
+## 配置出现问题时
+
+先查看资源的作用域和启用状态，再运行验证。若重启后状态不一致，打开 **Recovery** 检查持久化记录和陈旧运行；不要直接删除 SQLite 数据库。

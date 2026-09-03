@@ -1,0 +1,47 @@
+---
+title: "Agents 与供应商配置"
+description: "连接 ACP Agent、选择模型并验证供应商能力。"
+---
+
+Vibex 使用 [Agent Client Protocol](https://agentclientprotocol.com/)（ACP）连接在线 Agent。Agent 的身份、模型供应商和运行时能力彼此分开管理，因此同一个界面可以切换不同实现。
+
+## 可用 Agent
+
+常见内置预设包括 **Claude Code**、**Codex**、**ZCode** 和 **OpenCode**。ACP catalog 还可能提供 Antigravity、Cline、Cursor、Gemini CLI、GitHub Copilot、Devin、Grok、Kimi Code、Pi、DeepSeek Harness 等集成；最终列表取决于本机安装、供应商配置和实时能力探测。
+
+你也可以注册任意兼容 ACP 的可执行程序：填写命令、参数、环境变量和显示元数据，然后运行验证。Vibex 不要求为每个新 Agent 编写一套专用会话界面。
+
+<Frame caption="截图占位：Agents 列表、ACP 可执行程序和能力状态">
+  <img src="/images/screenshot-placeholder.svg" alt="Agents 配置截图占位" />
+</Frame>
+
+## 创建供应商配置
+
+1. 打开 **Model Providers**，添加 Codex、Claude 或 ACP 类型的 profile。
+2. 填写显示名称、base URL、模型和 reasoning effort（如果供应商支持）。
+3. 选择 secret reference，不要把真实 token 写入普通文本字段。
+4. 设置 global、project 或 workspace 作用域，并决定是否为默认 profile。
+5. 保存后运行 health probe，再运行 capability probe。
+
+能力探测可能会告诉你是否支持流式输出、工具调用、推理、附件或结构化询问。Vibex 会据此限制 Composer 中的可选项。
+
+## 使用和切换模型
+
+发送会话消息前，从 Composer 选择 Agent、供应商 profile 和模型。切换只影响后续运行；已有时间线仍保留原运行的 Agent 和模型信息。
+
+usage summary 可帮助你查看用量状态。它不等于账单系统，具体计费和额度仍由供应商负责。
+
+## 原生导入和回滚
+
+支持的供应商可以执行 native import/export preview。先阅读将要写入的目标和字段，再选择 **Apply**。出现问题时从同一资源的 **Rollback** 入口恢复，而不是手动覆盖整个 Agent home。
+
+<Warning>
+  健康检查可能会访问供应商网络并消耗额度。确认 profile、模型和权限后再运行；移动端的 read-only 设备不能触发健康检查。
+</Warning>
+
+## 故障排查
+
+- Agent 不在列表中：确认可执行文件在 PATH 中，或检查自定义命令和工作目录。
+- 模型不可选：查看 capability probe 和 profile 作用域。
+- 认证失败：更新 secret reference，再运行 health probe；不要在 Issue 中粘贴响应头或 token。
+- 远程端看不到 profile：确认设备权限和桌面端 Remote gateway 状态。

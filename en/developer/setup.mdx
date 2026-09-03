@@ -1,0 +1,44 @@
+---
+title: "Local setup"
+description: "Install Vibex Rust, Node, pnpm, and platform dependencies."
+---
+
+## Toolchain
+
+| Tool | Version or note |
+| --- | --- |
+| Node.js | 22. |
+| pnpm | 11.3.0, declared by `packageManager`. |
+| Rust | 1.97.0, pinned by `rust-toolchain.toml`. |
+| Git | Submodule support required. |
+| Linux graphics | A graphical session with a working Vulkan driver. |
+
+```bash
+git clone https://github.com/vibex-ai/vibex.git
+cd vibex
+git submodule update --init --recursive
+pnpm install --frozen-lockfile
+```
+
+## Run the desktop
+
+```bash
+pnpm dev:desktop
+```
+
+Targeted Rust checks:
+
+```bash
+cargo check -p vibex-desktop --locked
+cargo test -p vibex-desktop --locked
+```
+
+Android needs the SDK/NDK, `cargo-ndk`, and ABI Rust targets. iOS needs macOS, Xcode, XcodeGen, and both Apple Rust targets. Relay development can use Docker with loopback binding:
+
+```bash
+docker compose -f deploy/relay/docker-compose.yml up --build -d relay-server
+curl -fsS http://127.0.0.1:9700/health
+docker compose -f deploy/relay/docker-compose.yml down
+```
+
+See [Remote v2 and Relay](/en/developer/remote-protocol) for production networking. Do not commit `target`, signed packages, PDFium runtimes, or local credentials.

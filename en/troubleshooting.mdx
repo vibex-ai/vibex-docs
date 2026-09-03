@@ -1,0 +1,31 @@
+---
+title: "Troubleshooting"
+description: "Diagnose common workspace, Agent, remote, and recovery problems."
+---
+
+Confirm that the desktop is running, the workspace is correct, and resource scopes match before reading the latest structured error and timeline event. Do not publish complete logs.
+
+## Agent will not start
+
+1. In **Config Center > Agents**, confirm the command exists and is executable.
+2. Check the provider profile, model, and secret reference.
+3. Run a health probe, then inspect the capability probe.
+4. Use the terminal to run a non-sensitive version command and verify PATH and permissions.
+
+## A message is stuck
+
+Check for waiting, permission request, or elicitation states. Confirm another run is not using the same workspace. After a restart, wait for persisted state to load. For a `running` session without a process, use the supported **Recovery** action.
+
+## Files, Git, or terminal output is wrong
+
+Check the workspace, branch, and CurrentCheckout/VibexWorktree mode. Save the editor file and refresh the file tree and Git status. Check external edits and conflicts. For a silent terminal, verify the tab, PTY stale state, and shell; use a new snapshot instead of repeating a command from an old one.
+
+## Mobile cannot connect
+
+1. Confirm Remote gateway is enabled and its listener matches Direct, Tailnet, or Relay.
+2. Check the phone network and desktop address; test Tailnet or Relay if Direct fails.
+3. Generate a new short-lived QR/deep link instead of reusing a pairing offer.
+4. Re-pair when revoked; wait for authoritative catch-up when resync is required.
+5. In Relay mode, check `/health` and `/api/info`, but never treat a room id as authorization.
+
+When opening an Issue, include the version, operating system, reproduction steps, structured error, and a redacted timestamp. Remove tokens, private keys, pairing data, workspace paths, Prompts, file contents, Git diffs, and terminal output. Use [GitHub Issues](https://github.com/vibex-ai/vibex/issues).

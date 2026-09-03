@@ -1,0 +1,53 @@
+---
+title: "Code workbench"
+description: "Browse, search, edit, and preview files in a Vibex workspace."
+---
+
+The code workbench combines the file tree, search, editor, Git diff, and content previews. File operations stay within the selected workspace.
+
+## File tree and search
+
+1. Open the file tree in the sidebar.
+2. Use filename search to locate a path.
+3. Use content search to find text and its line location.
+4. Open a result in a preview tab. Tabs can be arranged side by side or in splits.
+
+Large files, undecodable content, and paths outside the workspace can be rejected by the file service.
+
+## Edit and save
+
+- Edit text directly in the editor.
+- Select **Save** or press `cmd-s` (usually `ctrl-s` on Windows/Linux).
+- Confirm the path before creating, renaming, or deleting a file.
+- If an external process changed the file, reload and compare the revision before saving.
+
+<Warning>Deleting a file changes the workspace. Check Git status and create a recovery point before deleting.</Warning>
+
+## Content previews
+
+| Type | Supported workflow |
+| --- | --- |
+| Markdown | Switch between editing and rendered views, including code, tables, formulas, and diagrams. |
+| Images | View and edit images with undo and redo. |
+| PDF | Use the native page preview. |
+| Office documents | Preview supported Office content. |
+| Other text | Open in the editor while preserving encoding and line endings. |
+
+<Frame caption="Screenshot placeholder: file tree, editor, Markdown preview, and split tabs">
+  <img src="/images/screenshot-placeholder.svg" alt="Placeholder for code workbench screenshots" />
+</Frame>
+
+## Image editing and layout
+
+Image editing uses `cmd-z`/`cmd-shift-z` on macOS and `ctrl-z`/`ctrl-shift-z` on Windows/Linux. Confirm the output path and format before saving. Drag tabs or use the split control to inspect code, diffs, terminals, and documents together.
+
+## Common shortcuts
+
+| Action | macOS | Windows/Linux |
+| --- | --- | --- |
+| Save file | `cmd-s` | `ctrl-s` |
+| Open preview | `cmd-shift-p` | `ctrl-shift-p` |
+| Sidebar | `cmd-b` | `ctrl-b` |
+| Back/forward | `alt-left` / `alt-right` | `alt-left` / `alt-right` |
+
+Review or change shortcuts in **Settings > Shortcuts**.

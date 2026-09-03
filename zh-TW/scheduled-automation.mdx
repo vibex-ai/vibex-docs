@@ -1,0 +1,38 @@
+---
+title: "排程任務與自動化"
+description: "安排 Agent 執行，並用自動化圖控制核准與檢查。"
+---
+
+排程任務決定何時執行；自動化圖決定執行時經過哪些節點。
+
+## 建立排程
+
+支援 **one-shot**（一次）、**interval**（固定間隔）和 **daily**（每日時間與時區）。
+
+<Steps>
+  <Step title="選擇工作區和 Agent">
+    選擇工作區、Agent、供應商 profile 與 Prompt，確保資源在執行時仍可用。
+  </Step>
+  <Step title="設定時間">
+    選擇類型、時間、時區與名稱，儲存後檢查下一次執行時間。
+  </Step>
+  <Step title="確認狀態">
+    任務狀態為 active、paused 或 deleted。暫停不會刪除歷史，刪除前先確認審計需求。
+  </Step>
+</Steps>
+
+執行詳情包含 history、attention、audit 和 stale-run recovery。桌面端未執行時不會有伺服器在背後代跑；恢復後依持久化狀態決定補償或標記失敗。
+
+## 自動化圖節點
+
+- **Agent prompt**、**approval gate**、**file check**、**Git check**、**terminal check**。
+- **Manual trigger** 和 **Scheduled trigger**。
+- 狀態包括 queued、running、waiting、succeeded、failed、canceled 和 recovered。
+
+<Frame caption="截圖佔位：自動化圖編輯器、核准節點與執行歷史">
+  <img src="/images/screenshot-placeholder.svg" alt="自動化圖截圖佔位" />
+</Frame>
+
+## 權限、恢復與審計
+
+自動化不會繞過 Agent 或裝置權限。取消執行不會撤銷已完成的檔案、Git 或外部服務操作。長時間停在 running 時，先檢查桌面端和 terminal stale，再從 **Recovery** 使用支援的恢復動作。測試使用暫存分支與無敏感資料目錄，不要在任務名稱或 Prompt 放入 token、私鑰或真實使用者資料。
