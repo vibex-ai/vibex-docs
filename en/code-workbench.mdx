@@ -20,6 +20,7 @@ Large files, undecodable content, and paths outside the workspace can be rejecte
 - Select **Save** or press `cmd-s` (usually `ctrl-s` on Windows/Linux).
 - Confirm the path before creating, renaming, or deleting a file.
 - The editor persists soft-wrap and whitespace-display preferences, which you can toggle from the toolbar.
+- The editor header shows the file name, relative directory, and state. Its footer shows the cursor position, line count, language, encoding, line ending, and file size.
 - **Save** carries the revision that was read. If an external process changed the file, saving pauses for a reload or diff instead of silently overwriting it.
 - If an external process deletes the file, the editor marks it missing and keeps dirty content in a recovery buffer until you save it elsewhere or discard it.
 
@@ -51,6 +52,13 @@ Image editing uses `cmd-z`/`cmd-shift-z` on macOS and `ctrl-z`/`ctrl-shift-z` on
 
 Drag tabs or use the split control to inspect code, diffs, terminals, and documents together. Closing a tab does not delete its file or terminal; it closes only the current view.
 
+## Tab actions
+
+- Hover a file or diff tab to see its full path.
+- Use a tab context menu to close the current, other, or all tabs and to pin a tab. The **Tab actions** menu on the tab strip provides the other-tab and all-tab commands.
+- A pinned tab must be unpinned before it can close. **Close other tabs** and **Close all tabs** keep pinned tabs and dirty editor tabs open; save or discard dirty content first.
+- For non-terminal preview tabs, `cmd-w` (`ctrl-w` on Windows/Linux) closes the active tab. `cmd-tab`/`cmd-shift-tab` and `cmd-pageup`/`cmd-pagedown` (`ctrl` on Windows/Linux) cycle tabs. When a tab has focus, the left and right arrow keys also cycle them.
+
 ## Common shortcuts
 
 | Action | macOS | Windows/Linux |
@@ -58,6 +66,9 @@ Drag tabs or use the split control to inspect code, diffs, terminals, and docume
 | Save file | `cmd-s` | `ctrl-s` |
 | Open preview | `cmd-shift-p` | `ctrl-shift-p` |
 | Sidebar | `cmd-b` | `ctrl-b` |
+| Close active preview tab | `cmd-w` | `ctrl-w` |
+| Cycle preview tabs | `cmd-tab` / `cmd-shift-tab` | `ctrl-tab` / `ctrl-shift-tab` |
+| Previous/next tab | `cmd-pageup` / `cmd-pagedown` | `ctrl-pageup` / `ctrl-pagedown` |
 | Back/forward | `alt-left` / `alt-right` | `alt-left` / `alt-right` |
 
 Review or change shortcuts in **Settings > Shortcuts**.

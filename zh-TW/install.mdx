@@ -36,7 +36,7 @@ pnpm build:mobile:android
 pnpm package:mobile:android
 ```
 
-可用 `VIBEX_MOBILE_ANDROID_TARGETS`（以空格分隔）覆寫 Debug ABI。Release APK 預設未簽章，分發前要使用你的發行金鑰完成對齊與簽章。
+可用 `VIBEX_MOBILE_ANDROID_TARGETS`（以空格分隔）覆寫 Debug ABI。本機 `pnpm package:mobile:android` 產生的 Release APK 預設未簽章，分發前要使用發行金鑰完成對齊與簽章。打 tag 的 GitHub Release 會在上傳前自動對齊並簽章 APK/AAB；RC 和 Preview 未設定儲存庫金鑰時使用臨時 CI key，Stable 則必須設定發行金鑰。
 
 ## iOS
 

@@ -32,6 +32,8 @@ pnpm package:mobile:android
 
 Set `VIBEX_MOBILE_ANDROID_TARGETS` to override Debug ABIs. Release APKs are unsigned and need alignment and signing before distribution.
 
+A local `pnpm package:mobile:android` build produces only an unsigned Release APK. A tagged GitHub Release runs the signing script: `zipalign` and `apksigner` sign the APK, and `jarsigner` signs the AAB. RC and Preview use an ephemeral CI key when no repository key is configured. Stable releases require `VIBEX_ANDROID_KEYSTORE_BASE64` and `VIBEX_ANDROID_KEYSTORE_PASSWORD`; `VIBEX_ANDROID_KEY_PASSWORD` and the `VIBEX_ANDROID_KEY_ALIAS` repository variable are optional (`vibex` is the default alias).
+
 ## iOS builds
 
 ```bash

@@ -32,6 +32,8 @@ pnpm package:mobile:android
 
 設定 `VIBEX_MOBILE_ANDROID_TARGETS` 可覆寫 Debug ABI。Release APK 未簽章，分發前需要對齊和簽章。
 
+本機 `pnpm package:mobile:android` 只會產生未簽章 Release APK。打 tag 的 GitHub Release 會執行簽章腳本：APK 使用 `zipalign` 和 `apksigner`，AAB 使用 `jarsigner`。RC 和 Preview 未設定儲存庫金鑰時使用臨時 CI key；Stable 發行必須設定 `VIBEX_ANDROID_KEYSTORE_BASE64` 和 `VIBEX_ANDROID_KEYSTORE_PASSWORD`，也可選擇設定 `VIBEX_ANDROID_KEY_PASSWORD` 與儲存庫變數 `VIBEX_ANDROID_KEY_ALIAS`（預設別名為 `vibex`）。
+
 ## iOS 建置
 
 ```bash

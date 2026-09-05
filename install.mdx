@@ -36,7 +36,7 @@ pnpm build:mobile:android
 pnpm package:mobile:android
 ```
 
-可以用 `VIBEX_MOBILE_ANDROID_TARGETS`（空格分隔）覆盖 Debug ABI。Release APK 默认未签名，分发前必须使用发布密钥完成对齐和签名。
+可以用 `VIBEX_MOBILE_ANDROID_TARGETS`（空格分隔）覆盖 Debug ABI。本地 `pnpm package:mobile:android` 生成的 Release APK 默认未签名，分发前必须使用发布密钥完成对齐和签名。打 tag 的 GitHub Release 会在上传前自动对齐并签名 APK/AAB；RC 和 Preview 在未配置仓库密钥时使用临时 CI key，Stable 则必须配置发布密钥。
 
 ## iOS
 

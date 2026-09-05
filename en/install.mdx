@@ -34,7 +34,7 @@ pnpm build:mobile:android
 pnpm package:mobile:android
 ```
 
-Set `VIBEX_MOBILE_ANDROID_TARGETS` to a space-separated ABI list to override Debug targets. Release APKs are unsigned until you align and sign them with your distribution key.
+Set `VIBEX_MOBILE_ANDROID_TARGETS` to a space-separated ABI list to override Debug targets. A local `pnpm package:mobile:android` build produces an unsigned Release APK that must be aligned and signed with your distribution key. A tagged GitHub Release aligns and signs the APK/AAB before upload; RC and Preview use an ephemeral CI key when no repository key is configured, while Stable requires a release key.
 
 ## iOS
 
