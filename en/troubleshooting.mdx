@@ -16,9 +16,13 @@ Confirm that the desktop is running, the workspace is correct, and resource scop
 
 Check for waiting, permission request, or elicitation states. Confirm another run is not using the same workspace. After a restart, wait for persisted state to load. For a `running` session without a process, use the supported **Recovery** action.
 
-## Files, Git, or terminal output is wrong
+## Files or Git results are wrong
 
 Check the workspace, branch, and CurrentCheckout/VibexWorktree mode. Save the editor file and refresh the file tree and Git status. Check external edits and conflicts. For a silent terminal, verify the tab, PTY stale state, and shell; use a new snapshot instead of repeating a command from an old one.
+
+## Terminal has no output
+
+Verify the tab, workspace, PTY stale state, and shell. Resize or reopen the tab, then use the new terminal snapshot instead of repeating a command from an old one.
 
 ## Mobile cannot connect
 
@@ -27,5 +31,7 @@ Check the workspace, branch, and CurrentCheckout/VibexWorktree mode. Save the ed
 3. Generate a new short-lived QR/deep link instead of reusing a pairing offer.
 4. Re-pair when revoked; wait for authoritative catch-up when resync is required.
 5. In Relay mode, check `/health` and `/api/info`, but never treat a room id as authorization.
+
+## Submit diagnostics
 
 When opening an Issue, include the version, operating system, reproduction steps, structured error, and a redacted timestamp. Remove tokens, private keys, pairing data, workspace paths, Prompts, file contents, Git diffs, and terminal output. Use [GitHub Issues](https://github.com/vibex-ai/vibex/issues).

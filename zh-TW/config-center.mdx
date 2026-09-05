@@ -20,13 +20,11 @@ description: "集中管理 Vibex 的 Agent、供應商、MCP 與工作流程設�
 | **Relay** | 設定可選的自託管加密傳輸。 |
 | **Recovery** | 查看恢復、陳舊執行和診斷入口。 |
 
-<Frame caption="截圖佔位：Config Center 分區清單與資源範圍">
-  <img src="/images/screenshot-placeholder.svg" alt="Config Center 截圖佔位" />
-</Frame>
-
 ## 範圍
 
 資源通常可設為 **global**、**user**、**project** 或 **workspace**。範圍決定資源在哪些會話和工作區可見。先選擇最小範圍：個人資源用 user，專案約定用 project，目前檢出專用用 workspace，全域預設才用 global。
+
+跨工作區共用的資源使用 **user**，儲存庫約定使用 **project**，單一檢出使用 **workspace**，只有真正的全域預設才使用 **global**。
 
 ## 儲存、驗證與匯入
 
@@ -39,4 +37,10 @@ description: "集中管理 Vibex 的 Agent、供應商、MCP 與工作流程設�
   Vibex 預設不會改寫真實 Agent home 設定。只有你明確套用時才會寫入選定目標。不要把 token、私鑰、提示詞或檔案內容放進描述或日誌。
 </Warning>
 
-桌面端在本機保存設定、會話中繼資料與終端機中繼資料；行動端只讀取經過權限過濾的投影。遇到重啟後狀態不一致時，先查看 **Recovery**，不要直接刪除 SQLite 資料庫。
+## 憑證與診斷
+
+使用 secret reference 或作業系統安全儲存引用憑證。不要把 token、私鑰、完整環境變數、Prompt 或檔案內容放進描述或診斷資料。桌面端在本機保存設定、會話中繼資料與終端機中繼資料；行動端只讀取經過權限過濾的投影。
+
+## 設定失敗時
+
+重新執行驗證前，先查看資源範圍和啟用狀態。若重啟後狀態不一致，開啟 **Recovery** 檢查持久化記錄和陳舊執行。不要先直接刪除 SQLite 資料庫。

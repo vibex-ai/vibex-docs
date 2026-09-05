@@ -12,9 +12,7 @@ A session stores task input, Agent output, and tool activity in a structured tim
 3. Enter a task. Use `/` for Prompts, `@` for workspace files, `$` for Skills, and attachments when needed.
 4. Confirm the workspace and permission scope before sending. The Agent may request file, terminal, or other capabilities.
 
-<Frame caption="Screenshot placeholder: Agent, model, and workspace selection">
-  <img src="/images/screenshot-placeholder.svg" alt="Placeholder for new session controls" />
-</Frame>
+Switching an Agent or model affects later runs only. Timeline messages retain the identity of the run that produced them.
 
 ## Read the timeline
 
@@ -26,7 +24,8 @@ A session stores task input, Agent output, and tool activity in a structured tim
 | tool/process details | Tool names, parameter summaries, processes, and exit results. |
 | permission approval | A protected operation waiting for a decision. |
 | elicitation | A typed form the Agent needs you to fill out. |
-| Status events | Running, waiting, completed, failed, stopped, and reconnecting states. |
+| delegation | Child Agent or delegated task state and result. |
+| Status events | Running, queued, waiting, completed, failed, stopped, and reconnecting states. |
 
 Tool parameters, terminal output, and diffs can contain sensitive data. Redact them before sharing.
 
@@ -34,20 +33,34 @@ Tool parameters, terminal output, and diffs can contain sensitive data. Redact t
 
 - **Stop** stops the current run. It does not undo files or completed commands.
 - **Continue** sends another task in the same session.
+- **Retry** reruns a failed turn according to the Agent's retry semantics. Reconcile an uncertain external operation before retrying it.
 - **Fork** creates a branch session from the current timeline.
 - **Rename** changes the title without changing Agent context.
+- **Edit message** changes a message that has not become the basis of a new run; completed timeline events remain immutable.
 - **Resume** loads a persisted session after a restart.
 
 <Warning>Stopping an Agent does not roll back file, Git, or external service changes. Inspect the diff and terminal separately.</Warning>
+
+## Queue, auto-continue, and delegation
+
+Follow-up messages sent while a run is active can enter a queue. The desktop shows their order and submits them after the current turn; canceling or deleting a queued item does not undo completed work.
+
+With auto-continue enabled, only turns allowed by the session settings and Agent capabilities advance automatically. Permission requests, elicitations, failures, and choices that need you pause the run. **Delegation** creates an independent child state and links progress and the final result back to the parent session.
 
 ## Permissions and forms
 
 When an Agent requests a terminal, file write, or protected capability, the timeline shows the reason and scope. Choose **Approve** or **Deny**; the result is recorded. Canceling an elicitation returns a cancellation result, not an implicit approval.
 
-## History, search, and notifications
+## Import local history
 
-Supported local Agent history can be imported with **Local history import**. Confirm the source and target workspace; credentials and a complete Agent home are not imported. Search the current timeline with `cmd-f` (usually `ctrl-f` on Windows/Linux). The desktop can notify you when a session completes, fails, or waits for input.
+Use **Local history import** to scan local stores, then select sessions and a target workspace. Supported sources are Claude Code, Codex, OpenCode, Gemini CLI, Cline, Hermes, CodeBuddy Code, Kimi Code, Pi, Grok, Cursor, DeepSeek Harness, ZCode, and Google Antigravity.
+
+The scanner keeps bounded metadata such as title, timestamps, workspace hint, message count, and source path. After you confirm, Vibex re-reads the selected source and materializes one atomic timeline import. Imported, deleted, and missing sources are reconciled without duplicate sessions. Credentials, private keys, and a complete Agent home are never imported.
+
+## Search and notifications
+
+Search the current timeline with `cmd-f` (usually `ctrl-f` on Windows/Linux). The desktop can notify you when a session completes, fails, or waits for input. Notification text is bounded and does not contain full messages or terminal output.
 
 ## Mobile sessions
 
-Paired mobile clients can read the same timeline, send follow-ups, answer forms, and handle permitted approvals. They do not start a local Agent or own workspace files. Reconnection catches up from authoritative state before live events resume.
+Paired mobile clients can read the same timeline, send follow-ups, answer forms, and handle permitted approvals. They do not start a local Agent or own workspace files. Reconnection re-authenticates and catches up from authoritative state before live events resume; `resync_required` means the desktop must provide a fresh timeline.

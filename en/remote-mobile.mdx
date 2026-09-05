@@ -25,10 +25,6 @@ Relay handles routing metadata such as rooms and connections. It does not store 
 
 The QR/deep link does not contain a long-lived grant, provider secret, private key, or workspace data. Do not publish it.
 
-<Frame caption="Screenshot placeholder: desktop pairing QR and mobile permission confirmation">
-  <img src="/images/screenshot-placeholder.svg" alt="Placeholder for remote pairing screenshots" />
-</Frame>
-
 ## Permission levels
 
 - **read_only**: read sessions, file summaries, Git status/diffs, and provider summaries.
@@ -37,8 +33,14 @@ The QR/deep link does not contain a long-lived grant, provider secret, private k
 
 Grant the smallest level needed. Revoking a device immediately closes its active connections.
 
-## Mobile operations and reconnect
+## Mobile operations
 
-Mobile can read the Agent timeline, send follow-ups, fill elicitation forms, resolve approvals, inspect files and Git, and use a remote terminal when permitted. After a network change or app resume, it re-authenticates and catches up from authoritative state before live events. A stale, revoked, or resync-required state needs the indicated desktop action or a new pairing.
+Mobile can read the Agent timeline, send follow-ups, fill elicitation forms, resolve approvals, inspect files and Git, and use a remote terminal when permitted. File edits and Git operations still return their authoritative result from the desktop.
+
+## Disconnect and reconnect
+
+After a network change or app resume, mobile re-authenticates and catches up from authoritative state before live events. A stale, revoked, or resync-required state needs the indicated desktop action or a new pairing.
+
+## Security checks
 
 Keep Remote gateway disabled or loopback-bound by default. Publish through Tailnet or controlled HTTPS/WSS, never an unauthenticated public listener. A room id is routing metadata, not a credential.

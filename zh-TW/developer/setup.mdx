@@ -33,7 +33,13 @@ cargo check -p vibex-desktop --locked
 cargo test -p vibex-desktop --locked
 ```
 
-Android 需要 SDK/NDK、`cargo-ndk` 與目標 ABI targets。iOS 需要 macOS、Xcode、XcodeGen 及兩個 Apple Rust targets。Relay 本機開發可使用 Docker，維持 loopback 綁定。
+## 可選的行動端環境
+
+Android 需要 SDK/NDK、`cargo-ndk` 與選定 ABI 的 Rust targets。iOS 需要 macOS、Xcode、XcodeGen、`aarch64-apple-ios` 和 `aarch64-apple-ios-sim` targets。
+
+## 可選的 Relay 環境
+
+Relay 本機開發可使用 Docker，維持 loopback 綁定。
 
 ```bash
 docker compose -f deploy/relay/docker-compose.yml up --build -d relay-server
@@ -41,4 +47,8 @@ curl -fsS http://127.0.0.1:9700/health
 docker compose -f deploy/relay/docker-compose.yml down
 ```
 
-生產網路設定請參閱 [Remote v2 與 Relay](/zh-TW/developer/remote-protocol)。不要提交 `target`、簽章套件、PDFium 執行環境或本機憑證。
+生產網路設定請參閱 [Remote v2 與 Relay](/zh-TW/developer/remote-protocol)。
+
+## 工作區約定
+
+在儲存庫根目錄執行腳本。不要提交 `target`、簽章套件、PDFium 執行環境或本機憑證。修改產品儲存庫時，先確認並保留其他未提交變更。

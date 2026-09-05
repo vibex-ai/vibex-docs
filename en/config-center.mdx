@@ -20,13 +20,11 @@ description: "Manage Vibex Agents, provider profiles, MCP, and workflow resource
 | **Relay** | Configure optional self-hosted encrypted transport. |
 | **Recovery** | Review recovery, stale runs, and diagnostics. |
 
-<Frame caption="Screenshot placeholder: Config Center sections and resource scopes">
-  <img src="/images/screenshot-placeholder.svg" alt="Placeholder for Config Center screenshots" />
-</Frame>
-
 ## Scopes
 
 Resources can normally use **global**, **user**, **project**, or **workspace** scope. Scope controls where a resource is visible and which value wins when names overlap. Start with the smallest scope: user for personal defaults, project for repository conventions, workspace for one checkout, and global only for true global defaults.
+
+Use **user** for resources shared across your workspaces, **project** for repository conventions, **workspace** for one checkout, and **global** only for true global defaults.
 
 ## Save, validate, and import
 
@@ -37,4 +35,10 @@ Resources can normally use **global**, **user**, **project**, or **workspace** s
 
 <Warning>Vibex does not rewrite a real Agent home by default. It writes to the selected target only after you explicitly apply the change.</Warning>
 
-Use secret references or the operating system secure store for credentials. Do not place tokens, private keys, full environment values, Prompts, or file contents in descriptions, screenshots, or diagnostics. The desktop persists configuration and metadata locally; mobile receives permission-filtered projections.
+## Credentials and diagnostics
+
+Use secret references or the operating system secure store for credentials. Do not place tokens, private keys, full environment values, Prompts, or file contents in descriptions or diagnostics. The desktop persists configuration, session metadata, and terminal metadata locally; mobile receives permission-filtered projections.
+
+## When configuration fails
+
+Check the resource scope and enabled state before running validation again. If state differs after a restart, open **Recovery** to inspect persisted records and stale runs. Do not delete the SQLite database as a first response.

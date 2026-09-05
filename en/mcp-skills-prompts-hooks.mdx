@@ -19,18 +19,27 @@ MCP supports **stdio**, **HTTP**, and **SSE** servers. Add a command or URL, env
 
 ## Skills
 
-A Skill commonly contains `SKILL.md` and supporting resources. Sources can be manual, a Git repository, a local folder, or a marketplace. Import it, scan `SKILL.md`, check its name and dependencies, assign scope and Agent/Provider associations, validate, and enable. Disable instead of deleting when you only need a temporary pause. Type `$` in Composer to find enabled Skills.
+A Skill commonly contains `SKILL.md` and supporting resources. Sources can be manual, a Git repository, a local folder, or a marketplace.
+
+1. In **Skills**, choose a source and import it.
+2. Let Vibex scan `SKILL.md` for its name, description, and dependencies.
+3. Set the scope and choose the Agents and provider profiles that may use it.
+4. Validate, then enable it. Disable instead of deleting when you only need a temporary pause.
+
+Type `$` in Composer to find enabled Skills.
 
 ## Prompts
 
-Save a Prompt as a reusable prompt, slash command, or system snippet. Type `/` in Composer to find slash commands. State the use case and output, validate references, disable temporarily, and archive when it is no longer needed.
+Save a Prompt as a reusable prompt, slash command, or system snippet. Set its scope, then type `/` in Composer to find slash commands.
+
+- State the use case and expected output.
+- Run validation so references point to existing Skills or files.
+- Disable a Prompt temporarily; archive it when it is no longer needed.
 
 ## Hooks
 
 Hooks can run on terminal activity, session start, session stop, or permission request. States include draft, enabled, disabled, and install. Review the pre-install preview, test from draft, then enable. Keep disabled configurations for audit and recovery.
 
-<Frame caption="Screenshot placeholder: MCP, Skills, Prompts, and Hooks validation state">
-  <img src="/images/screenshot-placeholder.svg" alt="Placeholder for workflow resource settings" />
-</Frame>
+## Scope and security
 
-Scope affects load order and visibility. Remove tokens, private keys, environment values, Prompts, and file contents from logs and screenshots.
+Scope affects load order and visibility. Use the smallest scope so project-specific tools are not exposed to every workspace. Remove tokens, private keys, environment values, Prompts, and file contents from logs and diagnostic evidence.

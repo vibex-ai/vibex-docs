@@ -21,18 +21,27 @@ MCP 支援 **stdio**、**HTTP** 和 **SSE**。新增時填寫啟動命令或 URL
 
 ## Skills
 
-Skill 通常包含 `SKILL.md` 和輔助資源，來源可以是手動設定、Git 儲存庫、本機資料夾或 marketplace。匯入後掃描 `SKILL.md`，檢查名稱、說明和依賴，設定範圍並在矩陣中選擇使用者。校驗後啟用，不用時停用而不是刪除來源。Composer 中輸入 `$` 可尋找已啟用 Skill。
+Skill 通常包含 `SKILL.md` 和輔助資源，來源可以是手動設定、Git 儲存庫、本機資料夾或 marketplace。
+
+1. 在 **Skills** 選擇來源並匯入。
+2. 讓 Vibex 掃描 `SKILL.md`，檢查名稱、說明和依賴。
+3. 設定範圍，並選擇可使用它的 Agent 和供應商設定。
+4. 校驗後啟用；只需暫停時請停用，不要刪除來源。
+
+在 Composer 輸入 `$` 可尋找已啟用 Skill。
 
 ## Prompts
 
-Prompt 可儲存為 reusable prompt、slash command 或 system snippet。在 Composer 輸入 `/` 尋找 slash command。寫清楚適用情境與輸出，執行 validation，暫時不用時停用，長期移除時歸檔。
+Prompt 可儲存為 reusable prompt、slash command 或 system snippet。設定範圍後，在 Composer 輸入 `/` 尋找 slash command。
+
+- 寫清楚適用情境和預期輸出。
+- 執行 validation，確保引用的 Skill 或檔案存在。
+- 暫時不用時停用；長期移除時歸檔。
 
 ## Hooks
 
 Hooks 可綁定 terminal activity、session start、session stop 和 permission request。狀態包括 draft、enabled、disabled、install。先建立 Hook、閱讀安裝前預覽，再從 draft 測試到 enabled；停用時保留設定便於審計與恢復。
 
-<Frame caption="截圖佔位：MCP、Skills、Prompts 與 Hooks 的驗證狀態">
-  <img src="/images/screenshot-placeholder.svg" alt="工作流程資源設定截圖佔位" />
-</Frame>
+## 範圍與安全
 
-資源的範圍會影響載入順序與可見性。使用最小範圍，並從日誌與截圖移除 token、私鑰、環境變數值、提示詞和檔案內容。
+資源的範圍會影響載入順序與可見性。使用最小範圍，避免把專案專用工具暴露給所有工作區。從日誌和診斷證據移除 token、私鑰、環境變數值、提示詞和檔案內容。

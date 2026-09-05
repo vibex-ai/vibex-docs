@@ -23,9 +23,7 @@ A workspace is the boundary for file access, terminals, and Git operations. The 
 
 Switching does not copy uncommitted changes. Save files and inspect Git status before switching.
 
-<Frame caption="Screenshot placeholder: workspace picker and workspace modes">
-  <img src="/images/screenshot-placeholder.svg" alt="Placeholder for workspace mode screenshots" />
-</Frame>
+If an editor has a dirty buffer, the desktop waits for you to save or discard it before switching. Opening or switching a workspace advances its generation; stale file, terminal, and Git requests are rejected instead of writing to the wrong directory.
 
 ## Managed worktree lifecycle
 
@@ -40,9 +38,10 @@ Switching does not copy uncommitted changes. Save files and inspect Git status b
 ## File access boundaries
 
 - The file tree, content search, and editor stay within the selected workspace.
-- Symlinks, encoding, line endings, and large files are checked by the file service.
+- The file service canonicalizes paths and checks symlinks, encoding, line endings, and size limits.
 - Opening a workspace does not grant every Agent capability; tools still pass permission gates.
 - Terminals start in the workspace, but a terminal tab can change its working directory.
+- Remote requests carry workspace scope and a generation; after reconnect, the desktop's fresh read is authoritative.
 
 ## Common questions
 

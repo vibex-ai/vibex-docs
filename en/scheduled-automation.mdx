@@ -29,8 +29,14 @@ Run details include history, attention, audit, and stale-run recovery. A stopped
 - **Manual trigger** and **Scheduled trigger**.
 - States: queued, running, waiting, succeeded, failed, canceled, and recovered.
 
-<Frame caption="Screenshot placeholder: graph editor, approval gate, and run history">
-  <img src="/images/screenshot-placeholder.svg" alt="Placeholder for automation graph screenshots" />
-</Frame>
+Failed nodes retain their reason and audit event so you can restart from a defined safety boundary.
 
-Automation does not bypass Agent or device permissions. Canceling a run does not undo completed file, Git, or external service operations. For a long-running state, inspect the desktop and stale terminals before retrying. Use temporary branches and non-sensitive data while testing.
+## Permissions and recovery
+
+Automation does not bypass Agent or device permissions. At an approval gate, only a desktop or mobile device with the matching permission level can approve. Canceling a run does not undo completed file, Git, or external service operations.
+
+If a run stays **running** for too long, check whether the desktop restarted or a terminal is stale. Use **Recovery** only with a supported recovery action, and do not repeat side-effecting nodes unless they support an idempotency key.
+
+## Audit guidance
+
+Describe the input, workspace, and expected output for each graph. Use temporary branches and non-sensitive directories while testing. Do not place tokens, private keys, or real user data in task names, Prompts, or run notes.

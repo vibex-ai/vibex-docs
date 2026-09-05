@@ -19,9 +19,17 @@ Large files, undecodable content, and paths outside the workspace can be rejecte
 - Edit text directly in the editor.
 - Select **Save** or press `cmd-s` (usually `ctrl-s` on Windows/Linux).
 - Confirm the path before creating, renaming, or deleting a file.
-- If an external process changed the file, reload and compare the revision before saving.
+- The editor persists soft-wrap and whitespace-display preferences, which you can toggle from the toolbar.
+- **Save** carries the revision that was read. If an external process changed the file, saving pauses for a reload or diff instead of silently overwriting it.
+- If an external process deletes the file, the editor marks it missing and keeps dirty content in a recovery buffer until you save it elsewhere or discard it.
 
 <Warning>Deleting a file changes the workspace. Check Git status and create a recovery point before deleting.</Warning>
+
+## Editor protection and recovery
+
+Each editor buffer tracks saved content, the external revision, and a local revision. A save is accepted only while those values still match; a concurrent edit produces a conflict that requires a fresh read and an explicit merge decision. Before switching workspaces or closing a tab, the desktop checks dirty, save-pending, external-conflict, and missing-file states and blocks the action when needed.
+
+After a restart or workspace reload, the desktop restores bounded dirty buffers. Restored content still requires an explicit save and never silently overwrites the file on disk.
 
 ## Content previews
 
@@ -33,13 +41,15 @@ Large files, undecodable content, and paths outside the workspace can be rejecte
 | Office documents | Preview supported Office content. |
 | Other text | Open in the editor while preserving encoding and line endings. |
 
-<Frame caption="Screenshot placeholder: file tree, editor, Markdown preview, and split tabs">
-  <img src="/images/screenshot-placeholder.svg" alt="Placeholder for code workbench screenshots" />
-</Frame>
+Binary files and files beyond the editor limits remain read-only. Markdown resources honor workspace paths, size limits, and resource-count limits; undecodable content is not forced into the text editor.
 
-## Image editing and layout
+## Image editing
 
-Image editing uses `cmd-z`/`cmd-shift-z` on macOS and `ctrl-z`/`ctrl-shift-z` on Windows/Linux. Confirm the output path and format before saving. Drag tabs or use the split control to inspect code, diffs, terminals, and documents together.
+Image editing uses `cmd-z`/`cmd-shift-z` on macOS and `ctrl-z`/`ctrl-shift-z` on Windows/Linux. Confirm the output path and format before saving.
+
+## Preview tabs and splits
+
+Drag tabs or use the split control to inspect code, diffs, terminals, and documents together. Closing a tab does not delete its file or terminal; it closes only the current view.
 
 ## Common shortcuts
 

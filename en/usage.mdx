@@ -1,0 +1,49 @@
+---
+title: "Usage statistics"
+description: "Inspect local Agent usage by time, Agent, provider, model, project, and session."
+---
+
+**Usage Statistics** reports Agent usage recorded by Vibex. It is an observability view for local data, not a billing page. Prices, quotas, and invoices remain the provider's responsibility.
+
+## Choose a range
+
+The toolbar supports:
+
+| Range | Meaning |
+| --- | --- |
+| **Today** | Records for today in the system time zone. |
+| **7 days** | The last seven days. |
+| **30 days** | The last thirty days. |
+| **All** | All records retained locally. |
+
+The result includes its effective start and end time and bucket kind. An empty range or no matching records produces an empty state; unknown values are not treated as zero.
+
+## Filter and group
+
+Combine **Agent**, **Model provider**, **Model**, **Project**, and **Session** filters. Group the result by time, Agent, project, provider, or model. Long session names are truncated in the filter menu but remain available in the hover label.
+
+## Read the metrics
+
+Summary and dimension rows can include:
+
+- **Requests**: observed requests or session runs. When an adapter has no per-request signal, Vibex counts at the finest confirmed run granularity.
+- **Total tokens**: the available input, output, and cached token totals.
+- **Input / Output / Cached tokens**: each token category separately.
+- **Cache hit rate**: cached read tokens divided by the eligible denominator.
+- **Coverage**: whether a value is complete, derived, partial, or unknown.
+
+When a provider does not report a field, Vibex preserves an unknown state. Do not read `unknown` or `partial` as zero or use this page to infer a provider invoice.
+
+## Explore trends
+
+The trend area has three views:
+
+- **Bars** compares totals, input, output, cached tokens, or requests by time bucket.
+- **Heatmap** shows daily activity density for the annual projection. It reports unavailable when no annual data exists.
+- **Models** compares models by requests or total tokens; models beyond the main list are grouped as other.
+
+Changing a metric does not alter stored usage. During refresh, Vibex keeps the previous result and marks it stale. If loading fails, the previous authoritative result remains visible.
+
+## Data boundary
+
+Usage comes from desktop Agent executions and adapter reports. The desktop is authoritative; mobile receives only permission-filtered projections. Usage Statistics does not read complete Prompts, file contents, terminal output, or provider secrets. Follow [Privacy and recovery](/en/privacy-and-recovery) when exporting diagnostics.

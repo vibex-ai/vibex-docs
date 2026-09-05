@@ -8,7 +8,7 @@ The site is organized into three locales:
 - Traditional Chinese under `/zh-TW/`
 - English under `/en/`
 
-Each locale has a User guide and a Developer guide. Product behavior is documented from the current Vibex desktop, mobile, Remote v2, and Relay implementations. Screenshots are represented by `images/screenshot-placeholder.svg` until real captures are available.
+Each locale has a User guide and a Developer guide. Product behavior is documented from the current Vibex desktop, mobile, Remote v2, and Relay implementations. Pages use concise workflows, structured evidence, and redacted diagnostics without embedding workspace data.
 
 ## Local preview
 

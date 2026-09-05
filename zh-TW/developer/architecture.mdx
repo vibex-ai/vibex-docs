@@ -31,7 +31,13 @@ flowchart LR
 | `apps/mobile` | 將共享遠端投影組合成 Android/iOS 原生介面。 |
 | `apps/relay-server` | 轉發不透明的加密 WebSocket 框。 |
 
-事件帶有權威序號與版本。發現 generation 或 cursor gap 時必須回傳 `resync_required` 並重新取得。檔案寫入遵循內容修訂與 CAS；附件和終端機輸入須在授權後建立並審計。
+## 資料流規則
+
+事件帶有權威序號與版本。發現 generation 或 cursor gap 時必須回傳 `resync_required` 並重新取得。檔案寫入遵循內容修訂與 CAS。
+
+遠端附件在建立串流前重新驗證和授權。終端機輸入帶有工作區範圍、generation 檢查與審計；不要保存原始終端機位元組。
+
+## 持久化與恢復
 
 SQLite 保存專案、工作區、會話、時間線、Provider、終端機中繼資料和遠端裝置。資料庫中的 `running` 不是程序存活證明，遺失終端機要標記 stale。
 
@@ -40,4 +46,4 @@ SQLite 保存專案、工作區、會話、時間線、Provider、終端機中�
 - 桌面端是否仍擁有唯一真相？
 - 是否使用共享 DTO、錯誤和能力，而非複製結構？
 - 是否定義重連、序號間隙、撤銷與恢復行為？
-- 日誌、截圖和測試證據是否已脫敏？
+- 日誌、診斷資料和測試證據是否已脫敏？

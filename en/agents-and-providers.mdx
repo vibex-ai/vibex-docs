@@ -9,10 +9,6 @@ Vibex uses the [Agent Client Protocol](https://agentclientprotocol.com/) (ACP) f
 
 Built-in presets commonly include **Claude Code**, **Codex**, **ZCode**, and **OpenCode**. The ACP catalog may include more integrations. Availability depends on local installation, provider profiles, and live capability probes. You can also register any ACP-compatible executable with its command, arguments, environment, and display metadata.
 
-<Frame caption="Screenshot placeholder: Agents, ACP executable, and capability state">
-  <img src="/images/screenshot-placeholder.svg" alt="Placeholder for Agent settings screenshots" />
-</Frame>
-
 ## Create a provider profile
 
 1. In **Model Providers**, add a Codex, Claude, or ACP profile.
@@ -23,9 +19,15 @@ Built-in presets commonly include **Claude Code**, **Codex**, **ZCode**, and **O
 
 The capability result can describe streaming, tools, reasoning, attachments, or structured elicitation. Composer uses it to limit choices.
 
-## Switch, inspect usage, and import
+## Switch models and inspect usage
 
-Choose an Agent, provider profile, and model before sending a message. A switch affects later runs; the existing timeline keeps its original identity. A usage summary is informational and does not replace provider billing. Supported profiles offer native import/export previews; apply only after reviewing the target and use rollback when available.
+Choose an Agent, provider profile, and model before sending a message. A switch affects later runs; the existing timeline keeps its original Agent and model identity.
+
+A usage summary helps you inspect recorded activity. It is informational and does not replace provider billing.
+
+## Native import and rollback
+
+Supported profiles offer native import/export previews. Review the target and fields before **Apply**. If the result is wrong, use **Rollback** for that resource instead of overwriting the entire Agent home.
 
 <Warning>A health probe can contact a provider and consume quota. Read-only mobile devices cannot run health probes.</Warning>
 

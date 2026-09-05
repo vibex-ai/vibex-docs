@@ -3,6 +3,8 @@ title: "平台支援"
 description: "了解 Linux、macOS、Windows、Android 和 iOS 的建置邊界。"
 ---
 
+## 支援矩陣
+
 | 平台 | 產品形態 | 關鍵依賴 | 說明 |
 | --- | --- | --- | --- |
 | Linux | 原生桌面端 | Vulkan 圖形工作階段 | 可執行開發命令與預覽 smoke。 |
@@ -12,17 +14,35 @@ description: "了解 Linux、macOS、Windows、Android 和 iOS 的建置邊界�
 | iOS | 原生行動端 | macOS、Xcode、XcodeGen | 產生 `VibexFFI.xcframework`。 |
 | 自託管 Linux/容器 | Relay | Rust/Axum 或 Docker | 只轉發加密框。 |
 
-桌面端是 Agent、檔案、Git、PTY、Provider、權限和持久化的權威。平台差異應封裝在 `apps/desktop/src/platform` 或共享 facade。
+## 桌面平台邊界
 
-## 行動端建置
+桌面端是 Agent、檔案、Git、PTY、Provider、權限和持久化的權威。平台差異應封裝在 `apps/desktop/src/platform` 或共享 facade，不要在 UI 複製業務分支。
+
+## Android 建置
 
 ```bash
 pnpm build:mobile:android
+```
+
+使用以下命令封裝 Release APK：
+
+```bash
 pnpm package:mobile:android
+```
+
+設定 `VIBEX_MOBILE_ANDROID_TARGETS` 可覆寫 Debug ABI。Release APK 未簽章，分發前需要對齊和簽章。
+
+## iOS 建置
+
+```bash
 pnpm build:mobile:ios
 ```
 
-Release APK 未簽章；iOS 的簽章與真機/模擬器選擇由 Xcode 管理。行動端恢復時先用 Remote v2 取得權威會話/時間線，再訂閱即時事件。
+簽章、Bundle identifier、真機/模擬器選擇由 Xcode 管理。不要提交憑證或 provisioning profile。
+
+## 行動端生命週期
+
+行動端需要處理背景、網路切換、斷線和重連。恢復時先用 Remote v2 取得權威會話與時間線，再訂閱即時事件；不要讓過期的本機投影覆蓋桌面狀態。
 
 ## Relay 部署
 

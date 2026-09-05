@@ -25,10 +25,6 @@ Relay 不儲存或解密業務資料，只處理房間、連線和加密框等�
 
 QR/deep link 不包含長期 grant、供應商密鑰、私鑰或工作區內容。不要公開分享。
 
-<Frame caption="截圖佔位：桌面端配對 QR 與行動端權限確認">
-  <img src="/images/screenshot-placeholder.svg" alt="遠端配對截圖佔位" />
-</Frame>
-
 ## 權限級別
 
 - **read_only**：查看會話、檔案摘要、Git 狀態/差異與供應商摘要。
@@ -37,8 +33,14 @@ QR/deep link 不包含長期 grant、供應商密鑰、私鑰或工作區內容�
 
 授予最小權限。桌面端可撤銷裝置，撤銷會立即結束該裝置連線。
 
-## 行動端操作與重連
+## 行動端操作
 
-你可以查看 Agent 時間線、傳送訊息、填寫 elicitation、核准或拒絕請求、查看檔案和 Git 狀態，並在權限允許時使用遠端終端機。網路切換或應用程式恢復後，行動端會重新驗證並先執行 catch-up。看到 stale、revoked 或 resync required 時，依提示重新配對或檢查 Remote gateway。
+你可以查看 Agent 時間線、傳送訊息、填寫 elicitation、核准或拒絕請求、查看檔案和 Git 狀態，並在權限允許時使用遠端終端機。檔案編輯和 Git 操作的真實結果始終來自桌面端。
+
+## 斷線與重連
+
+網路切換或應用程式恢復後，行動端會重新驗證並先執行 catch-up，再接收即時事件。看到 stale、revoked 或 resync required 時，依提示重新配對或檢查 Remote gateway。
+
+## 安全檢查
 
 保持 Remote gateway 預設關閉或只綁定 loopback；透過 Tailnet 或受控 HTTPS/WSS 發布。不要使用公開未驗證監聽，也不要把 room id 當作權限憑據。

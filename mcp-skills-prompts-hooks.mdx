@@ -47,10 +47,6 @@ Hooks 绑定事件，可用事件包括 terminal activity、session start、sess
 3. 保持 draft 进行测试；确认行为后再启用。
 4. 需要停用时保留配置并选择 disabled，便于审计和恢复。
 
-<Frame caption="截图占位：MCP、Skills、Prompts 和 Hooks 的验证与启用状态">
-  <img src="/images/screenshot-placeholder.svg" alt="工作流资源配置截图占位" />
-</Frame>
-
 ## 作用域和安全
 
-资源的 global、user、project、workspace 作用域会影响加载顺序和可见性。使用最小作用域，避免把项目专属工具暴露给所有工作区。任何日志和截图都必须去掉 token、私钥、环境变量值、提示词和文件内容。
+资源的 global、user、project、workspace 作用域会影响加载顺序和可见性。使用最小作用域，避免把项目专属工具暴露给所有工作区。任何日志和诊断证据都必须去掉 token、私钥、环境变量值、提示词和文件内容。

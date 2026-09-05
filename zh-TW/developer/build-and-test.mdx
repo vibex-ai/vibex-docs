@@ -15,12 +15,19 @@ pnpm check
 
 ```bash
 pnpm release:build-smoke
+```
+
+此命令檢查桌面端、行動端和 Relay crate 的建置圖，不等於簽章發行套件。桌面端針對性檢查：
+
+```bash
 cargo check -p vibex-desktop --locked
 cargo test -p vibex-desktop --locked
 pnpm smoke:first-frame
 ```
 
 ## 功能 smoke
+
+儲存庫提供 ACP、程式碼工作台、終端機、PDF 與原生內容、遠端配對和 Relay 的檢查。例如：
 
 ```bash
 pnpm check:acp
@@ -30,7 +37,7 @@ pnpm check:mobile-native
 pnpm smoke:relay:local
 ```
 
-腳本可能產生證據或擷取檔案；不要提交含有憑證、Prompt、路徑、diff 或終端機內容的產物。
+腳本可能產生本機證據或擷取檔案；先檢查 `.gitignore` 和腳本說明，不要提交含有憑證、Prompt、路徑、diff 或終端機內容的產物。
 
 ## 必測契約
 
@@ -40,4 +47,6 @@ pnpm smoke:relay:local
 - 終端機與附件串流在授權後建立並在撤銷時關閉。
 - 重啟、斷線與 stale 狀態可重複驗證。
 
-發行前閱讀 `docs/operations/release.md`；安裝套件、執行檔、APK 和簽章資料屬於產物，不要當作原始碼提交。
+## 發行前
+
+發行前閱讀 `docs/operations/release.md` 和目標平台說明。安裝套件、執行環境二進位檔、Release APK 和簽章資料屬於建置或發行產物，不要當作原始碼提交。

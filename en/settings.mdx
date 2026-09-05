@@ -3,7 +3,7 @@ title: "Settings"
 description: "Adjust Vibex interface, workbench, session, terminal, shortcut, and diagnostic preferences."
 ---
 
-Open **Settings** (cmd-, on macOS, usually ctrl-, on Windows/Linux) to change local desktop preferences. Settings are separate from Agent, provider, and workflow resources in Config Center.
+Open **Settings** (`cmd-,` on macOS, usually `ctrl-,` on Windows/Linux) to change local desktop preferences. Settings are separate from Agent, provider, and workflow resources in Config Center.
 
 ## Sections
 
@@ -18,9 +18,23 @@ Open **Settings** (cmd-, on macOS, usually ctrl-, on Windows/Linux) to change lo
 | **Data & Diagnostics** | Local data, diagnostic level, and redacted export entry points. |
 | **About** | Version, license, and build information. |
 
-<Frame caption="Screenshot placeholder: Settings sections and Appearance/Workbench controls">
-  <img src="/images/screenshot-placeholder.svg" alt="Placeholder for Settings screenshots" />
-</Frame>
+## General and startup
+
+Choose the language, whether closing keeps Vibex in the system tray, whether startup restores the workbench or opens a new session, whether to launch at login, and whether to use a network proxy. Proxy URLs support `http`, `https`, `socks5`, and `socks5h`; the desktop validates the address and does not sync credentials to mobile.
+
+Notifications have a master switch and separate controls for Agent completion, input requests, and failures. Update prompts control visible notices only; background security checks follow the release policy.
+
+## Appearance
+
+Appearance controls theme, window scale, interface font, and code font. The code font applies to code blocks, the integrated editor, and terminals. You can also change size, weight, reduced motion, and contrast. These options affect only the local UI.
+
+## Workbench and session
+
+Workbench stores sidebar, preview, right-rail, tab, and split layout preferences. It can choose **CurrentCheckout** or **VibexWorktree** as the default location for new sessions. Session settings control content width, turn preview, reasoning display, command and file-operation details, and whether Composer queues messages automatically or manually.
+
+## Terminal
+
+Terminal settings choose the default shell and the initial directory for new terminals. The directory can be the current workspace, project root, or current file. Existing terminals keep their current directory when the preference changes.
 
 ## Change a preference
 
@@ -55,4 +69,4 @@ Choose the smallest diagnostic scope and inspect the redaction before exporting.
 
 ## Version information
 
-**About** shows the build version, license, and platform. Include these non-sensitive values and structured errors in an Issue, not complete logs.
+**About** shows the build version, release channel, license, and platform, and lets you check for a signed release. Include these non-sensitive values and structured errors in an Issue, not complete logs.

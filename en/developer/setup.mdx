@@ -33,7 +33,13 @@ cargo check -p vibex-desktop --locked
 cargo test -p vibex-desktop --locked
 ```
 
-Android needs the SDK/NDK, `cargo-ndk`, and ABI Rust targets. iOS needs macOS, Xcode, XcodeGen, and both Apple Rust targets. Relay development can use Docker with loopback binding:
+## Optional mobile environments
+
+Android needs the SDK/NDK, `cargo-ndk`, and Rust targets for the selected ABIs. iOS needs macOS, Xcode, XcodeGen, `aarch64-apple-ios`, and `aarch64-apple-ios-sim` targets.
+
+## Optional Relay environment
+
+Relay development can use Docker with loopback binding:
 
 ```bash
 docker compose -f deploy/relay/docker-compose.yml up --build -d relay-server
@@ -41,4 +47,8 @@ curl -fsS http://127.0.0.1:9700/health
 docker compose -f deploy/relay/docker-compose.yml down
 ```
 
-See [Remote v2 and Relay](/en/developer/remote-protocol) for production networking. Do not commit `target`, signed packages, PDFium runtimes, or local credentials.
+See [Remote v2 and Relay](/en/developer/remote-protocol) for production networking.
+
+## Workspace conventions
+
+Run scripts from the repository root. Do not commit `target`, signed packages, PDFium runtimes, or local credentials. Preserve unrelated uncommitted changes in the product repository.

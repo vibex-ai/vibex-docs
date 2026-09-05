@@ -15,7 +15,7 @@ description: "Submit Vibex changes with the required architecture, testing, and 
 - Route mobile behavior through shared backends and Remote v2 contracts.
 - Use structured errors, capabilities, and sequence numbers instead of UI text to infer success.
 - Check and audit permissions for file, Git, terminal, provider, and device operations.
-- Redact logs, evidence, and screenshots; never record secrets, Prompts, file contents, or terminal bytes.
+- Redact logs, test evidence, and diagnostics; never record secrets, Prompts, file contents, or terminal bytes.
 
 ## Before submitting
 
@@ -27,6 +27,10 @@ pnpm check:mobile-native
 
 Add `check:acp`, `check:code-workbench`, `check:terminal`, `smoke:relay:local`, or focused Cargo tests as appropriate. Cross-layer changes should cover disconnect, restart, insufficient permissions, sequence gaps, and recovery.
 
-## Documentation and pull requests
+## Documentation and evidence
 
-Update Simplified Chinese, Traditional Chinese, and English pages for user-visible behavior. Mark unconfirmed details with `TODO`; do not present test spikes as stable features. Describe behavior, ownership, tests, compatibility, migration, rollback, and known limits in the pull request. Use [GitHub](https://github.com/vibex-ai/vibex).
+Update Simplified Chinese, Traditional Chinese, and English pages for user-visible behavior. Mark unconfirmed details with `TODO`; do not present test spikes as stable features. Use text workflows, state tables, protocol fields, and redacted diagnostics as evidence. Do not require visual captures or submit workspace contents.
+
+## Pull requests
+
+Describe behavior, ownership, tests, compatibility, migration, rollback, and known limits in the pull request. Use [GitHub](https://github.com/vibex-ai/vibex).

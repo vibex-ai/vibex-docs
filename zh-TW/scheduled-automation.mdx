@@ -11,7 +11,7 @@ description: "安排 Agent 執行，並用自動化圖控制核准與檢查。"
 
 <Steps>
   <Step title="選擇工作區和 Agent">
-    選擇工作區、Agent、供應商 profile 與 Prompt，確保資源在執行時仍可用。
+    選擇工作區、Agent、供應商設定與 Prompt，確保資源在執行時仍可用。
   </Step>
   <Step title="設定時間">
     選擇類型、時間、時區與名稱，儲存後檢查下一次執行時間。
@@ -29,10 +29,14 @@ description: "安排 Agent 執行，並用自動化圖控制核准與檢查。"
 - **Manual trigger** 和 **Scheduled trigger**。
 - 狀態包括 queued、running、waiting、succeeded、failed、canceled 和 recovered。
 
-<Frame caption="截圖佔位：自動化圖編輯器、核准節點與執行歷史">
-  <img src="/images/screenshot-placeholder.svg" alt="自動化圖截圖佔位" />
-</Frame>
+失敗節點會保留原因和審計事件，方便你從明確的安全邊界重新執行。
 
-## 權限、恢復與審計
+## 權限與恢復
 
-自動化不會繞過 Agent 或裝置權限。取消執行不會撤銷已完成的檔案、Git 或外部服務操作。長時間停在 running 時，先檢查桌面端和 terminal stale，再從 **Recovery** 使用支援的恢復動作。測試使用暫存分支與無敏感資料目錄，不要在任務名稱或 Prompt 放入 token、私鑰或真實使用者資料。
+自動化不會繞過 Agent 或裝置權限。遇到 approval gate 時，只有具備相符權限級別的桌面端或行動端裝置可以核准。取消執行不會撤銷已完成的檔案、Git 或外部服務操作。
+
+若執行長時間保持 **running**，先檢查桌面端是否重啟或終端機是否 stale，再使用 **Recovery** 的支援操作。除非節點支援冪等鍵，否則不要重複執行有副作用的節點。
+
+## 審計建議
+
+為每個圖寫清楚輸入、工作區和預期輸出。測試時使用暫存分支與無敏感資料目錄，不要在任務名稱、Prompt 或執行備註中放入 token、私鑰或真實使用者資料。

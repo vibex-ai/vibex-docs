@@ -9,31 +9,33 @@ Vibex 使用 [Agent Client Protocol](https://agentclientprotocol.com/)（ACP）�
 
 常見內建預設包括 **Claude Code**、**Codex**、**ZCode** 和 **OpenCode**。ACP catalog 可能還包含其他整合；實際清單取決於本機安裝、供應商設定和即時能力探測。你也可以註冊任何相容 ACP 的可執行程式，填寫命令、參數、環境變數與顯示中繼資料後驗證。
 
-<Frame caption="截圖佔位：Agents 清單、ACP 可執行程式與能力狀態">
-  <img src="/images/screenshot-placeholder.svg" alt="Agents 設定截圖佔位" />
-</Frame>
-
 ## 建立供應商設定
 
-1. 在 **Model Providers** 新增 Codex、Claude 或 ACP 類型的 profile。
+1. 在 **Model Providers** 新增 Codex、Claude 或 ACP 類型的供應商設定。
 2. 填寫顯示名稱、base URL、模型和 reasoning effort（若供應商支援）。
 3. 使用 secret reference，不要把真實 token 寫進一般欄位。
-4. 設定 global、project 或 workspace 範圍，並選擇是否為預設 profile。
+4. 設定 global、project 或 workspace 範圍，並選擇是否為預設供應商設定。
 5. 儲存後執行 health probe，再執行 capability probe。
 
 能力探測會回報串流輸出、工具呼叫、推理、附件或結構化詢問等支援情況，Composer 會據此限制選項。
 
-## 切換模型和匯入
+## 切換模型和查看用量
 
-傳送訊息前從 Composer 選擇 Agent、供應商 profile 與模型。切換只影響後續執行。usage summary 用來查看用量狀態，不等於供應商帳單。支援的設定可使用 native import/export preview；先閱讀目標後再 **Apply**，出錯時使用 **Rollback**。
+傳送訊息前從 Composer 選擇 Agent、供應商設定與模型。切換只影響後續執行；時間線會保留原執行的 Agent 和模型身份。
+
+usage summary 可用來查看已記錄的活動，但不等於供應商帳單。
+
+## 原生匯入和回滾
+
+支援的供應商設定可使用 native import/export preview。先閱讀目標和欄位，再 **Apply**。結果不正確時，使用該資源的 **Rollback**，不要整個覆寫 Agent home。
 
 <Warning>
-  健康檢查可能連線到供應商並消耗額度。read-only 行動端不能觸發健康檢查。
+  健康檢查可能連線到供應商並消耗額度。確認供應商設定、模型和權限後再執行；read-only 行動端不能觸發健康檢查。
 </Warning>
 
 ## 常見問題
 
 - Agent 不在清單：確認可執行檔在 PATH 或檢查自訂命令與工作目錄。
-- 模型不可選：查看 capability probe 和 profile 範圍。
+- 模型不可選：查看 capability probe 和供應商設定範圍。
 - 驗證失敗：更新 secret reference 後重試，不要在 Issue 貼出 token 或回應標頭。
-- 遠端看不到 profile：確認裝置權限與桌面端 Remote gateway 狀態。
+- 遠端看不到供應商設定：確認裝置權限與桌面端 Remote gateway 狀態。

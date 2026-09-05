@@ -13,13 +13,19 @@ Remote v2 是桌面端與行動端之間的型別化協議。業務授權留在�
 - offer 不含長期 grant、供應商 secret、私鑰或工作區資料。
 - 撤銷裝置後，所有活動連線收到 `device_revoked`。
 
-## 握手、RPC 與同步
+## 握手與金鑰
 
-使用 X25519、HKDF-SHA256、HMAC-SHA256 與 ChaCha20-Poly1305。WebSocket ticket 有效 30 秒且只能使用一次，不放在 URL。hello proof 綁定 challenge、完整 transcript、伺服器身份、session epoch、裝置身份與暫時金鑰。
+使用 X25519、HKDF-SHA256、HMAC-SHA256 與 ChaCha20-Poly1305。WebSocket ticket 有效 30 秒且只能使用一次，透過受控 subprotocol 傳遞，不放在 URL。
+
+hello proof 綁定 ticket challenge、完整 hello transcript、伺服器身份、session epoch、配對裝置身份與暫時金鑰。`server_info` 回傳伺服器暫時金鑰和會話金鑰確認。
+
+## RPC、事件與同步
 
 業務操作都經過裝置認證、權限與工作區授權。變更使用有界 idempotency key；檔案寫入使用修訂/CAS。序號或 cursor 有缺口時回傳 `resync_required`。附件和終端機串流必須在授權後建立。
 
-## Relay 約束與檢查
+終端機附件串流帶有工作區範圍。終端機輸入需經 generation 檢查和審計，且不保存原始位元組。
+
+## Relay 約束
 
 Relay 只轉發不透明加密框，可提供 `/health`、`/api/info` 和 WebSocket bridge 的路由中繼資料，不執行業務授權或讀寫工作區。
 
@@ -28,4 +34,17 @@ pnpm smoke:relay:local
 cargo test -p vibex-remote-client --test relay_smoke --locked -- --nocapture
 ```
 
-Relay 日誌不得記錄 token、配對碼、私鑰、Prompt、檔案路徑、終端機內容、Git diff、Provider 設定、原始密文或 nonce。Remote client 可在 Direct、Tailnet、Relay 間探測回退，路線恢復不需重新配對；撤銷後任何路線都必須失敗。
+Relay 日誌不得記錄 token、配對碼、私鑰、Prompt、檔案路徑、終端機內容、Git diff、Provider 設定、原始密文或 nonce。
+
+## 連線策略
+
+Remote client 可在 Direct、Tailnet、Relay 間探測和回退，不需重新配對。路線恢復後先重新探測再切換；裝置撤銷後，任何路線都必須失敗。
+
+## 部署範例
+
+```bash
+docker compose -f deploy/relay/docker-compose.yml up --build -d relay-server
+curl -fsS http://127.0.0.1:9700/health
+```
+
+公開部署前設定 HTTPS/WSS、Host/Origin 校驗、連線和房間上限，並閱讀儲存庫的 `docs/smoke/relay-nat.md`。

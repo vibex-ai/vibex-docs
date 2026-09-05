@@ -3,6 +3,8 @@ title: "Platform support"
 description: "Understand build boundaries for Linux, macOS, Windows, Android, and iOS."
 ---
 
+## Support matrix
+
 | Platform | Product form | Key dependency | Note |
 | --- | --- | --- | --- |
 | Linux | Native desktop | Vulkan graphical session | Supports development and preview smoke tests. |
@@ -12,17 +14,35 @@ description: "Understand build boundaries for Linux, macOS, Windows, Android, an
 | iOS | Native mobile | macOS, Xcode, XcodeGen | Produces `VibexFFI.xcframework`. |
 | Self-hosted Linux/container | Relay | Rust/Axum or Docker | Forwards encrypted frames only. |
 
-The desktop owns Agents, files, Git, PTY, providers, permissions, and persistence. Keep platform differences in `apps/desktop/src/platform` or a shared facade.
+## Desktop platform boundaries
 
-## Mobile builds
+The desktop owns Agents, files, Git, PTY, providers, permissions, and persistence. Keep platform differences in `apps/desktop/src/platform` or a shared facade. Do not duplicate business branches in UI code.
+
+## Android builds
 
 ```bash
 pnpm build:mobile:android
+```
+
+Package a Release APK with:
+
+```bash
 pnpm package:mobile:android
+```
+
+Set `VIBEX_MOBILE_ANDROID_TARGETS` to override Debug ABIs. Release APKs are unsigned and need alignment and signing before distribution.
+
+## iOS builds
+
+```bash
 pnpm build:mobile:ios
 ```
 
-Release APKs are unsigned. Xcode controls iOS signing and device/simulator selection. On lifecycle resume, mobile must fetch authoritative sessions/timelines through Remote v2 before subscribing to live events.
+Xcode controls signing, bundle identifiers, and device or simulator selection. Do not commit certificates or provisioning profiles.
+
+## Mobile lifecycle
+
+Mobile must handle backgrounding, network changes, disconnects, and reconnects. On resume, fetch authoritative sessions and timelines through Remote v2 before subscribing to live events. Do not let an old local projection overwrite desktop state.
 
 ## Relay deployment
 

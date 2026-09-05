@@ -31,7 +31,13 @@ flowchart LR
 | `apps/mobile` | Native Android/iOS composition of shared remote projections. |
 | `apps/relay-server` | Forwarding opaque encrypted WebSocket frames. |
 
-Events carry authoritative sequence and version information. A generation or cursor gap must return `resync_required` and fetch authoritative state again. File writes use revision/CAS checks. Attachments and terminal input require authorization before opening and are audited.
+## Data flow rules
+
+Events carry authoritative sequence and version information. A generation or cursor gap must return `resync_required` and fetch authoritative state again. File writes use revision/CAS checks.
+
+Remote attachments re-authenticate and authorize before a stream opens. Terminal input carries workspace scope and generation checks and is audited; do not retain raw terminal bytes.
+
+## Persistence and recovery
 
 SQLite stores projects, workspaces, sessions, timelines, providers, terminal metadata, and remote devices. `running` is not proof of a live process; a lost terminal becomes stale.
 
@@ -40,4 +46,4 @@ SQLite stores projects, workspaces, sessions, timelines, providers, terminal met
 - Is the desktop still the only source of truth?
 - Are shared DTOs, errors, and capabilities used instead of copied structures?
 - Are reconnect, sequence gaps, revocation, and recovery defined?
-- Are logs, screenshots, and test evidence redacted?
+- Are logs, diagnostics, and test evidence redacted?

@@ -13,13 +13,19 @@ Remote v2 is the typed protocol between desktop and mobile. Business authorizati
 - An offer contains route candidates, the desktop public identity, permission summary, expiry, and a one-time challenge. It contains no long-lived grant, provider secret, private key, or workspace data.
 - Revocation sends `device_revoked` to every active connection for that device.
 
-## Handshake, RPC, and sync
+## Handshake and keys
 
-The implementation uses X25519, HKDF-SHA256, HMAC-SHA256, and ChaCha20-Poly1305. A WebSocket ticket is single-use for 30 seconds and travels through a controlled subprotocol, not a URL. The hello proof binds the challenge, full transcript, server identity, session epoch, device identity, and client ephemeral key.
+The implementation uses X25519, HKDF-SHA256, HMAC-SHA256, and ChaCha20-Poly1305. A WebSocket ticket is single-use for 30 seconds and travels through a controlled subprotocol, not a URL.
+
+The hello proof binds the ticket challenge, full hello transcript, server identity, session epoch, paired device identity, and client ephemeral key. `server_info` returns the server ephemeral key and session-key confirmation.
+
+## RPC, events, and sync
 
 Every business operation checks device authentication, permissions, and workspace authorization. Mutations use bounded idempotency keys; file writes use revision/CAS. A sequence or cursor gap returns `resync_required`. Attachments and terminal streams open only after authorization.
 
-## Relay boundary and checks
+Terminal attachment streams carry workspace scope. Terminal input is generation-checked and audited without retaining raw bytes.
+
+## Relay constraints
 
 Relay forwards opaque encrypted frames and may expose routing metadata through `/health`, `/api/info`, and WebSocket bridges. It does not authorize business operations or read workspaces.
 
@@ -28,4 +34,17 @@ pnpm smoke:relay:local
 cargo test -p vibex-remote-client --test relay_smoke --locked -- --nocapture
 ```
 
-Relay logs must not contain tokens, pairing codes, private keys, Prompts, file paths, terminal content, Git diffs, provider settings, raw ciphertext, or nonces. The remote client can probe and fall back between routes without pairing again; revocation must fail on every route.
+Relay logs must not contain tokens, pairing codes, private keys, Prompts, file paths, terminal content, Git diffs, provider settings, raw ciphertext, or nonces.
+
+## Connection strategy
+
+The remote client can probe and fall back between Direct, Tailnet, and Relay without pairing again. After a route recovers, probe it again before switching. A revoked device must fail on every route.
+
+## Deployment example
+
+```bash
+docker compose -f deploy/relay/docker-compose.yml up --build -d relay-server
+curl -fsS http://127.0.0.1:9700/health
+```
+
+Before public deployment, configure HTTPS/WSS, Host and Origin checks, and connection and room limits. Read `docs/smoke/relay-nat.md` for the repository's NAT checks.

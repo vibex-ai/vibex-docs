@@ -3,7 +3,7 @@ title: "设置"
 description: "调整 Vibex 的界面、工作台、会话、终端、快捷键和诊断选项。"
 ---
 
-打开 **Settings**（macOS 为 cmd-,，Windows/Linux 通常为 ctrl-,）可以修改桌面端的本地偏好。设置不会替代 Config Center 中的 Agent、供应商或工作流资源配置。
+打开 **Settings**（macOS 为 `cmd-,`，Windows/Linux 通常为 `ctrl-,`）可以修改桌面端的本地偏好。设置不会替代 Config Center 中的 Agent、供应商或工作流资源配置。
 
 ## 设置分区
 
@@ -18,9 +18,23 @@ description: "调整 Vibex 的界面、工作台、会话、终端、快捷键�
 | **Data & Diagnostics** | 本地数据、诊断级别和脱敏导出入口。 |
 | **About** | 版本、许可证和构建信息。 |
 
-<Frame caption="截图占位：Settings 分区和 Appearance/Workbench 选项">
-  <img src="/images/screenshot-placeholder.svg" alt="Settings 页面截图占位" />
-</Frame>
+## General 和启动
+
+你可以选择语言、关闭窗口时是否保留在系统托盘、启动后恢复工作台或创建新会话、是否登录系统时启动 Vibex，以及是否启用网络代理。代理支持 `http`、`https`、`socks5` 和 `socks5h` 地址；启用前会校验地址，凭据不会同步到移动端。
+
+通知可以总开关，也可以分别控制 Agent 完成、需要输入和失败。更新提示只控制界面提示；后台安全检查仍按发布策略运行。
+
+## Appearance
+
+Appearance 控制主题、窗口缩放、界面字体和代码字体。代码字体同时影响代码块、集成编辑器和终端。你还可以调整字号、字重、减少动效和高对比度；这些选项只改变本机 UI。
+
+## Workbench 和 Session
+
+Workbench 保存侧栏、预览、右侧栏、标签和分栏布局，并可设置新会话默认使用 **CurrentCheckout** 或 **VibexWorktree**。Session 控制内容宽度、回合预览条、reasoning 显示、命令和文件操作详情，以及 Composer 的自动或手动队列和发送按键。
+
+## Terminal
+
+Terminal 设置默认 shell 和新建终端的初始目录。初始目录可以是当前工作区、项目根目录或当前文件；已打开的终端不会因为修改偏好而迁移。
 
 ## 修改偏好
 
@@ -57,4 +71,4 @@ description: "调整 Vibex 的界面、工作台、会话、终端、快捷键�
 
 ## 关于版本
 
-**About** 显示当前构建版本、许可证和平台信息。报告问题时附上这些不敏感信息和结构化错误码，不要附上完整日志。
+**About** 显示当前构建版本、发布渠道、许可证和平台信息，并提供检查已签名发行版更新的入口。报告问题时附上这些不敏感信息和结构化错误码，不要附上完整日志。

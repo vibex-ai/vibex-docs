@@ -15,12 +15,19 @@ This covers Rust quality, frontend type/lint, and license checks. Use `pnpm chec
 
 ```bash
 pnpm release:build-smoke
+```
+
+This checks the desktop, mobile, and Relay crate build graph. It does not produce a signed release package. Targeted desktop checks are:
+
+```bash
 cargo check -p vibex-desktop --locked
 cargo test -p vibex-desktop --locked
 pnpm smoke:first-frame
 ```
 
-## Feature smoke tests
+## Feature smoke
+
+The repository provides checks for ACP, the code workbench, terminals, PDF and native content, remote pairing, and Relay. For example:
 
 ```bash
 pnpm check:acp
@@ -30,7 +37,7 @@ pnpm check:mobile-native
 pnpm smoke:relay:local
 ```
 
-Scripts can create evidence or capture files. Do not commit artifacts containing credentials, Prompts, paths, diffs, or terminal content.
+Scripts can create local evidence or capture files. Check `.gitignore` and the script notes. Do not commit artifacts containing credentials, Prompts, paths, diffs, or terminal content.
 
 ## Contracts to test
 
@@ -40,4 +47,6 @@ Scripts can create evidence or capture files. Do not commit artifacts containing
 - Terminal and attachment streams open only after authorization and close on revocation.
 - Restart, disconnect, and stale states are reproducible.
 
-Read `docs/operations/release.md` before a release. Packages, binaries, APKs, and signing material are build artifacts, not source.
+## Release checklist
+
+Read `docs/operations/release.md` and the target platform notes before a release. Packages, runtime binaries, Release APKs, and signing material are build artifacts, not source.

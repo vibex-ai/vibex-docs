@@ -17,10 +17,6 @@ git status --short
 pnpm test
 ```
 
-<Frame caption="Screenshot placeholder: terminal tabs, shell selector, and search toolbar">
-  <img src="/images/screenshot-placeholder.svg" alt="Placeholder for terminal interface screenshots" />
-</Frame>
-
 ## Terminal controls
 
 - Create, close, and switch tabs.
@@ -29,10 +25,18 @@ pnpm test
 - Switch available shells; the operating system controls installation and permissions.
 - Treat raw bytes and ANSI control sequences correctly.
 
+## Work with an Agent
+
 When an Agent requests a command, the timeline shows process details and the exit result. Check the command, working directory, and parameters before approving. Terminating a process does not undo completed external operations.
 
-## Preview content and mobile terminal access
+## Preview generated content
 
-Open Markdown, images, PDFs, or supported Office documents in the code workbench. Mobile receives terminal snapshots and an authorized input channel. Inputs carry workspace scope, generation checks, and audit records.
+Open Markdown, images, PDFs, or supported Office documents in the code workbench.
 
-<Note>Terminal snapshots may contain keys, paths, and user data. Do not paste complete output into public Issues, screenshots, or logs.</Note>
+Development-server web previews are not a Vibex remote web backend. Vibex provides native previews for supported workspace content.
+
+<Note>Terminal snapshots may contain keys, paths, and user data. Do not paste complete output into public Issues, logs, or diagnostic evidence.</Note>
+
+## Mobile terminal access
+
+Mobile receives terminal snapshots and an authorized input channel. Inputs carry workspace scope, generation checks, and audit records. During a network interruption, mobile must not assume that a command ran; use the desktop snapshot after reconnecting.
