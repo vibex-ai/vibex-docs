@@ -3,8 +3,6 @@ title: "v0.1.0-rc.3"
 description: "Vibex v0.1.0-rc.3 release notes: the remote authority takes over the workbench, connection-link pairing, the gpui-kit migration, and model limits."
 ---
 
-<Update label="v0.1.0-rc.3" description="September 12, 2026 · 91 commits · v0.1.0-rc.2...v0.1.0-rc.3" tags={["Remote & server", "Desktop", "Mobile"]}>
-
 ## Highlights
 
 - **The remote authority now serves the workbench** — a paired headless `vibex-server` answers almost every desktop domain over Remote v2: the Config Center as one aggregated read, the MCP / Skills / Prompts / Hooks / Automation / Scheduled management domains, Agent lifecycle and credentials, sign-in, terminals, the code workbench, session search and child-Agent timelines, worktree lifecycle, provider usage, and the device audit trail (`ec6e378`, `847feb9`, `4b4f42d`, `7b51cce`).
@@ -87,8 +85,6 @@ description: "Vibex v0.1.0-rc.3 release notes: the remote authority takes over t
 - Document the current remote-client coverage in the `deploy/server` README and the architecture baseline (`0d58732`), and record in spec which desktop concerns still run only on the local runtime (`d6a1dc1`, `b55f68e`)
 - Add the v0.1.0-rc.2 release note (`c7bff6f`)
 - Drop a useless `BackendError` conversion that failed the workspace clippy gate (`5e83215`)
-
-</Update>
 
 ## Related links
 

@@ -3,8 +3,6 @@ title: "v0.1.0-rc.3"
 description: "Vibex v0.1.0-rc.3 的變更記錄：遠端權威端承接工作臺、連線連結配對、gpui-kit 遷移與模型上限。"
 ---
 
-<Update label="v0.1.0-rc.3" description="2026-09-12 · 91 次提交 · 區間 v0.1.0-rc.2...v0.1.0-rc.3" tags={["遠端與伺服器", "桌面端", "行動端"]}>
-
 ## 亮點
 
 - **遠端權威端已承接整個工作臺** — 配對後的無頭 `vibex-server` 現在透過 Remote v2 應答幾乎全部桌面端領域：Config Center 的單次聚合讀取，MCP / Skills / Prompts / Hooks / Automation / Scheduled 管理域，Agent 生命週期與憑證、登入、終端、程式碼工作臺、會話搜尋與子 Agent 時間線、worktree 生命週期、Provider 用量以及裝置審計記錄（`ec6e378`、`847feb9`、`4b4f42d`、`7b51cce`）。
@@ -87,8 +85,6 @@ description: "Vibex v0.1.0-rc.3 的變更記錄：遠端權威端承接工作臺
 - 在 `deploy/server` README 與架構基線中記錄當前遠端客戶端覆蓋範圍（`0d58732`），並在 spec 中記錄仍僅由本機執行時提供的桌面端功能（`d6a1dc1`、`b55f68e`）
 - 新增 v0.1.0-rc.2 發布說明（`c7bff6f`）
 - 移除一處多餘的 `BackendError` 轉換，修復工作區 clippy 門禁（`5e83215`）
-
-</Update>
 
 ## 相關連結
 

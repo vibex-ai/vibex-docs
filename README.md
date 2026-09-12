@@ -36,8 +36,11 @@ The Changelog tab mirrors the release notes kept in the Vibex repository (`docs/
 
 To add a release:
 
-1. Wrap the release note body in an `<Update label="v<version>" description="<date> · <commits> commits · <range>" tags={[...]}>` block and add it to each locale's page.
+1. Add the release note body to each locale's page, with the section headings the note already uses (`## Highlights` / `## 亮点` and so on).
 2. Register the page in that locale's Changelog tab in `docs.json`.
 3. Add the release to `changelog/index.mdx`, `zh-TW/changelog/index.mdx`, and `en/changelog/index.mdx`.
+
+Do not wrap the body in Mintlify's `<Update>` component: on these pages it renders as a
+two-column card whose body is clipped, so the release note renders as plain page content.
 
 Traditional Chinese pages are converted from Simplified Chinese, then adjusted for Taiwan terminology such as 工作區, 供應商設定, 桌面端, and 行動端.
