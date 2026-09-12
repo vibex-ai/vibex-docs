@@ -37,7 +37,7 @@
                 "pages": ["config-center", "settings", "agents-and-providers", "mcp-skills-prompts-hooks", "scheduled-automation"]
               },
               {
-                "group": "远程与连续性",
+                "group": "远程开发",
                 "pages": ["remote-mobile", "privacy-and-recovery", "troubleshooting"]
               }
             ]
@@ -78,7 +78,7 @@
               {"group": "開始使用", "pages": ["zh-TW/index", "zh-TW/quickstart", "zh-TW/install", "zh-TW/workspaces"]},
               {"group": "日常工作", "pages": ["zh-TW/sessions", "zh-TW/code-workbench", "zh-TW/terminal-and-previews", "zh-TW/git", "zh-TW/usage"]},
               {"group": "擴充與自動化", "pages": ["zh-TW/config-center", "zh-TW/settings", "zh-TW/agents-and-providers", "zh-TW/mcp-skills-prompts-hooks", "zh-TW/scheduled-automation"]},
-              {"group": "遠端與連續性", "pages": ["zh-TW/remote-mobile", "zh-TW/privacy-and-recovery", "zh-TW/troubleshooting"]}
+              {"group": "遠端開發", "pages": ["zh-TW/remote-mobile", "zh-TW/privacy-and-recovery", "zh-TW/troubleshooting"]}
             ]
           },
           {
@@ -107,7 +107,7 @@
               {"group": "Get started", "pages": ["en/index", "en/quickstart", "en/install", "en/workspaces"]},
               {"group": "Daily work", "pages": ["en/sessions", "en/code-workbench", "en/terminal-and-previews", "en/git", "en/usage"]},
               {"group": "Extensions and automation", "pages": ["en/config-center", "en/settings", "en/agents-and-providers", "en/mcp-skills-prompts-hooks", "en/scheduled-automation"]},
-              {"group": "Remote and continuity", "pages": ["en/remote-mobile", "en/privacy-and-recovery", "en/troubleshooting"]}
+              {"group": "Remote development", "pages": ["en/remote-mobile", "en/privacy-and-recovery", "en/troubleshooting"]}
             ]
           },
           {

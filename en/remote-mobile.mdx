@@ -1,46 +1,280 @@
 ---
 title: "Remote access and mobile"
-description: "Pair a mobile client with the desktop runtime and safely operate sessions."
+description: "Run Vibex on a server, or reach your own desktop from your phone."
 ---
 
-Mobile is a native remote companion to the desktop. The desktop still owns Agents, files, Git, PTY, providers, and permissions. Mobile requests projections and operations through Remote v2 and never runs a local Agent.
+There are two ways to keep working when you are away from the machine that runs your Agents. Pick the one you need:
 
-## Choose a route
+| What you want | What this path is called | Where the Agent runs | Who connects |
+| --- | --- | --- | --- |
+| One environment on a server that your work laptop, home computer, and phone all share | Cloud development: run the **headless runtime**, `vibex-server` | The server | Desktop and mobile connect as clients |
+| Your phone or tablet reaching the computer on your desk | Remote development: desktop + mobile | Your own computer | Only the mobile devices you paired |
 
-| Route | Use it when |
+<Info>
+  **What is a headless runtime?** Think of it as Vibex without a window. It owns Agent sessions, workspaces, Git, terminals, and provider profiles, and behaves exactly like the desktop app — it just runs on a server, and you operate it through a desktop or mobile client. Its program name is `vibex-server`.
+</Info>
+
+Both paths establish trust with a **one-time pairing**: the first time, you need the pairing code or QR code from the machine itself. After that, long-lived credentials live on both sides and clients reconnect on their own.
+
+The steps below assume the desktop app is already installed; the mobile app currently has to be built from source, as described in [Install and platforms](/en/install).
+
+## 1. Cloud development: run Vibex on a server
+
+Agents read and write code on the server and run commands there, so prepare the server first and connect clients afterwards.
+
+### Before you start
+
+- A Linux server with Docker. For a single user, 1 vCPU and 2 GB of RAM is enough to start; running several Agents benefits from 2 vCPU and 4 GB or more.
+- Your code must be reachable on the server: either clone it there, or mount a host directory into the container (the example below mounts one).
+- Agent accounts and API keys are configured later, from a connected client: add them under **Config Center** (see [Config Center](/en/config-center)). **Never** put them in the compose file or commit them.
+
+### Step 1: start the runtime
+
+Save this as `docker-compose.yml` in any directory on the server:
+
+```yaml
+services:
+  vibex-server:
+    image: ghcr.io/vibex-ai/vibex-server:v0.1.0-rc.3
+    container_name: vibex-server
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      VIBEX_HOME: /data
+      VIBEX_DB_PATH: /data/vibex.db
+      # With 127.0.0.1 here, phones and other computers cannot connect
+      VIBEX_BIND_ADDR: 0.0.0.0:8765
+      VIBEX_DEPLOYMENT_MODE: lan
+      # The runtime signs its own certificate; clients receive the fingerprint
+      # inside the pairing connection string, so no certificate authority is needed
+      VIBEX_TLS_MODE: pinned_certificate
+      # The address clients dial, including the port; change it to your server
+      VIBEX_PUBLIC_HOST: 192.168.1.10:8765
+      # Directories a client may browse when picking a project (used in step 4)
+      VIBEX_WORKSPACE_ROOTS: /data:/data/repos
+    volumes:
+      - vibex-data:/data
+      - /srv/repos:/data/repos        # change to the code directory Agents should open
+volumes:
+  vibex-data:
+```
+
+<Note>
+  You can replace the version in `image` with a specific release, with `rc` to follow the newest release candidate, or with `latest` for the newest stable release. If you already cloned the repository, you can also build from source with its deployment files: `docker compose -f deploy/server/docker-compose.yml up --build -d vibex-server`.
+</Note>
+
+Start it and read the pairing material:
+
+```bash
+docker compose up -d
+docker logs vibex-server | grep -E 'pairing_(code|link)'
+```
+
+The log prints two things:
+
+- `pairing_code=123-456-789` — a one-time code that expires after five minutes by default.
+- `pairing_link=vibex://pair#/code/...` — a connection string that already carries the server address and the certificate fingerprint. Copy the whole string.
+
+<Warning>
+  A pairing code or connection string is as sensitive as a password and works once. Do not post it in chat, an issue, or a screenshot. When it expires, mint a new one on the server.
+</Warning>
+
+```bash
+docker exec vibex-server vibex-server pairing-code
+```
+
+### If the server is on the public internet
+
+A public deployment adds exactly one requirement: **HTTPS**. Let Caddy obtain the certificate while the runtime only listens on loopback:
+
+```yaml
+services:
+  vibex-server:
+    image: ghcr.io/vibex-ai/vibex-server:latest
+    container_name: vibex-server
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      VIBEX_BIND_ADDR: 127.0.0.1:8765     # loopback only; public traffic goes through Caddy
+      VIBEX_DEPLOYMENT_MODE: public
+      VIBEX_TLS_MODE: trusted_https_proxy
+      VIBEX_TRUST_FORWARDED_HEADERS: "true"
+      VIBEX_PUBLIC_HOST: vibex.example.com
+      VIBEX_ALLOWED_HOSTS: vibex.example.com
+      VIBEX_ALLOWED_ORIGINS: https://vibex.example.com
+      VIBEX_WORKSPACE_ROOTS: /data:/data/repos
+    volumes:
+      - vibex-data:/data
+      - /srv/repos:/data/repos
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: vibex-caddy
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
+volumes:
+  vibex-data:
+  caddy-data:
+  caddy-config:
+```
+
+Add a `Caddyfile` next to it:
+
+```text
+vibex.example.com {
+    reverse_proxy 127.0.0.1:8765
+}
+```
+
+```bash
+docker compose up -d
+docker logs vibex-server | grep -E 'pairing_(code|link)'
+```
+
+Your firewall only needs `80`, `443`, and SSH. Keep `8765` on loopback and out of the public internet. After you replace the domain and address with your own, `VIBEX_ALLOWED_HOSTS` and `VIBEX_ALLOWED_ORIGINS` must match the domain clients actually use, or requests are rejected.
+
+<Tip>
+  If you would rather not expose anything to the public internet, install Tailscale on the server and publish the runtime with `tailscale serve --bg http://127.0.0.1:8765`. Set `VIBEX_DEPLOYMENT_MODE` to `public`, `VIBEX_TLS_MODE` to `trusted_https_proxy`, and use the Tailscale hostname for both `VIBEX_PUBLIC_HOST` and `VIBEX_ALLOWED_HOSTS`.
+</Tip>
+
+### Step 2: connect the desktop
+
+1. Open **Settings → Remote Runtime**.
+2. Choose **Pair with connection string**, paste the whole `vibex://pair#/code/...` value, and select **Pair**. This also works when the server uses a self-signed certificate, because the fingerprint travels inside the string.
+3. Alternatively, choose **Pair with pairing code** and type the server address and `pairing_code`.
+4. After pairing, the panel shows the pinned **Server certificate** fingerprint. Compare it with `tls_fingerprint` in the server log.
+5. From now on, sessions, files, Git, and terminals in the desktop come from the server. To go back to your own machine, select **Forget this runtime**.
+
+### Step 3: connect the mobile client
+
+1. Open the mobile app and choose **Pair with a Cloud Server**.
+2. Enter the **server address** (for example `192.168.1.10:8765`) and the **pairing code**, then select **Pair with Code**.
+3. When the server uses a self-signed certificate, paste the `vibex://pair#/code/...` string into the **connection string** field instead; it carries the certificate too.
+4. Confirm the pairing; what this device may do comes from the server when it mints the pairing code, and defaults to **Full control**. To grant less, mint a new code on the server with `docker exec vibex-server vibex-server pairing-code --permission read-only` (choices: `read-only`, `approve-only`, `full-control`).
+
+### Step 4: let Agents see your code
+
+Agents run on the server, so **they only see directories inside the server (container)**. Your code therefore has to live there:
+
+- Clone it on the server into `/data/repos/your-project`, or
+- Mount a host directory into the container (the `- /srv/repos:/data/repos` line above).
+
+Then make sure the container path is listed in `VIBEX_WORKSPACE_ROOTS` (the `/data:/data/repos` value above). In any client, open a new session, select the **project directory** picker, choose **Choose another directory**, and pick your project under `/data` or `/data/repos`.
+
+<Note>
+  Mounting a directory without listing it in `VIBEX_WORKSPACE_ROOTS` leaves it unbrowsable for clients; listing a path without mounting it leaves the directory nonexistent inside the runtime.
+</Note>
+
+### Step 5: day-two operations
+
+| Task | How |
 | --- | --- |
-| **Direct** | Phone and desktop can reach each other on a LAN or private address. |
-| **Tailnet** | You use Tailscale or another private network without a public listener. |
-| **Self-hosted Relay** | Direct access is unavailable and you want encrypted frame forwarding. |
+| Upgrade to a new version | Change the version in `image`, then `docker compose pull && docker compose up -d --no-build`. With moving tags such as `rc` or `latest`, the `pull` is required or the container stays on the old image |
+| Back up | Back up the `/data` volume. It holds the database and the server identity; losing the identity forces every device to pair again |
+| Revoke a device | In a client, open **Relay → Revoke**, or run `docker exec vibex-server vibex-server revoke DEVICE_ID` |
+| Check the runtime | `docker exec vibex-server vibex-server status`; after changing environment variables, run `docker exec vibex-server vibex-server config-check` first |
+| Remove the runtime | `docker compose down`. **Never add `-v`**, which deletes `/data` as well |
 
-Relay handles routing metadata such as rooms and connections. It does not store or decrypt business data.
+## 2. Remote development: your phone reaching your desktop
 
-## Pair a device
+Your computer stays the authority: Agents, files, Git, and terminals all run on the desktop, and the phone only gets a window to view and operate them. Use this when you are away and want to check progress, answer a question, or approve a request.
 
-1. Open remote pairing on the desktop and choose Direct, Tailnet, or self-hosted Relay.
-2. Generate a short-lived, one-time QR code or deep link.
-3. Scan or open `vibex://open/...` on the phone.
-4. Confirm the device name, workspace scope, and permission level.
-5. Wait for the initial projection and session list after the handshake.
+### Before you start
 
-The QR/deep link does not contain a long-lived grant, provider secret, private key, or workspace data. Do not publish it.
+- The desktop app is running and the computer stays awake; sleep drops the connection.
+- The phone and the computer can reach each other: the same Wi-Fi is easiest, and Tailnet or a self-hosted Relay cover the rest.
+
+### Step 1: publish remote access from the desktop
+
+1. Select the **pair mobile device** icon in the top toolbar, or open **Management → Relay**.
+2. Choose how the phone will connect:
+   - **Tailnet** (recommended) — private access through Tailscale or another private network; good when you are not on the same Wi-Fi.
+   - **Direct HTTPS** — you have your own HTTPS address that points at this computer.
+   - **Self-hosted Relay** — the phone and computer cannot reach each other directly, so your own Relay forwards encrypted traffic.
+3. Fill in the address the dialog asks for (Direct expects `https://your-address`, Relay expects `https://your-relay`), choose what this phone may do (the default is **Read only**; see [Permission levels](#permission-levels)), and select **Publish**.
+4. A QR code and a pairing link appear: **scan to pair**, or select **Copy link** and send it to the phone. The link expires quickly; select **Regenerate** when it does.
+
+<Warning>
+  A pairing link or QR code is a one-time secret. Do not publish it. When the phone pairs, the desktop asks for confirmation, and pairing only succeeds if you approve it.
+</Warning>
+
+### Step 2: pair the phone
+
+- On the same Wi-Fi: the mobile app discovers **nearby desktops**; select yours and confirm.
+- On another network: scan the QR code or open the copied `vibex://` link.
+- Manually: choose **Pair with Code** in the mobile app and enter the address and pairing code shown on the desktop.
+
+The permission level is chosen on the desktop when it publishes the pairing offer, and the desktop asks you to confirm the device when the phone claims it. The phone then shows the desktop's session list.
+
+### Step 3: what the phone can do
+
+You can read the structured Agent timeline, send follow-up messages, fill in requested information, approve or reject requests, inspect files and Git state, and use a remote terminal when the permission allows it. Every result comes from the desktop; the phone never runs an Agent itself.
+
+### When direct access fails: self-hosted Relay
+
+Phones and computers are often behind corporate networks or carrier NAT, so they cannot reach each other. Run the Relay on a server both sides can reach; it only forwards encrypted frames and cannot read them:
+
+```yaml
+services:
+  relay-server:
+    image: ghcr.io/vibex-ai/vibex-relay-server:v0.1.0-rc.3
+    container_name: vibex-relay-server
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:9700:9700"
+    environment:
+      VIBEX_RELAY_BIND_ADDR: 0.0.0.0:9700
+```
+
+```bash
+docker compose up -d
+curl -fsS http://127.0.0.1:9700/health
+```
+
+To reach it over the public internet, give it an HTTPS/WSS entry point (for example Caddy reverse-proxying to `127.0.0.1:9700`), then publish remote access on the desktop with **Self-hosted Relay** and enter `https://your-relay-domain`.
+
+The Relay is pure forwarding: it does not store sessions, files, or provider profiles, and it does not decrypt content. Rooms and connections live in memory, so a restart clears them and devices rebuild them on reconnect.
+
+### Disconnects and reconnects
+
+After a network change, screen lock, or app resume, clients re-authenticate and catch up on missing history: they show authoritative session and timeline state first, then resume live updates. A **revoked** state means the device was revoked and must pair again; a **stale** state or a resync prompt means you should refresh once instead of repeating commands that have side effects.
 
 ## Permission levels
 
-- **read_only**: read sessions, file summaries, Git status/diffs, and provider summaries.
-- **approve_only**: resolve permitted approval requests without ordinary writes.
-- **full_control**: send messages, write files, enter terminal input, and perform Git writes, still subject to desktop capability gates.
+Choose a permission when you pair a mobile device, and grant the smallest one that works:
 
-Grant the smallest level needed. Revoking a device immediately closes its active connections.
+| Level | What it can do | Use it when |
+| --- | --- | --- |
+| **Read only** | Read sessions, file summaries, Git status and diffs, provider summaries | You only want to follow progress |
+| **Approve only** | Everything above, plus resolving Agent permission requests | You want to approve requests while away |
+| **Full control** | Send messages, write files, type into terminals, and perform Git writes, still capped by desktop capabilities | You really want to work from the phone |
 
-## Mobile operations
+You can revoke any device at any time under **Relay**; revocation closes its active connections immediately, and it has to pair again afterwards.
 
-Mobile can read the Agent timeline, send follow-ups, fill elicitation forms, resolve approvals, inspect files and Git, and use a remote terminal when permitted. File edits and Git operations still return their authoritative result from the desktop.
+## Security checklist
 
-## Disconnect and reconnect
+- Keep the runtime's `8765` port on loopback or your private network, and always use HTTPS on the public internet.
+- Grant the smallest permission level; use **Full control** only when you need it.
+- Never post pairing codes, QR codes, or connection strings publicly; each one works once.
+- Review **Relay** regularly and remove devices you no longer use.
+- A Relay only forwards encrypted traffic. It is not a permission boundary, and business data does not belong in its logs.
 
-After a network change or app resume, mobile re-authenticates and catches up from authoritative state before live events. A stale, revoked, or resync-required state needs the indicated desktop action or a new pairing.
+## Troubleshooting first steps
 
-## Security checks
+| Symptom | Likely cause | What to do |
+| --- | --- | --- |
+| The phone reports an expired pairing | Pairing codes and QR codes are short-lived | Select **Regenerate** on the desktop and scan again |
+| The phone cannot reach the desktop | Different networks, or the router/NAT blocks the route | Use Tailnet, or deploy a self-hosted Relay |
+| The desktop cannot reach the server | Wrong address or port, or a closed firewall | Reach the address from the pairing string on the server itself, and check that `VIBEX_BIND_ADDR` is not loopback |
+| A client reports a rejected certificate or host | `VIBEX_PUBLIC_HOST`, `VIBEX_ALLOWED_HOSTS`, and the address clients use do not agree | Align them with the real domain or address and restart the container |
+| A project directory is missing from the picker | The code is not on the server, or the path is not in `VIBEX_WORKSPACE_ROOTS` | Mount it and add it as described in step 4 |
+| The session list stops updating | The client is still catching up after a network change | Let it finish or refresh manually; if it stays stuck, check that the desktop or server still runs |
+| The phone reports a revoked device | The desktop revoked that device | Pair it again |
+| The desktop keeps using the server and you want the local runtime | The stored pairing credential restores automatically | Open **Remote Runtime** and select **Forget this runtime** |
 
-Keep Remote gateway disabled or loopback-bound by default. Publish through Tailnet or controlled HTTPS/WSS, never an unauthenticated public listener. A room id is routing metadata, not a credential.
+For deeper details on the pairing handshake, encryption, and sync contracts, read [Remote v2 and Relay](/en/developer/remote-protocol) in the developer guide.
