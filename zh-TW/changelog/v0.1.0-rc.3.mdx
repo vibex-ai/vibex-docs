@@ -1,0 +1,97 @@
+---
+title: "v0.1.0-rc.3"
+description: "Vibex v0.1.0-rc.3 的變更記錄：遠端權威端承接工作臺、連線連結配對、gpui-kit 遷移與模型上限。"
+---
+
+<Update label="v0.1.0-rc.3" description="2026-09-12 · 91 次提交 · 區間 v0.1.0-rc.2...v0.1.0-rc.3" tags={["遠端與伺服器", "桌面端", "行動端"]}>
+
+## 亮點
+
+- **遠端權威端已承接整個工作臺** — 配對後的無頭 `vibex-server` 現在透過 Remote v2 應答幾乎全部桌面端領域：Config Center 的單次聚合讀取，MCP / Skills / Prompts / Hooks / Automation / Scheduled 管理域，Agent 生命週期與憑證、登入、終端、程式碼工作臺、會話搜尋與子 Agent 時間線、worktree 生命週期、Provider 用量以及裝置審計記錄（`ec6e378`、`847feb9`、`4b4f42d`、`7b51cce`）。
+- **以連線連結配對伺服器** — `vibex-server` 會列印 `vibex://pair#/code/<payload>` 連線串，其中同時攜帶伺服器位址、一次性配對碼與 DER 證書，並在旁邊給出 `sha256:` 指紋與 QR code；桌面端與行動端在發出第一個請求前即固定該證書，區域網路執行時不再需要公共 CA（`8e2e523`）。
+- **桌面端統一走後端門面** — Config Center、Management Center、Agent 帳戶生命週期、終端、elicitation、訊息內嵌重寫與子 Agent 時間線全部經 `BackendFacade` 觸及權威端，本機執行時與配對執行時行為一致（`ffaffbc`、`84d1e4c`、`33cfd6c`）。
+- **兩個客戶端同時接入 gpui-kit** — 桌面端改用 DataTable、`Bubble`、TabBar、Tags、Marker、Form/Field、`Select` 與 `Collapsible`，並移除手寫元件；行動端接入 kit 主題與浮層根節點，輸入全部重建在 kit 的 `Input` 與 `Textarea` 之上（`cf2bc8b`、`4836301`、`976e11e`）。
+- **行動端輸入框長按與輸入法** — 長按改為應用內繪製的選擇工具列與拖曳手柄（不再使用會搶焦點、收起軟體鍵盤的 kit 選單），Android 上直接選取長按處的單詞，鍵盤保持展開（`e2f176f`、`79fe1fd`、`4e7ea2c`）。
+- **模型上限與思考深度** — Provider 模型可宣告上下文與輸出上限以及思考深度，路由模型的 DeepSeek Harness 推理強度投影修正，二次複雜度的流式投影改為線性並對思考塊啟用虛擬化（`24996aa`、`6fec8b9`、`ce66427`、`ce4adcc`）。
+
+## 新功能
+
+**遠端與伺服器**
+
+- Config Center 改為權威端的單次聚合讀取，隨後補齊 MCP、Skills、Prompts、Hooks、Automation、Scheduled、Advanced、託管 Agent 與原生設定管理域（`ec6e378`、`847feb9`、`9efd0f8`、`d08b3bd`、`cec95da`、`4b4f42d`）
+- 補完剩餘 provider 設定缺口，並將 Agent 生命週期、執行時選項探測、設定更新、認證上下文植入、Agent 登入與憑證儲存搬到 Remote v2（`28e4517`、`4a074ee`、`f1d613f`、`669b114`、`5d6bb7a`、`e0a72da`）
+- 在權威端發現 Agent 自有的模型目錄，並解析輸入框命令補全（`95c7137`、`2adca41`）
+- 在權威端提供會話、Provider 用量摘要、專案刪除、worktree 重新命名與 worktree 生命週期；遠端載入子 Agent 時間線與會話搜尋索引；透過 Remote v2 重寫最後一條使用者訊息（`7b51cce`、`161c8bd`、`ca54b6d`、`8457d36`、`33cfd6c`）
+- 讓桌面端程式碼工作臺走後端門面，並遠端提供工作臺、輸入框與登入終端（`64ea211`、`fcf8153`）；把終端傳輸注入終端介面，使兩種權威端都可承載（`85936a9`）
+- 透過 Remote v2 讀取裝置審計記錄並提供 Config Center 恢復（`b9c23a1`、`5facfd3`）；無頭二進位直接提供 agent delegation MCP sidecar（`4239bea`）
+- 透過連線連結配對 `vibex-server` 客戶端：`vibex://pair#/code/<payload>` 攜帶伺服器位址、一次性配對碼與 DER 證書，並與 `sha256:` 指紋、QR code 一同列印，兩端在首個請求前即固定證書（`8e2e523`）
+
+**桌面端**
+
+- Provider 模型可宣告上下文與輸出上限（`24996aa`），並可在 Provider 編輯器中編輯每個模型的思考深度（`6fec8b9`）；路由模型也可宣告自己的思考深度（`61c077c`）
+- 將 Agent 選擇併入 Provider 與模型選單（`5055a20`）
+- 以目錄模型選擇器投影 Cline Provider（`4da7999`）
+- Config Center 改走權威端聚合讀取，其 MCP、Skills 與 Provider 操作遠端執行（`39b1ecf`、`63d85f3`）；其餘 Config Center 操作與 Provider profile 複製搬到後端門面，並給 Management Center 接入門面控制代碼（`ffaffbc`、`503057c`、`84d1e4c`）
+- Agent 帳戶生命週期走後端（`8087687`）；持久化提交輪詢與中斷走後端（`7866dee`）
+- 舊有 Agent 模型 Provider profile 與金鑰寫入走後端門面（`5ea9758`、`6795317`）
+- 配對執行時明確提示 Config Center 讀取不可用的原因（`260402b`）
+- 桌面端 UI 遷移到 gpui-kit：用量統計表改用 DataTable，使用者訊息改用 `Bubble`，分段分頁、標籤、Marker 與表單欄位接入 kit，新會話 base-ref 選擇器改用 `Select`，輸入框協作區展開改用 `Collapsible`，並以 kit 元件替換手寫控制元件（進度環、標籤列、按鈕組、提示條、載入動畫、狀態列與重複的輸入框包裝）（`6e91977`、`af7d9c8`、`bd9af83`、`d3009b9`、`06ffa7f`、`cf2bc8b`）
+
+**行動端**
+
+- 手機端接入 gpui-kit 主題與浮層根節點：`gpui_component::init`、承載 kit 浮層層的 `Root` 視窗，以及指向共享 `vibex_ui` token 的 `theme::apply_component_theme`（`4836301`）
+- 用手寫輸入框替換為 kit `Textarea`，檔案編輯器一併遷移（`976e11e`、`0835b87`）
+- 工作臺欄位、側欄搜尋、執行時模型搜尋、配對與提示詞欄位、執行時功能欄位全部遷移到 kit `Input`（`d4cc328`、`2eb68e8`、`43231a5`、`eed1801`、`b075519`）
+- 在輸入框之上自繪選擇工具列與拖曳手柄，並在 Android 上把長按對映為右鍵（`e2f176f`、`488871e`）
+
+## 修復
+
+**遠端與伺服器**
+
+- 啟動對帳時保留已設定的配對路由，並讓對外宣告能力與裝置授權保持一致（`c4854ea`、`1e2eabf`）
+- 臨時會話根目錄改放到執行時 home 下（而非作業系統臨時目錄），容器重建後已發布的 workspace 依然可用；同時區分兩種可恢復的會話建立拒絕原因（`remote_agent_workspace_root_missing` 與 `remote_agent_workspace_mode_mismatch`），且仍不回顯權威端路徑（`c7f19f5`）
+
+**桌面端**
+
+- 側欄佈局按執行時權威端分別儲存，配對伺服器的專案列表不再與內嵌執行時的佈局互相覆蓋；切換權威端時釋放內嵌執行時的 home 鎖（`2146c29`、`abdcc97`）
+- elicitation 走後端門面解析（`94fa9f1`）
+- 訊息內嵌編輯氣泡不再塌陷（`c5fb5f2`）
+- 恢復被 gpui-kit `Tab` 圖示槽吞掉的標籤文字（`455b697`）
+- 流式投影改為線性並對思考塊啟用虛擬化；會話恢復時回收過期的流式行高度（`ce4adcc`、`97c5113`）
+- 調整用量表尺寸使 `DataTable` 能渲染資料行，並在統計或維度變化時同步其 delegate（`12df972`、`f4cba90`）
+- Windows 無模糊渲染器下關閉毛玻璃（`b02b3f1`）
+
+**行動端**
+
+- 長按選單不再收起軟體鍵盤（`79fe1fd`）
+- Android 下選取長按處的單詞，並在同步 Android 輸入法映象時跟隨游標（`4e7ea2c`、`c2a7764`）
+
+**Provider 與 Agent 設定**
+
+- 無鑰匙串主機也能儲存 Provider 金鑰：新增 `HostFile` 後端，寫入僅屬主可讀的 `provider-secrets.json`，可用 `VIBEX_PROVIDER_SECRET_STORE=keychain|file` 覆蓋（`3e18938`）
+- DeepSeek Harness 路由模型保留 system 角色（`b2041e2`），為其投影 Harness 的推理強度（`ce66427`），並保證提示詞圖片可正常投遞（`0f5bb4c`）
+- 將 effort 選項 id 解析為推理強度（`b5eab03`）
+- 對齊各 Agent 的模型 Provider 通訊協議，並把 Google Vertex 提升為一等協議（`0815a6a`）
+- Agent 帳戶模型目錄改按去除資源標識的指紋做鍵（`6cc0346`）
+
+**主題與平臺**
+
+- 修復 macOS 目錄選擇器的磁碟偵測（`b107e36`）
+
+## 內部、構建與文件
+
+- vendored zed 子模組升級到 `f748b84d68`，包含 `gpui_apple` 更新（`854081d`）
+- gpui-component 與 gpui-kit-assets 由 0.6.0 升至 0.6.1（`0413be7`）
+- 更新伺服器部署資產：`.dockerignore` 與 Dockerfile（`3ccdb68`）
+- 新增 gpui-kit 與設計指南 agent 技能（`c30dc24`）
+- 在 `deploy/server` README 與架構基線中記錄當前遠端客戶端覆蓋範圍（`0d58732`），並在 spec 中記錄仍僅由本機執行時提供的桌面端功能（`d6a1dc1`、`b55f68e`）
+- 新增 v0.1.0-rc.2 發布說明（`c7bff6f`）
+- 移除一處多餘的 `BackendError` 轉換，修復工作區 clippy 門禁（`5e83215`）
+
+</Update>
+
+## 相關連結
+
+- [在 GitHub 上檢視完整差異](https://github.com/vibex-ai/vibex/compare/v0.1.0-rc.2...v0.1.0-rc.3)
+- [上一版本：v0.1.0-rc.2](/zh-TW/changelog/v0.1.0-rc.2)
+- [返回更新日誌](/zh-TW/changelog)

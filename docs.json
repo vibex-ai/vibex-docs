@@ -50,6 +50,15 @@
                 "pages": ["developer/index", "developer/architecture", "developer/setup", "developer/build-and-test", "developer/platforms", "developer/remote-protocol", "developer/contributing"]
               }
             ]
+          },
+          {
+            "tab": "更新日志",
+            "groups": [
+              {
+                "group": "版本记录",
+                "pages": ["changelog/index", "changelog/v0.1.0-rc.3", "changelog/v0.1.0-rc.2"]
+              }
+            ]
           }
         ]
       },
@@ -75,6 +84,10 @@
           {
             "tab": "開發者指南",
             "groups": [{"group": "參與開發", "pages": ["zh-TW/developer/index", "zh-TW/developer/architecture", "zh-TW/developer/setup", "zh-TW/developer/build-and-test", "zh-TW/developer/platforms", "zh-TW/developer/remote-protocol", "zh-TW/developer/contributing"]}]
+          },
+          {
+            "tab": "更新日誌",
+            "groups": [{"group": "版本記錄", "pages": ["zh-TW/changelog/index", "zh-TW/changelog/v0.1.0-rc.3", "zh-TW/changelog/v0.1.0-rc.2"]}]
           }
         ]
       },
@@ -100,6 +113,10 @@
           {
             "tab": "Developer guide",
             "groups": [{"group": "Contribute", "pages": ["en/developer/index", "en/developer/architecture", "en/developer/setup", "en/developer/build-and-test", "en/developer/platforms", "en/developer/remote-protocol", "en/developer/contributing"]}]
+          },
+          {
+            "tab": "Changelog",
+            "groups": [{"group": "Releases", "pages": ["en/changelog/index", "en/changelog/v0.1.0-rc.3", "en/changelog/v0.1.0-rc.2"]}]
           }
         ]
       }

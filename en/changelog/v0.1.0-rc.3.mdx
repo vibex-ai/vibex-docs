@@ -1,0 +1,97 @@
+---
+title: "v0.1.0-rc.3"
+description: "Vibex v0.1.0-rc.3 release notes: the remote authority takes over the workbench, connection-link pairing, the gpui-kit migration, and model limits."
+---
+
+<Update label="v0.1.0-rc.3" description="September 12, 2026 · 91 commits · v0.1.0-rc.2...v0.1.0-rc.3" tags={["Remote & server", "Desktop", "Mobile"]}>
+
+## Highlights
+
+- **The remote authority now serves the workbench** — a paired headless `vibex-server` answers almost every desktop domain over Remote v2: the Config Center as one aggregated read, the MCP / Skills / Prompts / Hooks / Automation / Scheduled management domains, Agent lifecycle and credentials, sign-in, terminals, the code workbench, session search and child-Agent timelines, worktree lifecycle, provider usage, and the device audit trail (`ec6e378`, `847feb9`, `4b4f42d`, `7b51cce`).
+- **Pair a server from a connection link** — `vibex-server` prints a `vibex://pair#/code/<payload>` string that carries the server URL, the one-time code, and the DER certificate, next to a `sha256:` fingerprint and a QR code; desktop and mobile pin the certificate before the first request, so a LAN runtime no longer needs a public CA (`8e2e523`).
+- **One backend facade on the desktop** — the Config Center, Management Center, Agent account lifecycle, terminals, elicitations, inline message rewrite, and child-Agent timelines all reach the authority through `BackendFacade`, so local and paired runtimes behave identically (`ffaffbc`, `84d1e4c`, `33cfd6c`).
+- **gpui-kit on both clients** — desktop moves to DataTable, `Bubble`, TabBar, Tags, Marker, Form/Field, `Select`, and `Collapsible` while retiring hand-rolled widgets; mobile adopts the kit theme and overlay root and rebuilds its inputs on the kit `Input` and `Textarea` (`cf2bc8b`, `4836301`, `976e11e`).
+- **Mobile composer long-press and IME** — a long press opens an in-app selection toolbar with drag handles instead of the kit's focus-stealing menu, selects the word under the finger on Android, and keeps the soft keyboard up (`e2f176f`, `79fe1fd`, `4e7ea2c`).
+- **Model limits and thinking depth** — Provider Models declare their context and output limits and their thinking depth, route models project DeepSeek Harness reasoning efforts correctly, and the quadratic streaming projection is now linear with virtualized thought blocks (`24996aa`, `6fec8b9`, `ce66427`, `ce4adcc`).
+
+## New Features
+
+**Remote & server**
+
+- Serve the Config Center as one aggregated authority read, then fill in its MCP, Skills, Prompts, Hooks, Automation, Scheduled, Advanced, managed-Agent, and native-config management domains (`ec6e378`, `847feb9`, `9efd0f8`, `d08b3bd`, `cec95da`, `4b4f42d`)
+- Close the remaining provider-settings gaps and serve Agent lifecycle, runtime option probes, configuration updates, auth-context seeding, Agent sign-in, and credential storage over Remote v2 (`28e4517`, `4a074ee`, `f1d613f`, `669b114`, `5d6bb7a`, `e0a72da`)
+- Discover Agent-owned model catalogues and resolve composer command discovery on the authority (`95c7137`, `2adca41`)
+- Serve sessions, provider usage summaries, project deletion, worktree rename, and the worktree lifecycle on the authority; load child-Agent timelines and the session search index remotely; rewrite the last user message over Remote v2 (`7b51cce`, `161c8bd`, `ca54b6d`, `8457d36`, `33cfd6c`)
+- Drive the desktop code workbench through the backend facade and serve the workbench, composer, and sign-in terminals remotely (`64ea211`, `fcf8153`); inject the terminal transport into the terminal surface so either authority can back it (`85936a9`)
+- Read the device audit trail and serve Config Center recovery over Remote v2 (`b9c23a1`, `5facfd3`); serve the agent delegation MCP sidecar from the headless binary (`4239bea`)
+- Pair a `vibex-server` client from a connection link: `vibex://pair#/code/<payload>` carries the server URL, one-time code, and DER certificate, printed beside a `sha256:` fingerprint and a QR, so both clients pin the certificate before the first request (`8e2e523`)
+
+**Desktop**
+
+- Let a provider model declare its context and output limits (`24996aa`) and edit each model's thinking depth in the provider editor (`6fec8b9`); let a route model declare its own thinking depth (`61c077c`)
+- Fold Agent selection into the provider and model menu (`5055a20`)
+- Project Cline providers with a catalogue model picker (`4da7999`)
+- Load the Config Center through the aggregated authority read and drive its MCP, Skills, and provider actions remotely (`39b1ecf`, `63d85f3`); move the remaining Config Center actions and provider-profile duplication onto the backend facade and give the Management Center a facade handle (`ffaffbc`, `503057c`, `84d1e4c`)
+- Run the Agent account lifecycle through the backend (`8087687`); poll durable submissions and interrupt through the backend (`7866dee`)
+- Write legacy Agent model-provider profiles and secrets through the backend facade (`5ea9758`, `6795317`)
+- Say why Config Center reads are unavailable on a paired runtime (`260402b`)
+- Migrate desktop UI onto gpui-kit: DataTable for the usage statistics table, `Bubble` for user messages, segmented tabs, tags, marker, and form fields, `Select` for the new-session base-ref picker, `Collapsible` for the composer collaboration reveal, and kit replacements for hand-rolled widgets (progress ring, tab bars, button group, alerts, spinner, status bar, and duplicated input wrappers) (`6e91977`, `af7d9c8`, `bd9af83`, `d3009b9`, `06ffa7f`, `cf2bc8b`)
+
+**Mobile**
+
+- Adopt the gpui-kit theme and overlay root on the phone: `gpui_component::init`, a `Root` window owning the kit overlay layers, and `theme::apply_component_theme` pointed at the shared `vibex_ui` tokens (`4836301`)
+- Replace the hand-rolled composer with the kit `Textarea` and move the file editor onto it (`976e11e`, `0835b87`)
+- Move the workbench fields, sidebar search, runtime model search, pairing and prompt fields, and runtime feature fields onto the kit `Input` (`d4cc328`, `2eb68e8`, `43231a5`, `eed1801`, `b075519`)
+- Draw the composer's own selection toolbar and drag handles over the input, and surface long press as a right click on Android (`e2f176f`, `488871e`)
+
+## Fixes
+
+**Remote & server**
+
+- Keep configured pairing routes across startup reconcile and align advertised capabilities with the device grant (`c4854ea`, `1e2eabf`)
+- Keep the temporary session root in the runtime home instead of the OS temporary directory, so a published workspace survives a container recreation, and name the two recoverable session-create rejections — `remote_agent_workspace_root_missing` and `remote_agent_workspace_mode_mismatch` — while still never echoing an authority path (`c7f19f5`)
+
+**Desktop**
+
+- Keep one sidebar arrangement per runtime authority, so a paired server's project list can no longer reconcile against the embedded runtime's, and release the embedded runtime home lock on authority switch (`2146c29`, `abdcc97`)
+- Resolve elicitations through the backend facade (`94fa9f1`)
+- Stop the inline message edit bubble from collapsing (`c5fb5f2`)
+- Restore tab captions dropped by the gpui-kit `Tab` icon slot (`455b697`)
+- Make streaming projection linear and virtualize thought blocks, and reclaim the stale streaming row extent on session restore (`ce4adcc`, `97c5113`)
+- Size the usage table so `DataTable` renders rows, and sync its delegate when the statistics or dimension change (`12df972`, `f4cba90`)
+- Disable frosted glass on Windows' blurless renderer (`b02b3f1`)
+
+**Mobile**
+
+- Stop the keyboard collapsing under the long-press menu (`79fe1fd`)
+- Select the word under a long press on Android and follow the caret when syncing Android's IME mirror (`4e7ea2c`, `c2a7764`)
+
+**Provider & Agent config**
+
+- Keep provider secrets on a host without a keychain: a `HostFile` backend writes an owner-only `provider-secrets.json`, with `VIBEX_PROVIDER_SECRET_STORE=keychain|file` to override the choice (`3e18938`)
+- Keep the system role for DeepSeek Harness route models (`b2041e2`), project the Harness's reasoning efforts for route models (`ce66427`), and keep prompt images deliverable (`0f5bb4c`)
+- Resolve the effort option id as reasoning effort (`b5eab03`)
+- Match per-Agent model provider wire protocols, including Google Vertex as a first-class protocol (`0815a6a`)
+- Key the Agent account model catalogue by a resource-free fingerprint (`6cc0346`)
+
+**Theme & platform**
+
+- Fix the macOS directory-picker drive detection (`b107e36`)
+
+## Internal, Build & Docs
+
+- Bump the vendored zed submodule to `f748b84d68` for the `gpui_apple` update (`854081d`)
+- Bump gpui-component and gpui-kit-assets from 0.6.0 to 0.6.1 (`0413be7`)
+- Update the server deployment assets: `.dockerignore` and the Dockerfile (`3ccdb68`)
+- Add the gpui-kit and design-guides agent skills (`c30dc24`)
+- Document the current remote-client coverage in the `deploy/server` README and the architecture baseline (`0d58732`), and record in spec which desktop concerns still run only on the local runtime (`d6a1dc1`, `b55f68e`)
+- Add the v0.1.0-rc.2 release note (`c7bff6f`)
+- Drop a useless `BackendError` conversion that failed the workspace clippy gate (`5e83215`)
+
+</Update>
+
+## Related links
+
+- [View the full diff on GitHub](https://github.com/vibex-ai/vibex/compare/v0.1.0-rc.2...v0.1.0-rc.3)
+- [Previous release: v0.1.0-rc.2](/en/changelog/v0.1.0-rc.2)
+- [Back to the changelog](/en/changelog)
