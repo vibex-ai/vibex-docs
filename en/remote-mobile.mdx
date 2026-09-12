@@ -35,29 +35,40 @@ Save this as `docker-compose.yml` in any directory on the server:
 ```yaml
 services:
   vibex-server:
+    # Pin a release, or use rc for the newest release candidate or latest for the newest stable release
     image: ghcr.io/vibex-ai/vibex-server:v0.1.0-rc.3
     container_name: vibex-server
+    # Restart the runtime after a reboot; the healthcheck below decides when it is up
     restart: unless-stopped
+    # Share the host network namespace: the container's loopback is the host's loopback,
+    # which avoids publishing ports on a bridge network with a non-loopback bind
+    # (loopback mode refuses that bind by design)
     network_mode: host
     environment:
+      # Runtime data directory: database, server identity, and Agent installs live here
       VIBEX_HOME: /data
       VIBEX_DB_PATH: /data/vibex.db
       # With 127.0.0.1 here, phones and other computers cannot connect
       VIBEX_BIND_ADDR: 0.0.0.0:8765
+      # lan allows local-network access; a public deployment needs public plus HTTPS
       VIBEX_DEPLOYMENT_MODE: lan
       # The runtime signs its own certificate; clients receive the fingerprint
       # inside the pairing connection string, so no certificate authority is needed
       VIBEX_TLS_MODE: pinned_certificate
-      # The address clients dial, including the port; change it to your server
+      # The address clients dial; the port must match VIBEX_BIND_ADDR
       VIBEX_PUBLIC_HOST: 192.168.1.10:8765
       # Directories a client may browse when picking a project (used in step 4)
       VIBEX_WORKSPACE_ROOTS: /data:/data/repos
     volumes:
+      # The only volume you have to back up: database plus server identity
       - vibex-data:/data
+      # Your code directory; after mounting it, list its path in VIBEX_WORKSPACE_ROOTS
       - /srv/repos:/data/repos        # change to the code directory Agents should open
 volumes:
   vibex-data:
 ```
+
+This example only uses the variables you cannot avoid; the full list, including rate limits, event capacity, and secret storage, is in the [environment reference](#environment-reference).
 
 <Note>
   You can replace the version in `image` with a specific release, with `rc` to follow the newest release candidate, or with `latest` for the newest stable release. If you already cloned the repository, you can also build from source with its deployment files: `docker compose -f deploy/server/docker-compose.yml up --build -d vibex-server`.
@@ -95,18 +106,26 @@ services:
     restart: unless-stopped
     network_mode: host
     environment:
-      VIBEX_BIND_ADDR: 127.0.0.1:8765     # loopback only; public traffic goes through Caddy
+      # Loopback only; public traffic goes through Caddy and 8765 stays closed
+      VIBEX_BIND_ADDR: 127.0.0.1:8765
+      # A public deployment refuses to start without trusted HTTPS
       VIBEX_DEPLOYMENT_MODE: public
       VIBEX_TLS_MODE: trusted_https_proxy
+      # Let rate limits use the real client address; only true behind a TLS proxy
       VIBEX_TRUST_FORWARDED_HEADERS: "true"
+      # The domain clients use, and the address printed in the pairing string
       VIBEX_PUBLIC_HOST: vibex.example.com
+      # Accept only these hosts and origins; they must match the domain above
       VIBEX_ALLOWED_HOSTS: vibex.example.com
       VIBEX_ALLOWED_ORIGINS: https://vibex.example.com
+      # Directories a client may browse when picking a project
       VIBEX_WORKSPACE_ROOTS: /data:/data/repos
     volumes:
+      # The only volume you have to back up: database plus server identity
       - vibex-data:/data
       - /srv/repos:/data/repos
 
+  # Reverse proxy: obtains and renews the certificate, forwards 443 to the runtime's loopback port
   caddy:
     image: caddy:2-alpine
     container_name: vibex-caddy
@@ -225,10 +244,14 @@ services:
     image: ghcr.io/vibex-ai/vibex-relay-server:v0.1.0-rc.3
     container_name: vibex-relay-server
     restart: unless-stopped
+    # Publish the port on the host's loopback only; the public entry point is an HTTPS proxy
     ports:
       - "127.0.0.1:9700:9700"
     environment:
+      # Listen on every interface inside the container, or the published port cannot reach it
       VIBEX_RELAY_BIND_ADDR: 0.0.0.0:9700
+      # Room, connection, and rate limits all have defaults; add the variables from the
+      # Relay section of the environment reference only when you need to change them
 ```
 
 ```bash
@@ -276,5 +299,83 @@ You can revoke any device at any time under **Relay**; revocation closes its act
 | The session list stops updating | The client is still catching up after a network change | Let it finish or refresh manually; if it stays stuck, check that the desktop or server still runs |
 | The phone reports a revoked device | The desktop revoked that device | Pair it again |
 | The desktop keeps using the server and you want the local runtime | The stored pairing credential restores automatically | Open **Remote Runtime** and select **Forget this runtime** |
+
+## Environment reference
+
+The examples above use only the variables you cannot avoid. This section lists the rest by purpose. Every variable goes under `environment:` in the compose file, and `docker compose up -d` recreates the container after a change. Variables marked as deployment-specific make the runtime refuse to start, or refuse requests, when they do not match how clients actually reach it.
+
+### Headless runtime `vibex-server`
+
+**Storage and identity**
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `VIBEX_HOME` | `/data` | Runtime data directory: database, server identity, and Agent installs. Change the volume mount with it |
+| `VIBEX_DB_PATH` | `$VIBEX_HOME/vibex.db` | Database file; it must stay inside the home directory |
+| `VIBEX_APPLICATION_ID` | `dev.vibex.server` | Identity used for the home lock, which separates products on one home; leave it alone |
+| `VIBEX_ACQUIRE_HOME_LOCK` | `true` | Fail fast when a second container opens the same volume, so two processes cannot corrupt the database |
+
+**Listener and HTTPS (deployment-specific)**
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `VIBEX_BIND_ADDR` | `127.0.0.1:8765` | Listen address. Use `0.0.0.0:8765` for direct local-network access; keep loopback behind a proxy |
+| `VIBEX_DEPLOYMENT_MODE` | `loopback` | `loopback`, `lan`, or `public`; it selects the startup validation rules |
+| `VIBEX_TLS_MODE` | `loopback_http` for loopback, `trusted_https_proxy` otherwise | `loopback_http`, `trusted_https_proxy` (proxy terminates TLS), `pinned_certificate` (self-signed, local networks only), or `server_certificate` (your own PEM files) |
+| `VIBEX_PUBLIC_HOST` | empty | The address clients dial, including the port; also the address printed in the pairing string |
+| `VIBEX_ALLOWED_HOSTS` | follows `VIBEX_PUBLIC_HOST`, otherwise loopback only | Accepted `Host` values; anything else is rejected |
+| `VIBEX_ALLOWED_ORIGINS` | `https://` plus `VIBEX_PUBLIC_HOST`, otherwise loopback http | Accepted browser origins; native clients send no Origin and are unaffected |
+| `VIBEX_TRUST_FORWARDED_HEADERS` | `false` | Set `true` only behind a TLS-terminating proxy, so rate limits use the real client address |
+| `VIBEX_TLS_CERT_FILE` / `VIBEX_TLS_KEY_FILE` | empty | Required by `server_certificate`; mount the PEM files into the container |
+| `VIBEX_HEALTHCHECK_URL` | `http://127.0.0.1:8765/api/v2/info` | The image's built-in healthcheck probes this address; switch it together with TLS |
+
+**Workspaces and Agents**
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `VIBEX_WORKSPACE_ROOTS` | `$VIBEX_HOME` | Directories a client may browse and pick projects from, as colon-separated absolute paths; a path that is not mounted does nothing |
+| `VIBEX_INSTALL_MANAGED_ADAPTERS` | `true` | Install and update managed Agent runtimes at start (they use space in `/data`) |
+| `VIBEX_AGENT_NODE_PATH`, `VIBEX_AGENT_NPM_PATH`, `VIBEX_AGENT_UV_PATH` | empty | Use the host's own Node/npm/uv instead of downloading managed builds; mount the binaries into the container |
+| `VIBEX_PROVIDER_SECRET_STORE` | `file` | Where provider keys live: `file` (`/data/provider-secrets.json` in the container) or `keychain` |
+| `VIBEX_SERVICE_NAME` | `Vibex Headless Runtime` | Service name reported by `/api/v2/info` |
+
+**Connections and limits (rarely changed)**
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `VIBEX_GATEWAY_ENABLED` | `true` | Set `false` to disable the remote listener and keep local capabilities only |
+| `VIBEX_MAX_CONNECTIONS` | gateway default | Concurrent connection limit |
+| `VIBEX_MAX_IN_FLIGHT_RPCS` | gateway default | Per-connection concurrent request limit |
+| `VIBEX_OUTBOUND_QUEUE_CAPACITY` | gateway default | Per-connection event queue limit |
+| `VIBEX_UNAUTHENTICATED_REQUESTS_PER_WINDOW` | gateway default | Quota for unauthenticated requests such as health checks and pairing claims |
+| `VIBEX_AUTH_FAILURES_PER_WINDOW` | gateway default | Failed authentications before a source is temporarily blocked |
+| `VIBEX_RATE_LIMIT_WINDOW_MS` | gateway default | Window used by the quotas above |
+| `VIBEX_MAX_TRACKED_PEERS` | gateway default | Upper bound on tracked rate-limit peers |
+| `VIBEX_EVENT_CAPACITY` | `512` | Runtime event backlog |
+| `VIBEX_DELEGATION_SIDECAR_COMMAND` | empty | Executable that serves sub-Agent delegation; empty uses `vibex-server` itself |
+
+### Relay `vibex-relay-server`
+
+The push variables are only for an operator-owned push adapter; configure all four together and keep them in a protected environment.
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `VIBEX_RELAY_BIND_ADDR` | `0.0.0.0:9700` in the image | Relay listen address |
+| `VIBEX_RELAY_ROOM_TTL_MS` | `3600000` | How long an idle room survives |
+| `VIBEX_RELAY_HEARTBEAT_TIMEOUT_MS` | `45000` | Missing heartbeats before a peer counts as disconnected |
+| `VIBEX_RELAY_BRIDGE_TIMEOUT_MS` | `30000` | How long one forwarded request may wait |
+| `VIBEX_RELAY_MAX_ROOMS` | `1024` | Total rooms |
+| `VIBEX_RELAY_MAX_TOTAL_CONNECTIONS` | `4096` | Total connections |
+| `VIBEX_RELAY_MAX_CONNECTIONS_PER_ROOM` | `1` | Authoritative PCs per room; must stay `1` |
+| `VIBEX_RELAY_MAX_DEVICES_PER_ROOM` | `8` | Concurrent devices per room |
+| `VIBEX_RELAY_MAX_PENDING_PER_ROOM` | `64` | Waiting connections per room |
+| `VIBEX_RELAY_MAX_BODY_BYTES` | `1048576` | HTTP request body limit |
+| `VIBEX_RELAY_MAX_QUEUE_BYTES_PER_CONNECTION` | `4194304` | Outbound queue bytes per connection |
+| `VIBEX_RELAY_MAX_BANDWIDTH_BYTES_PER_WINDOW` | `16777216` | Bandwidth budget per window |
+| `VIBEX_RELAY_MAX_REQUESTS_PER_WINDOW_PER_ROOM` | `120` | Requests per room per window |
+| `VIBEX_RELAY_RATE_LIMIT_WINDOW_MS` | `1000` | Rate-limit window |
+| `VIBEX_RELAY_PUSH_PROVIDER`, `VIBEX_RELAY_PUSH_AUTH_TOKEN`, `VIBEX_RELAY_PUSH_ADAPTER_URL`, `VIBEX_RELAY_PUSH_ADAPTER_AUTH_TOKEN` | empty | Optional self-hosted push adapter; without it, push stays disabled |
+
+Ask the Relay for the values in effect: `curl -fsS http://127.0.0.1:9700/api/info`.
 
 For deeper details on the pairing handshake, encryption, and sync contracts, read [Remote v2 and Relay](/en/developer/remote-protocol) in the developer guide.

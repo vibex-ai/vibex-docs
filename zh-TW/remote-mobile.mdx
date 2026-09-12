@@ -35,28 +35,38 @@ Agent 會在伺服器上讀寫程式碼、執行命令，所以先把伺服器�
 ```yaml
 services:
   vibex-server:
+    # 版本號可以固定成具體版本，也可以換成 rc（最新候選版）或 latest（最新穩定版）
     image: ghcr.io/vibex-ai/vibex-server:v0.1.0-rc.3
     container_name: vibex-server
+    # 伺服器重新啟動後自動拉起；搭配下面的 healthcheck 判斷是否就緒
     restart: unless-stopped
+    # 共用主機網路：容器裡的回環位址就是主機的回環位址，
+    # 免去橋接網路下發布連接埠需要非回環綁定（回環模式會拒絕這種綁定）的麻煩
     network_mode: host
     environment:
+      # 執行環境資料目錄：資料庫、伺服器身分、Agent 安裝都在這裡
       VIBEX_HOME: /data
       VIBEX_DB_PATH: /data/vibex.db
       # 只寫 127.0.0.1 的話，手機和別的電腦連不進來
       VIBEX_BIND_ADDR: 0.0.0.0:8765
+      # lan = 允許區域網路存取；公網部署要改成 public 並搭配 HTTPS
       VIBEX_DEPLOYMENT_MODE: lan
       # 執行環境自己簽一張憑證：客戶端從配對連線字串裡取得指紋，不用買憑證
       VIBEX_TLS_MODE: pinned_certificate
-      # 改成伺服器的實際位址，連接埠要和 VIBEX_BIND_ADDR 一致
+      # 客戶端撥號的位址，連接埠必須和 VIBEX_BIND_ADDR 一致
       VIBEX_PUBLIC_HOST: 192.168.1.10:8765
-      # 允許客戶端在哪些目錄裡挑專案，下面第 4 步會用到
+      # 允許客戶端在哪些目錄裡挑專案，以冒號分隔；下面第 4 步會用到
       VIBEX_WORKSPACE_ROOTS: /data:/data/repos
     volumes:
+      # 唯一需要備份的卷：資料庫 + 伺服器身分（遺失就要重新配對所有裝置）
       - vibex-data:/data
+      # 你的程式碼目錄：掛進來之後，路徑還要寫進 VIBEX_WORKSPACE_ROOTS
       - /srv/repos:/data/repos        # 改成你想讓 Vibex 開啟的程式碼目錄
 volumes:
   vibex-data:
 ```
+
+第 1 步範例只用了最必要的幾個變數；完整的變數清單（包含限流、事件容量、金鑰存放位置等）見下面的[環境變數清單](#環境變數清單)。
 
 <Note>
   `image` 裡的版本號可以換成你需要的具體版本、跟隨最新候選版的 `rc`，或最新穩定版的 `latest`。已經複製了倉庫時，也可以直接用倉庫裡的部署檔案從原始碼建置：`docker compose -f deploy/server/docker-compose.yml up --build -d vibex-server`。
@@ -94,18 +104,26 @@ services:
     restart: unless-stopped
     network_mode: host
     environment:
-      VIBEX_BIND_ADDR: 127.0.0.1:8765     # 只監聽本機，公網流量一律走 Caddy
+      # 只監聽本機，公網流量一律走 Caddy；8765 不對公網開放
+      VIBEX_BIND_ADDR: 127.0.0.1:8765
+      # 公網部署：沒有可信任的 HTTPS 會拒絕啟動
       VIBEX_DEPLOYMENT_MODE: public
       VIBEX_TLS_MODE: trusted_https_proxy
+      # 讓限流按真實客戶端 IP 計算；只有反向代理終結 TLS 時才設 true
       VIBEX_TRUST_FORWARDED_HEADERS: "true"
+      # 客戶端實際存取的網域，配對連線字串裡用的也是它
       VIBEX_PUBLIC_HOST: vibex.example.com
+      # 只接受這些網域/來源的請求，必須和上面一致
       VIBEX_ALLOWED_HOSTS: vibex.example.com
       VIBEX_ALLOWED_ORIGINS: https://vibex.example.com
+      # 允許客戶端挑選專案的目錄，以冒號分隔
       VIBEX_WORKSPACE_ROOTS: /data:/data/repos
     volumes:
+      # 唯一需要備份的卷：資料庫 + 伺服器身分
       - vibex-data:/data
       - /srv/repos:/data/repos
 
+  # 反向代理：自動申請並續期憑證，把 443 的請求轉到執行環境的回環連接埠
   caddy:
     image: caddy:2-alpine
     container_name: vibex-caddy
@@ -224,10 +242,14 @@ services:
     image: ghcr.io/vibex-ai/vibex-relay-server:v0.1.0-rc.3
     container_name: vibex-relay-server
     restart: unless-stopped
+    # 只把連接埠發布到主機的回環位址；公網入口交給 HTTPS 反向代理
     ports:
       - "127.0.0.1:9700:9700"
     environment:
+      # 容器內監聽所有網卡，否則主機的連接埠轉送進不來
       VIBEX_RELAY_BIND_ADDR: 0.0.0.0:9700
+      # 房間數、連線數、限流等上限都有預設值，需要時再按
+      # 「環境變數清單」裡的 Relay 一節加入
 ```
 
 ```bash
@@ -275,5 +297,83 @@ Relay 是純轉發的：它不儲存你的會話、檔案或供應商設定，�
 | 會話清單不更新 | 網路切換後還在補齊歷史 | 等它同步完，或手動重新整理；持續不更新時檢查桌面端/伺服器是否還在執行 |
 | 手機提示裝置已被撤銷 | 桌面端撤銷過這台裝置 | 重新配對一次 |
 | 桌面端一直連著伺服器，想用本機 | 配對的憑證會自動恢復 | 在 **遠端執行階段** 裡點 **忘記此執行階段** |
+
+## 環境變數清單
+
+上面範例出現的變數只是最小集合。這一節按用途列全，寫的位置都是 compose 檔的 `environment:` 下面；改完記得 `docker compose up -d` 重建容器。標著「必須按你的部署改」的變數如果和實際存取方式不一致，執行環境會拒絕啟動或拒絕請求。
+
+### 無頭執行環境 `vibex-server`
+
+**儲存與身分**
+
+| 變數 | 預設 | 作用 |
+| --- | --- | --- |
+| `VIBEX_HOME` | `/data` | 執行環境資料目錄：資料庫、伺服器身分、Agent 安裝。改了要同步改卷掛載點 |
+| `VIBEX_DB_PATH` | `$VIBEX_HOME/vibex.db` | 資料庫檔案，必須在家目錄內 |
+| `VIBEX_APPLICATION_ID` | `dev.vibex.server` | 家目錄鎖的身分標識，用來區分不同產品，一般不用改 |
+| `VIBEX_ACQUIRE_HOME_LOCK` | `true` | 同一個卷被第二個容器開啟時直接失敗，避免兩個行程寫壞資料庫 |
+
+**監聽與 HTTPS（必須按你的部署改）**
+
+| 變數 | 預設 | 作用 |
+| --- | --- | --- |
+| `VIBEX_BIND_ADDR` | `127.0.0.1:8765` | 監聽位址。區域網路直連要寫 `0.0.0.0:8765`；公網反向代理保持回環 |
+| `VIBEX_DEPLOYMENT_MODE` | `loopback` | `loopback` / `lan` / `public`，決定啟動時的驗證規則 |
+| `VIBEX_TLS_MODE` | 回環用 `loopback_http`，其它用 `trusted_https_proxy` | `loopback_http` / `trusted_https_proxy`（反向代理終結憑證）/ `pinned_certificate`（自簽，僅限區域網路）/ `server_certificate`（自帶 PEM） |
+| `VIBEX_PUBLIC_HOST` | 空 | 客戶端撥號的位址（含連接埠），也是配對連線字串裡印出的位址 |
+| `VIBEX_ALLOWED_HOSTS` | 有 `VIBEX_PUBLIC_HOST` 時跟隨它，否則只允許回環 | 請求 `Host` 白名單，不符合會被拒絕 |
+| `VIBEX_ALLOWED_ORIGINS` | 有 `VIBEX_PUBLIC_HOST` 時跟隨它的 `https://`，否則只允許回環 http | 瀏覽器來源白名單；原生客戶端不帶 Origin，不受影響 |
+| `VIBEX_TRUST_FORWARDED_HEADERS` | `false` | 只有反向代理終結 TLS 時才設 `true`，讓限流按真實客戶端 IP 計算 |
+| `VIBEX_TLS_CERT_FILE` / `VIBEX_TLS_KEY_FILE` | 空 | `server_certificate` 模式必填，需要把 PEM 檔掛進容器 |
+| `VIBEX_HEALTHCHECK_URL` | `http://127.0.0.1:8765/api/v2/info` | 映像內建的健康檢查就是存取這個位址；改成 HTTPS 後要一起改 |
+
+**工作區與 Agent**
+
+| 變數 | 預設 | 作用 |
+| --- | --- | --- |
+| `VIBEX_WORKSPACE_ROOTS` | `$VIBEX_HOME` | 客戶端能瀏覽、挑選專案的目錄，以冒號分隔的絕對路徑；沒掛載的路徑寫了也沒用 |
+| `VIBEX_INSTALL_MANAGED_ADAPTERS` | `true` | 啟動時安裝/更新託管 Agent 執行環境（會佔用 `/data` 空間） |
+| `VIBEX_AGENT_NODE_PATH`、`VIBEX_AGENT_NPM_PATH`、`VIBEX_AGENT_UV_PATH` | 空 | 用主機自帶的 Node/npm/uv，而不是下載託管版本；需要把執行檔掛進容器 |
+| `VIBEX_PROVIDER_SECRET_STORE` | `file` | 供應商金鑰存哪裡：`file`（容器內的 `/data/provider-secrets.json`）或 `keychain` |
+| `VIBEX_SERVICE_NAME` | `Vibex Headless Runtime` | `/api/v2/info` 裡顯示的服務名稱 |
+
+**連線與限流（一般不用改）**
+
+| 變數 | 預設 | 作用 |
+| --- | --- | --- |
+| `VIBEX_GATEWAY_ENABLED` | `true` | 設 `false` 關掉遠端監聽，只保留本機能力 |
+| `VIBEX_MAX_CONNECTIONS` | 執行環境預設 | 並行連線數上限 |
+| `VIBEX_MAX_IN_FLIGHT_RPCS` | 執行環境預設 | 單一連線並行請求上限 |
+| `VIBEX_OUTBOUND_QUEUE_CAPACITY` | 執行環境預設 | 單一連線事件佇列上限 |
+| `VIBEX_UNAUTHENTICATED_REQUESTS_PER_WINDOW` | 執行環境預設 | 未登入請求（健康檢查、配對聲明）的配額 |
+| `VIBEX_AUTH_FAILURES_PER_WINDOW` | 執行環境預設 | 認證失敗多少次後暫時拒絕該來源 |
+| `VIBEX_RATE_LIMIT_WINDOW_MS` | 執行環境預設 | 上面幾個配額的時間視窗 |
+| `VIBEX_MAX_TRACKED_PEERS` | 執行環境預設 | 限流追蹤的來源數量上限 |
+| `VIBEX_EVENT_CAPACITY` | `512` | 執行環境事件積壓上限 |
+| `VIBEX_DELEGATION_SIDECAR_COMMAND` | 空 | 子 Agent 委派用的執行檔；留空就用 `vibex-server` 自己 |
+
+### Relay `vibex-relay-server`
+
+推送相關變數只有自建推送轉接器時才需要，四個要一起配，而且只放在受保護的部署環境裡。
+
+| 變數 | 預設 | 作用 |
+| --- | --- | --- |
+| `VIBEX_RELAY_BIND_ADDR` | `0.0.0.0:9700`（映像內） | Relay 監聽位址 |
+| `VIBEX_RELAY_ROOM_TTL_MS` | `3600000` | 房間閒置多久後回收 |
+| `VIBEX_RELAY_HEARTBEAT_TIMEOUT_MS` | `45000` | 多久收不到心跳就判定斷線 |
+| `VIBEX_RELAY_BRIDGE_TIMEOUT_MS` | `30000` | 一次轉送的等待上限 |
+| `VIBEX_RELAY_MAX_ROOMS` | `1024` | 房間總數上限 |
+| `VIBEX_RELAY_MAX_TOTAL_CONNECTIONS` | `4096` | 全域連線數上限 |
+| `VIBEX_RELAY_MAX_CONNECTIONS_PER_ROOM` | `1` | 每房間的權威 PC 數量，必須保持 `1` |
+| `VIBEX_RELAY_MAX_DEVICES_PER_ROOM` | `8` | 每房間的並行裝置數 |
+| `VIBEX_RELAY_MAX_PENDING_PER_ROOM` | `64` | 每房間等待接入的連線數 |
+| `VIBEX_RELAY_MAX_BODY_BYTES` | `1048576` | HTTP 請求主體上限 |
+| `VIBEX_RELAY_MAX_QUEUE_BYTES_PER_CONNECTION` | `4194304` | 單一連線出站佇列位元組數 |
+| `VIBEX_RELAY_MAX_BANDWIDTH_BYTES_PER_WINDOW` | `16777216` | 每個視窗的頻寬預算 |
+| `VIBEX_RELAY_MAX_REQUESTS_PER_WINDOW_PER_ROOM` | `120` | 每房間每視窗的請求數 |
+| `VIBEX_RELAY_RATE_LIMIT_WINDOW_MS` | `1000` | 限流視窗長度 |
+| `VIBEX_RELAY_PUSH_PROVIDER`、`VIBEX_RELAY_PUSH_AUTH_TOKEN`、`VIBEX_RELAY_PUSH_ADAPTER_URL`、`VIBEX_RELAY_PUSH_ADAPTER_AUTH_TOKEN` | 空 | 可選的自建推送轉接器；不配就完全關閉推送 |
+
+各變數目前生效的值可以直接問 Relay：`curl -fsS http://127.0.0.1:9700/api/info`。
 
 需要更底層的細節（配對握手、加密、同步契約）時，閱讀開發者指南中的 [Remote v2 與 Relay](/zh-TW/developer/remote-protocol)。
