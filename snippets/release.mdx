@@ -1,0 +1,20 @@
+export const latestVersion = "0.1.0-rc.3";
+
+export const latestTag = `v${latestVersion}`;
+
+export const repoUrl = "https://github.com/vibex-ai/vibex";
+
+export const releasesUrl = `${repoUrl}/releases`;
+
+export const latestReleaseUrl = `${repoUrl}/releases/latest`;
+
+export const issuesUrl = `${repoUrl}/issues`;
+
+export const licenseUrl = `${repoUrl}/blob/main/LICENSE`;
+
+// Container images always carry a moving channel tag, so documentation never has
+// to pin a version: `rc` tracks the newest release candidate, `latest` tracks the
+// newest stable release, and `edge` tracks the default branch.
+export const serverImage = "ghcr.io/vibex-ai/vibex-server";
+
+export const relayImage = "ghcr.io/vibex-ai/vibex-relay-server";
