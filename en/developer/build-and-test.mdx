@@ -3,50 +3,90 @@ title: "Build and test"
 description: "Choose the right Vibex checks, smoke tests, and release build commands."
 ---
 
+Run every command from the repository root. The scripts are defined in the root `package.json`; if a command on this page does not match the actual script, `package.json` wins.
+
 ## Routine checks
 
 ```bash
 pnpm check
 ```
 
-This covers Rust quality, frontend type/lint, and license checks. Use `pnpm check:all` for a broader cross-layer run.
+It runs `check:rust`, `check:frontend`, `check:licenses`, `check:ui-widget-layering`, `check:ui-component-ratchet`, and `check:ui-visual` in order, covering Rust quality gates, frontend types and lint, third-party licenses, UI layering, component coexistence, and visual baselines.
 
-## Release build smoke
+Individual subcommands:
+
+| Command | What it does |
+| --- | --- |
+| `pnpm check:rust` | Rust quality checks plus UI control tests. |
+| `pnpm check:frontend` | Typecheck plus ESLint for each package. |
+| `pnpm check:licenses` | Validate the dependency license policy. |
+| `pnpm check:ui-visual` | Validate the visual baseline matrix. |
+| `pnpm check:release` | Validate release identity and version consistency. |
+| `pnpm check:module-ownership` | Validate module ownership boundaries. |
+| `pnpm check:source-size` | Check source file size limits. |
+| `pnpm check:native-content-package` | Check the packaging result of the native content runtime. |
+| `pnpm check:move-only` | Validate move-only diffs. |
+
+## Build gates
 
 ```bash
 pnpm release:build-smoke
 ```
 
-This checks the desktop, mobile, and Relay crate build graph. It does not produce a signed release package. Targeted desktop checks are:
+Validates the desktop, mobile, and Relay build graph. It is **not** the same as a signed release package.
+
+Targeted desktop checks:
 
 ```bash
 cargo check -p vibex-desktop --locked
 cargo test -p vibex-desktop --locked
 pnpm smoke:first-frame
+pnpm check:mobile-native
 ```
 
-## Feature smoke
+## Smoke tests
 
-The repository provides checks for ACP, the code workbench, terminals, PDF and native content, remote pairing, and Relay. For example:
+The repository provides many deterministic smoke scripts:
+
+| Command | Coverage |
+| --- | --- |
+| `pnpm smoke:agents` | ACP bridge contract + Codex + Claude, equal to `smoke:acp:bridge-contract` + `smoke:codex` + `smoke:claude`. |
+| `pnpm smoke:acp:bridge-contract` | The ACP bridge protocol contract. |
+| `pnpm smoke:acp:opencode` | OpenCode ACP integration. |
+| `pnpm smoke:files` | The file service. |
+| `pnpm smoke:git` | The Git service. |
+| `pnpm smoke:pty` | The terminal PTY. |
+| `pnpm smoke:db` | The SQLite layer. |
+| `pnpm smoke:backup` | Backup and restore. |
+| `pnpm smoke:diagnostics` | Diagnostic bundle generation. |
+| `pnpm smoke:relay:local` | Local Relay end to end. |
+| `pnpm e2e:regression` | The end-to-end regression harness. |
+| `pnpm baseline:performance` | Performance baselines. |
+
+<Note>
+  The `pnpm check:acp`, `pnpm check:code-workbench`, `pnpm check:terminal`, and `pnpm check:all` commands that appeared in older documentation **do not exist**. ACP, the code workbench, and the terminal are covered by the `smoke:*` scripts above.
+</Note>
+
+## Release builds
 
 ```bash
-pnpm check:acp
-pnpm check:code-workbench
-pnpm check:terminal
-pnpm check:mobile-native
-pnpm smoke:relay:local
+pnpm release:preflight      # Validate release identity and write a preflight record
+pnpm release:build-smoke
+pnpm package:preview        # Or package:rc / package:stable
 ```
 
-Scripts can create local evidence or capture files. Check `.gitignore` and the script notes. Do not commit artifacts containing credentials, Prompts, paths, diffs, or terminal content.
+After you push a tag, `.github/workflows/release.yml` builds artifacts for every platform. Before a release, read `docs/operations/release.md` and `docs/operations/release-packaging-matrix.md` in the repository.
 
-## Contracts to test
+## Contracts to watch when you run tests
 
-- Insufficient permission returns a structured error.
-- Cursor/generation gaps trigger `resync_required`.
-- File writes use revision/CAS to avoid overwriting external edits.
-- Terminal and attachment streams open only after authorization and close on revocation.
-- Restart, disconnect, and stale states are reproducible.
+- Insufficient permission must return a structured error; the UI must not guess success.
+- A cursor / generation gap must trigger `resync_required`.
+- File writes use content revisions / CAS so they do not overwrite external edits.
+- Terminal and attachment streams must be established after authorization and closed on revocation.
+- Restart, disconnect, and stale states must be reproducible.
 
-## Release checklist
+## Before you commit
 
-Read `docs/operations/release.md` and the target platform notes before a release. Packages, runtime binaries, Release APKs, and signing material are build artifacts, not source.
+Commands can generate local evidence or capture files. Check `.gitignore` and the script notes, and do not commit artifacts that contain credentials, prompts, paths, diffs, or terminal content.
+
+Installers, runtime binaries, Release APKs, and signing material are build or release artifacts; do not commit them as source code.

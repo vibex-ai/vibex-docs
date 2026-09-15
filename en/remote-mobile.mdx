@@ -1,46 +1,108 @@
 ---
 title: "Remote access and mobile"
-description: "Pair a mobile client with the desktop runtime and safely operate sessions."
+description: "Pair a mobile device or another desktop with an authoritative runtime to view and operate sessions safely."
 ---
 
-Mobile is a native remote companion to the desktop. The desktop still owns Agents, files, Git, PTY, providers, and permissions. Mobile requests projections and operations through Remote v2 and never runs a local Agent.
+Mobile is Vibex's native remote companion. The authoritative runtime (the local runtime embedded in the desktop, or a self-hosted `vibex-server`) owns Agents, files, Git, terminals, providers, and permissions. Mobile requests projections and sends typed operations over Remote v2, and **does not run Agents locally**.
 
-## Choose a route
+## First, decide which authoritative runtime to connect to
 
-| Route | Use it when |
+| Your situation | What to connect to |
 | --- | --- |
-| **Direct** | Phone and desktop can reach each other on a LAN or private address. |
-| **Tailnet** | You use Tailscale or another private network without a public listener. |
-| **Self-hosted Relay** | Direct access is unavailable and you want encrypted frame forwarding. |
+| Your phone and computer are on the same network, and you only want to continue computer sessions on your phone | The local runtime embedded in the desktop |
+| You want sessions to live on a server that both your computer and phone connect to | A self-hosted `vibex-server`; see [Self-hosted headless runtime](/en/self-hosted-server) |
 
-Relay handles routing metadata such as rooms and connections. It does not store or decrypt business data.
+If you are connecting to a `vibex-server`, **first follow that page to get it running and obtain a pairing code or connection string**, then come back here to pair a client.
 
-## Pair a device
+## Connection methods
 
-1. Open remote pairing on the desktop and choose Direct, Tailnet, or self-hosted Relay.
-2. Generate a short-lived, one-time QR code or deep link.
-3. Scan or open `vibex://open/...` on the phone.
-4. Confirm the device name, workspace scope, and permission level.
-5. Wait for the initial projection and session list after the handshake.
+| Method | UI name | When to use it |
+| --- | --- | --- |
+| Direct | **Direct HTTPS** | The client can reach the authority directly at a reachable address. |
+| Tailnet | **Tailscale Serve** | You use a private network such as Tailscale, and the authority exposes no public port. |
+| Relay | **Self-hosted Relay** | When a direct connection is impossible, forward encrypted frames through a self-hosted Relay. |
+| Local network | **Local network pairing** | Zero-configuration local network discovery, with hostnames like `vibex-lan.local`. |
 
-The QR/deep link does not contain a long-lived grant, provider secret, private key, or workspace data. Do not publish it.
+Relay does not store or decrypt business data; it only handles routing metadata such as rooms, connections, and encrypted frames. See [Self-hosted Relay](/en/relay).
+
+## Pairing
+
+### Path one: the desktop generates, the phone scans
+
+This is for "my phone connects to my computer".
+
+1. In the desktop title bar, click **Pair mobile** to open the **Connect a mobile device** dialog.
+2. Choose a connection method and enable it, then wait for the status to become **Online**.
+3. Click **Generate pairing QR code** to get a short-lived QR code and link.
+4. Open Vibex on your phone, choose **Use QR Code** to scan it, or paste the link.
+5. Compare the **Verification code** on both ends, then click **Code matches, allow** on the desktop.
+6. After the handshake completes, the phone receives the initial projection and the session list.
+
+The link has the form `vibex://open/<transport>#/pair/<offer>`. It is valid for **60–120 seconds** and can be used only once.
+
+### Path two: the server prints, the client enters
+
+This is for "both my desktop and my phone connect to my server".
+
+`vibex-server` prints a one-time pairing code and connection string at startup:
+
+```text
+pairing_code=123-456-789
+pairing_link=vibex://pair#/code/<payload>
+tls_fingerprint=sha256:...
+```
+
+The connection string carries the **server address, the one-time pairing code, and the server certificate**. Entering it has an advantage: a server with a self-signed certificate needs no system CA, because the client pins that certificate before it sends its first request.
+
+- **Desktop**: open the **Runtime** manager from the title bar, add a runtime, and either paste the connection string under the **Connection string** tab or enter the address and pairing code under the **Pairing code** tab.
+- **Mobile**: choose **Pair with a Cloud Server** and enter the address and pairing code, or paste the connection string into **Pair with Connection String**.
+
+A pairing code is valid for **5 minutes** by default and at most 30 minutes. It can be used once, and the server stores only its SHA-256 hash. Run `vibex-server pairing-code` on the server when you need a new code.
+
+<Warning>
+  A QR code or connection string is equivalent to a one-time login credential. Do not post it in chats, issues, or any public channel.
+</Warning>
 
 ## Permission levels
 
-- **read_only**: read sessions, file summaries, Git status/diffs, and provider summaries.
-- **approve_only**: resolve permitted approval requests without ordinary writes.
-- **full_control**: send messages, write files, enter terminal input, and perform Git writes, still subject to desktop capability gates.
+Choose the device's permission level during pairing. The **initiating side** decides the level when it creates the pairing; a client cannot raise its own privileges:
 
-Grant the smallest level needed. Revoking a device immediately closes its active connections.
+| Level | UI name | Allowed operations |
+| --- | --- | --- |
+| `read_only` | **Read only** | Read projects, sessions, files, and provider profile summaries. All write operations are rejected and recorded in the audit. |
+| `approve_only` | **Approve only** | The read permissions above, plus approving or rejecting permission requests and elicitation forms. |
+| `full_control` | **Full control** | Everything: send messages, read and write files, Git write operations, terminal input, provider configuration changes, and device management. |
 
-## Mobile operations
+Grant the least privilege that is sufficient. The authority can revoke a device at any time, which immediately drops that device's active connections.
 
-Mobile can read the Agent timeline, send follow-ups, fill elicitation forms, resolve approvals, inspect files and Git, and use a remote terminal when permitted. File edits and Git operations still return their authoritative result from the desktop.
+## What mobile can do
 
-## Disconnect and reconnect
+| Capability | Description |
+| --- | --- |
+| Sessions | View timelines, send follow-up messages, rename, delete, fork, and multi-select. |
+| Approvals and elicitation | Approve or reject permission requests and fill in elicitation forms. |
+| Files | Browse the file tree, search by name or content, and **edit and save files**. |
+| Git | View status and diffs, stage / unstage / revert / commit, view history, fetch / push, and create worktrees. |
+| Terminal | Create, attach, resize, and send input. |
+| Usage | Shows only session counts, with the note "Usage details are available on the desktop host." |
 
-After a network change or app resume, mobile re-authenticates and catches up from authoritative state before live events. A stale, revoked, or resync-required state needs the indicated desktop action or a new pairing.
+**Mobile has no Config Center** and cannot manage Agents, providers, MCP, or Skills. Its Settings contains only Connection, Session timeline, Appearance, Notifications, and About.
+
+The real result of every write operation always comes from the authoritative runtime; mobile displays its projection.
+
+## Disconnection and reconnection
+
+After a network change or an app resume, mobile re-authenticates and requests a catch-up: it shows the authoritative session and timeline state first, then resumes live events.
+
+| Symptom | What to do |
+| --- | --- |
+| `stale` | Wait for the authority to refresh; do not repeat commands based on an old snapshot. |
+| `revoked` | The device has been revoked and must be paired again. |
+| `resync_required` | The client detected a sequence or cursor gap and is resynchronizing; treat the authority's state as correct. |
 
 ## Security checks
 
-Keep Remote gateway disabled or loopback-bound by default. Publish through Tailnet or controlled HTTPS/WSS, never an unauthenticated public listener. A room id is routing metadata, not a credential.
+- The authority listens on loopback only by default. To use it across a network, publish it through a Tailnet, a self-signed certificate (local network), or a controlled HTTPS/WSS reverse proxy.
+- Do not use an unauthenticated public listener.
+- Do not treat a room id or pairing code as a long-term credential.
+- Review paired devices in the device list regularly, and **Revoke** ones you no longer use.

@@ -1,38 +1,73 @@
 ---
 title: "平台支持"
-description: "了解 Linux、macOS、Windows、Android 和 iOS 的构建边界。"
+description: "各平台的产物格式、构建方式和验证要求。"
 ---
 
 ## 支持矩阵
 
-| 平台 | 产品形态 | 关键依赖 | 说明 |
-| --- | --- | --- | --- |
-| Linux | 原生桌面端 | Vulkan 图形会话 | 可运行开发命令和预览 smoke。 |
-| macOS | 原生桌面端 | Xcode 工具链（按构建任务需要） | 支持桌面开发和 iOS 构建。 |
-| Windows | 原生桌面端 | Rust/Node 原生构建环境 | 使用平台对应 shell 和凭据存储。 |
-| Android | 原生移动端 | Android SDK/NDK、`cargo-ndk` | Debug 默认 arm64-v8a/x86_64。 |
-| iOS | 原生移动端 | macOS、Xcode、XcodeGen | 生成 `VibexFFI.xcframework` 和 Xcode 项目。 |
-| 自托管 Linux/容器 | Relay | Rust/Axum 或 Docker | 只转发加密帧。 |
+| 平台 | 产物 | 关键依赖 |
+| --- | --- | --- |
+| Linux x86_64 | `.deb`、`.AppImage` | Vulkan 图形会话 |
+| Linux aarch64 | `.deb` | Vulkan；不提供 AppImage（linuxdeploy 无法交叉构建） |
+| macOS aarch64 / x86_64 | `.dmg` | 较新的 macOS；**未签名、未公证** |
+| Windows x86_64 / aarch64 | NSIS `.exe` | **未签名**；按当前用户安装 |
+| Android arm64 | `.apk`、`.aab` | Android SDK/NDK、`cargo-ndk` |
+| iOS | `ios-simulator.app.zip`、`xcframework.zip` | macOS、Xcode、XcodeGen；**仅模拟器，未签名** |
+| 自托管 Linux / 容器 | `ghcr.io/vibex-ai/vibex-server`、`ghcr.io/vibex-ai/vibex-relay-server` | Docker 或 Rust 二进制，多架构 amd64/arm64 |
+
+<Warning>
+  **签名状态是当前已知的限制：** macOS 与 Windows 安装包没有代码签名，用户首次打开需要手动放行；iOS 只发布未签名的模拟器构建。Android 在未配置仓库密钥时使用每次发布生成的一次性 CI 密钥，因此**候选版本之间不能覆盖升级**。发布前请确认这些状态是否已有变化。
+</Warning>
 
 ## 桌面平台边界
 
-桌面端是 Agent、文件、Git、PTY、Provider、权限和持久化的权威。平台差异应封装在 `apps/desktop/src/platform` 或共享 facade 中，不要在 UI 中复制业务分支。
+权威运行时是 Agent、文件、Git、PTY、供应商、权限和持久化的所有者。平台差异应封装在 `apps/desktop/src/platform` 或共享 facade 中，不要在 UI 里复制业务分支。
+
+## 发布通道
+
+通道是**编译期身份**，不是运行时开关：
+
+| 通道 | 产品名 | 应用 ID | 数据目录 |
+| --- | --- | --- | --- |
+| Preview | Vibex Preview | `dev.vibex.desktop.preview` | `desktop-preview` |
+| RC | Vibex RC | `dev.vibex.desktop.rc` | `desktop-rc` |
+| Stable | Vibex | `dev.vibex.desktop` | `desktop-stable` |
+
+通道由 tag 推导（`*-preview.*` / `*-rc.*` / 纯 semver）。发布流程会断言 tag、`Cargo.toml`、`package.json` 与 `Packager.<channel>.toml` 中的版本完全一致。运行时覆盖通道会被拒绝（`release_channel_override_rejected`）。
+
+## 发布工作流
+
+`.github/workflows/release.yml` 在 `v*` tag 上全自动运行，桌面端矩阵覆盖六个平台 / 架构组合：
+
+| 平台 | Runner | 产物格式 |
+| --- | --- | --- |
+| Linux x86_64 | ubuntu-24.04 | `deb,appimage` |
+| Linux aarch64 | ubuntu-24.04（交叉） | `deb` |
+| macOS aarch64 | macos-14 | `dmg` |
+| macOS x86_64 | macos-14（交叉） | `dmg` |
+| Windows x86_64 | windows-2022 | `nsis` |
+| Windows aarch64 | windows-2022（交叉） | `nsis` |
+
+移动端在同一个 workflow 中构建：Android APK + AAB，iOS XCFramework + 未签名模拟器应用。发布 job 要求**全部**前置 job 成功才会创建 release，因此不会出现部分矩阵的残缺发布。
+
+<Note>
+  工作流目前**没有** macOS 公证和 Windows Authenticode 步骤。加入这两步之前，安装包会一直带有平台警告。
+</Note>
 
 ## Android 构建
 
 ```bash
-pnpm build:mobile:android
+pnpm build:mobile:android      # Debug
+pnpm package:mobile:android    # Release（未签名）
 ```
 
-打包 Release：
+设置 `VIBEX_MOBILE_ANDROID_TARGETS`（空格分隔）可覆盖 Debug ABI，Release 默认只构建 `arm64-v8a`。
 
-```bash
-pnpm package:mobile:android
-```
+发布工作流会调用 `apps/mobile/scripts/sign-android-release.sh`：APK 使用 `zipalign` + `apksigner`，AAB 使用 `jarsigner`。RC / Preview 在没有仓库密钥时生成一次性的 `vibex-ci` 密钥；Stable 发布必须配置 `VIBEX_ANDROID_KEYSTORE_BASE64` 和 `VIBEX_ANDROID_KEYSTORE_PASSWORD`，可选 `VIBEX_ANDROID_KEY_PASSWORD` 和仓库变量 `VIBEX_ANDROID_KEY_ALIAS`（默认 `vibex`）。
 
-设置 `VIBEX_MOBILE_ANDROID_TARGETS` 可覆盖 Debug ABI。未签名 APK 不可直接作为正式分发包。
-
-本地 `pnpm package:mobile:android` 只生成未签名 Release APK。打 tag 的 GitHub Release 会运行签名脚本：APK 使用 `zipalign` 和 `apksigner`，AAB 使用 `jarsigner`。RC 和 Preview 在没有仓库密钥时使用临时 CI key；Stable 发布必须配置 `VIBEX_ANDROID_KEYSTORE_BASE64` 和 `VIBEX_ANDROID_KEYSTORE_PASSWORD`，并可选设置 `VIBEX_ANDROID_KEY_PASSWORD` 与仓库变量 `VIBEX_ANDROID_KEY_ALIAS`（默认别名为 `vibex`）。
+<Warning>
+  使用临时密钥意味着**每次 RC 发布的 APK 签名都不同**，用户无法覆盖升级，必须先卸载再安装。这是当前 RC 阶段的已知取舍。
+</Warning>
 
 ## iOS 构建
 
@@ -40,12 +75,35 @@ pnpm package:mobile:android
 pnpm build:mobile:ios
 ```
 
-签名、Bundle identifier、真机/模拟器和分发凭据由本机 Xcode 流程决定。不要把证书或 provisioning profile 提交到仓库。
+构建 `VibexFFI.xcframework` 并生成 Xcode 工程。签名、Bundle identifier、真机 / 模拟器选择和分发凭据都由本机 Xcode 流程决定，不要把证书或 provisioning profile 提交到仓库。
+
+## 桌面打包
+
+```bash
+cargo install cargo-packager --version 0.11.8 --locked
+pnpm prepare:pdfium
+pnpm package:preview    # 或 package:rc / package:stable
+```
+
+Linux 用 cargo-packager 打包，PDFium 运行时只在 **linux-x86_64** 上随包分发。Wayland 相关库**不**随包分发（宿主 ABI 边界），依赖宿主机提供。
+
+## 自动更新
+
+`crates/app-update` 实现签名更新：
+
+- 从 GitHub Releases Atom feed 发现候选版本，按通道过滤。
+- 校验 `vibex-update.json` 的 Ed25519 签名，并对产物做 SHA-256 校验，URL 白名单限定在 releases 下载路径。
+- 启动 30 秒后首次检查，之后 RC / Preview 每 2 小时、Stable 每 6 小时检查一次，带抖动与退避。
+- AppImage 走原地自我替换（带 `.vibex-backup` 与 `pending-install.json` 崩溃恢复）；deb、macOS app 和 NSIS 拉起系统安装器并要求重启。
+
+只有编译进公钥的构建才会自动检查。
 
 ## 移动端生命周期
 
-移动端需要处理后台、网络切换、断线和重连。恢复时先用 Remote v2 获取权威会话/时间线，再订阅实时事件；不要使用过期的本地投影覆盖桌面状态。
+移动端需要处理后台、网络切换、断线和重连。恢复时先用 Remote v2 获取权威会话和时间线，再订阅实时事件；不要用过期投影覆盖权威状态。
 
-## Relay 部署
+## 自托管部署
 
-推荐把 Relay 绑定 loopback，再通过受控 HTTPS 反向代理或 Tailnet Serve 发布。Host 和 Origin 必须独立校验，CORS 不得使用 `*`。Relay 不应提供移动端 Web UI 或业务 API。
+推荐把服务绑定 loopback，再通过受控 HTTPS 反向代理或 Tailnet Serve 发布。Host 和 Origin 必须独立校验，CORS 不得使用 `*`。网关只暴露协议与健康检查端点，不提供浏览器 UI 或业务 API。
+
+详见[自托管无头运行时](/self-hosted-server)与[自托管 Relay](/relay)。

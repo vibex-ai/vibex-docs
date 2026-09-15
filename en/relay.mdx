@@ -1,0 +1,103 @@
+---
+title: "Self-hosted Relay"
+description: "Deploy a relay service that only forwards end-to-end encrypted frames."
+---
+
+Relay is a **zero-knowledge room router**. When a PC and a paired device cannot connect directly, each opens a full-duplex WebSocket (`/ws`) to the Relay, and Remote v2 control, RPC, event, and binary frames travel end-to-end encrypted between the device and the PC.
+
+Relay does **not** decrypt, authorize, store, or log any business payload, and it provides no mobile web UI and no business API.
+
+<Note>
+  Relay only forwards. To actually host sessions and Agents on a server, use the [Self-hosted headless runtime](/en/self-hosted-server).
+</Note>
+
+## Quick start
+
+The container image is multi-arch (`linux/amd64`, `linux/arm64`) and is updated with every release:
+
+```bash
+export VIBEX_RELAY_IMAGE=ghcr.io/vibex-ai/vibex-relay-server:rc
+docker compose -f deploy/relay/docker-compose.yml pull relay-server
+docker compose -f deploy/relay/docker-compose.yml up -d --no-build relay-server
+curl -fsS http://127.0.0.1:9700/health
+curl -fsS http://127.0.0.1:9700/api/info
+```
+
+Compose publishes only `127.0.0.1:9700` by default. Keep that default and run Caddy or Tailscale Serve on the same machine.
+
+Image tag rules match the headless runtime: `rc` follows the latest release candidate, and `latest` points only to stable releases.
+
+## Endpoints
+
+| Endpoint | Purpose |
+| --- | --- |
+| `GET /health` | Status, uptime, active rooms, and active connections. |
+| `GET /api/info` | Capability flags and limits. |
+| `GET /ws` | Full-duplex WebSocket between the PC and devices. |
+| `POST /api/rooms/{room_id}/pair` | Compatibility bridge. |
+| `POST /api/rooms/{room_id}/command` | Compatibility bridge. |
+| `POST /api/push/registrations` | Optional push adapter. |
+| `POST /api/push/dispatch` | Optional push adapter. |
+
+`/api/rooms/*` is a **reserved compatibility bridge**, not the primary transport for native mobile clients.
+
+<Warning>
+  There is **no** `/api/v2/info` on Relay—that is the authoritative runtime gateway's endpoint. Mixing up the two addresses is a common troubleshooting mistake.
+</Warning>
+
+## Public HTTPS (Caddy)
+
+Point a DNS record at the host, then start the Caddy profile:
+
+```bash
+VIBEX_RELAY_SITE_ADDRESS=relay.example.com \
+  docker compose -f deploy/relay/docker-compose.yml --profile caddy up --build -d
+```
+
+Caddy proxies `/ws`, `/health`, and `/api/*` on the same HTTPS origin; the root path and static asset paths return 404. Clients derive `wss://relay.example.com/ws` from that.
+
+## Private Tailnet (Tailscale Serve)
+
+```bash
+docker compose -f deploy/relay/docker-compose.yml up --build -d relay-server
+tailscale serve --bg http://127.0.0.1:9700
+tailscale serve status
+```
+
+Use the HTTPS address shown by `tailscale serve status` as the Relay origin. Serve terminates tailnet HTTPS and proxies the WebSocket upgrade, and both ends still use `/ws`.
+
+## Key limits
+
+Every Relay limit is bounded. The defaults are:
+
+| Setting | Default |
+| --- | --- |
+| Listen address | `127.0.0.1:9700` |
+| Room TTL | 3600000 ms |
+| Maximum rooms | 1024 |
+| Maximum total connections | 4096 |
+| Connections per room | 1 (cannot be raised) |
+| Devices per room | 8 |
+| Request body limit | 1 MiB |
+| Requests per room per window | 120 (window 1000 ms) |
+| Queue per connection | 4 MiB |
+| Bandwidth per window | 16 MiB |
+
+## Zero-knowledge verification
+
+After deploying, you should be able to confirm that Relay really cannot see business data:
+
+1. Connect both ends through Relay and complete one business operation (for example, reading a session).
+2. Inspect the Relay logs; they should contain only routing, counts, and timing metadata.
+3. Confirm the logs contain no tokens, pairing codes, private keys, prompts, file paths, terminal contents, Git diffs, provider settings, raw ciphertext, or nonces.
+
+## Optional push
+
+Relay can be configured with an operator-owned push adapter, off by default. The relevant environment variables are `VIBEX_RELAY_PUSH_PROVIDER`, `VIBEX_RELAY_PUSH_AUTH_TOKEN`, `VIBEX_RELAY_PUSH_ADAPTER_URL`, and `VIBEX_RELAY_PUSH_ADAPTER_AUTH_TOKEN`.
+
+## Security recommendations
+
+- Keep the loopback binding and publish through a controlled HTTPS/WSS entry point or a Tailnet.
+- Do not expose plaintext HTTP to the public internet.
+- Validate Host and Origin independently, and never use `*` for CORS.
+- Do not treat a room id as an authorization credential.

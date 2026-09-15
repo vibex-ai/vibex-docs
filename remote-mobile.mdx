@@ -1,46 +1,108 @@
 ---
 title: "远程访问与移动端"
-description: "将移动端配对到桌面运行时，并安全地查看和操作会话。"
+description: "把移动端或另一台桌面端配对到权威运行时，安全地查看和操作会话。"
 ---
 
-移动端是桌面端的原生远程伴侣。桌面端仍负责 Agent、文件、Git、PTY、供应商和权限；移动端通过 Remote v2 请求投影和操作，不会运行本地 Agent。
+移动端是 Vibex 的原生远程伴侣。权威运行时（桌面端内嵌的本地运行时，或自托管的 `vibex-server`）负责 Agent、文件、Git、终端、供应商和权限；移动端通过 Remote v2 请求投影并发送类型化操作，**不在本地运行 Agent**。
 
-## 选择连接方式
+## 先确认要连哪个权威运行时
 
-| 方式 | 适用场景 |
+| 你的情况 | 应该连接 |
 | --- | --- |
-| **Direct** | 手机和桌面端可直接通过局域网或可达地址连接。 |
-| **Tailnet** | 你使用 Tailscale 等私有网络，桌面端不暴露公共端口。 |
-| **Self-hosted Relay** | 桌面端和手机无法直连时，通过自托管 Relay 转发加密帧。 |
+| 手机和电脑在同一个网络，只想在手机上继续电脑上的会话 | 桌面端内嵌的本地运行时 |
+| 想让会话常驻在一台服务器上，电脑和手机都接进去 | 自托管的 `vibex-server`，见[自托管无头运行时](/self-hosted-server) |
 
-Relay 不保存或解密业务数据。它只处理房间、连接和加密帧等路由元数据。
+如果你要连的是 `vibex-server`，**先按那篇文档把它跑起来并拿到配对码或连接串**，再回到这里配对客户端。
+
+## 连接方式
+
+| 方式 | UI 名称 | 适用场景 |
+| --- | --- | --- |
+| Direct | **Direct HTTPS** | 客户端可以通过可达地址直连权威端。 |
+| Tailnet | **Tailscale Serve** | 你用 Tailscale 等私有网络，权威端不暴露公共端口。 |
+| Relay | **Self-hosted Relay** | 无法直连时，通过自托管 Relay 转发加密帧。 |
+| 局域网 | **Local network pairing** | 零配置局域网发现，主机名形如 `vibex-lan.local`。 |
+
+Relay 不保存、不解密业务数据，只处理房间、连接和加密帧等路由元数据。详见[自托管 Relay](/relay)。
 
 ## 配对
 
-1. 在桌面端打开远程配对，选择 Direct、Tailnet 或自托管 Relay 候选。
-2. 生成有效期很短的一次性 QR 或 deep link。
-3. 在手机上扫描或打开 `vibex://open/...` 链接。
-4. 确认设备名称、工作区范围和权限级别。
-5. 完成握手后等待桌面端发送初始投影和会话列表。
+### 路径一：桌面端生成，手机扫码
 
-QR/deep link 不包含长期 grant、供应商密钥、私钥或工作区内容。不要把它发布到聊天、Issue 或其他公开渠道。
+适用于"手机连我的电脑"。
+
+1. 在桌面端标题栏点击 **Pair mobile**，打开 **Connect a mobile device** 对话框。
+2. 选择连接方式并启用，等待状态变为 **Online**。
+3. 点击 **Generate pairing QR code**，得到一个短时效的二维码和链接。
+4. 在手机上打开 Vibex，选择 **Use QR Code** 扫码，或粘贴链接。
+5. 两端核对 **Verification code** 是否一致，在桌面端点击 **Code matches, allow**。
+6. 完成握手后，手机会收到初始投影和会话列表。
+
+这个链接的格式是 `vibex://open/<transport>#/pair/<offer>`，有效期 **60–120 秒**，只能使用一次。
+
+### 路径二：服务器打印，客户端填入
+
+适用于"桌面端和手机都连我的服务器"。
+
+`vibex-server` 启动时会打印一次性配对码和连接串：
+
+```text
+pairing_code=123-456-789
+pairing_link=vibex://pair#/code/<payload>
+tls_fingerprint=sha256:...
+```
+
+连接串里同时携带**服务器地址、一次性配对码和服务器证书**。客户端填入它的好处是：自签证书的服务器不需要系统 CA，因为客户端在发出第一个请求前就固定了这张证书。
+
+- **桌面端**：打开标题栏的 **Runtime** 管理器，添加运行时，选择 **Connection string** 标签粘贴，或选择 **Pairing code** 标签填入地址和配对码。
+- **移动端**：选择 **Pair with a Cloud Server**，填入地址和配对码；或把连接串粘贴到 **Pair with Connection String**。
+
+配对码默认 **5 分钟**有效，最长 30 分钟，只能用一次，服务器端只保存它的 SHA-256 哈希。需要新的码时在服务器上执行 `vibex-server pairing-code`。
+
+<Warning>
+  二维码和连接串等同于一次性的登录凭据。不要把它发布到聊天、Issue 或任何公开渠道。
+</Warning>
 
 ## 权限级别
 
-- **read_only**：查看会话、文件摘要、Git 状态/差异和供应商摘要。
-- **approve_only**：在允许的范围内处理权限审批，不直接执行普通写操作。
-- **full_control**：可发送消息、写入文件、执行终端输入和 Git 写操作，仍受桌面端能力门控。
+配对时选择设备的权限级别，级别由**发起端**在创建配对时决定，客户端无法自行提权：
 
-授予最小权限。桌面端可以随时撤销设备；撤销会立即结束该设备的活动连接。
+| 级别 | UI 名称 | 允许的操作 |
+| --- | --- | --- |
+| `read_only` | **Read only** | 读取项目、会话、文件和供应商配置摘要。所有写操作被拒绝并记入审计。 |
+| `approve_only` | **Approve only** | 上面的读取权限，加上批准或拒绝权限请求和询问表单。 |
+| `full_control` | **Full control** | 全部操作：发送消息、读写文件、Git 写操作、终端输入、供应商配置修改和设备管理。 |
 
-## 移动端可做什么
+授予最小够用的权限。权威端可以随时撤销设备，撤销会立即断开该设备的活动连接。
 
-你可以查看结构化 Agent 时间线，发送后续消息，填写 elicitation 表单，批准或拒绝请求，查看文件和 Git 状态，并在权限允许时使用远程终端。文件编辑和 Git 操作的真实结果始终来自桌面端。
+## 移动端能做什么
+
+| 能力 | 说明 |
+| --- | --- |
+| 会话 | 查看时间线、发送后续消息、重命名、删除、分叉、批量选择。 |
+| 审批与询问 | 批准或拒绝权限请求，填写 elicitation 表单。 |
+| 文件 | 浏览文件树、按名称或内容搜索、**编辑并保存文件**。 |
+| Git | 查看状态与差异、stage / unstage / revert / commit、查看历史、fetch / push、创建 worktree。 |
+| 终端 | 创建、附加、调整大小、发送输入。 |
+| 用量 | 只显示会话数量，并提示 "Usage details are available on the desktop host." |
+
+**移动端没有 Config Center**，不能管理 Agent、供应商、MCP 或 Skills。它的 Settings 只包含 Connection、Session timeline、Appearance、Notifications 和 About。
+
+所有写操作的真实结果始终由权威运行时产生；移动端显示的是它的投影。
 
 ## 断线与重连
 
-网络切换或应用恢复后，移动端会重新认证并请求 catch-up。先显示权威会话和时间线状态，再恢复实时事件。若看到 stale、revoked 或 resync required，按提示重新配对或在桌面端检查 Remote gateway。
+网络切换或应用恢复后，移动端会重新认证并请求 catch-up：先显示权威的会话和时间线状态，再恢复实时事件。
+
+| 现象 | 处理 |
+| --- | --- |
+| `stale` | 等待权威刷新，不要根据旧快照重复执行命令。 |
+| `revoked` | 设备已被撤销，必须重新配对。 |
+| `resync_required` | 客户端检测到序号或游标缺口，正在重新同步；以权威端的状态为准。 |
 
 ## 安全检查
 
-保持 Remote gateway 默认关闭或仅绑定 loopback；通过 Tailnet 或受控 HTTPS/WSS 代理发布。不要使用公共未认证监听，也不要把 room id 当作权限凭据。
+- 权威端默认只监听 loopback。要跨网络使用，请通过 Tailnet、自签证书（局域网）或受控 HTTPS/WSS 反向代理发布。
+- 不要使用未认证的公网监听。
+- 不要把 room id 或配对码当作长期凭据。
+- 定期在设备列表中检查已配对设备，及时 **Revoke** 不再使用的设备。

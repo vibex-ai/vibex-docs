@@ -1,0 +1,102 @@
+---
+title: "環境變數"
+description: "自託管執行環境、Relay 和桌面端的設定項參考。"
+---
+
+## 桌面端
+
+| 變數 | 說明 |
+| --- | --- |
+| `VIBEX_HOME` | 覆寫執行環境 home 的基底目錄。通道專屬目錄（`desktop-preview` / `desktop-rc` / `desktop-stable`）會建在它下面。 |
+| `VIBEX_PROVIDER_SECRET_STORE` | `keychain`（預設）或 `file`。沒有可用鑰匙圈的主機需要設為 `file`。 |
+| `VIBEX_DISABLE_REMOTE_CLIENT` | 設為 `1` 時強制使用本機權威執行環境，忽略已儲存的遠端憑據。 |
+| `VIBEX_CHANNEL` | 建置期變數，不能在執行期間覆寫。試圖在執行期間切換通道會傳回 `release_channel_override_rejected`。 |
+
+## 無頭執行環境 `vibex-server`
+
+### 路徑與身分
+
+| 變數 | 預設值 | 說明 |
+| --- | --- | --- |
+| `VIBEX_HOME` | `/data` | 執行環境 home：資料庫、Agent 安裝、身分金鑰。 |
+| `VIBEX_DB_PATH` | `$VIBEX_HOME/vibex.db` | 權威 SQLite 路徑。 |
+| `VIBEX_WORKSPACE_ROOTS` | `$VIBEX_HOME` | 以逗號分隔的絕對路徑，限定用戶端可選的專案目錄。 |
+| `VIBEX_APPLICATION_ID` | `dev.vibex.server` | home 鎖定使用的應用程式身分。 |
+| `VIBEX_ACQUIRE_HOME_LOCK` | `true` | 已有執行環境占用該 home 時立即失敗。 |
+
+### 網路與 TLS
+
+| 變數 | 預設值 | 說明 |
+| --- | --- | --- |
+| `VIBEX_BIND_ADDR` | `127.0.0.1:8765` | 閘道監聽位址。 |
+| `VIBEX_DEPLOYMENT_MODE` | `loopback` | `loopback` / `lan` / `public`。 |
+| `VIBEX_TLS_MODE` | loopback 時為 `loopback_http`，否則為 `trusted_https_proxy` | 另可設為 `pinned_certificate` 或 `server_certificate`。 |
+| `VIBEX_TLS_CERT_FILE` / `VIBEX_TLS_KEY_FILE` | 未設定 | `server_certificate` 模式下必填。 |
+| `VIBEX_PUBLIC_HOST` | 未設定 | 向配對用戶端通告的位址，也用於產生連線字串。區域網路直連時要包含連接埠。 |
+| `VIBEX_ALLOWED_HOSTS` | `localhost,127.0.0.1,::1` | 接受的 `Host` 值，不符合時傳回 `421`。 |
+| `VIBEX_ALLOWED_ORIGINS` | loopback HTTP origin | 接受的瀏覽器 origin，不符合時傳回 `403`。 |
+| `VIBEX_TRUST_FORWARDED_HEADERS` | `false` | 只在 `trusted_https_proxy` 模式下可開啟。 |
+| `VIBEX_GATEWAY_ENABLED` | `true` | Remote v2 監聽總開關。 |
+
+### 執行環境行為
+
+| 變數 | 預設值 | 說明 |
+| --- | --- | --- |
+| `VIBEX_PROVIDER_SECRET_STORE` | `file` | 無頭主機預設寫入 `provider-secrets.json`（`0600`）。可設為 `keychain`。 |
+| `VIBEX_INSTALL_MANAGED_ADAPTERS` | `true` | 啟動時安裝受管 Agent 執行環境。 |
+| `VIBEX_EVENT_CAPACITY` | `512` | 執行環境廣播事件積壓上限。 |
+| `VIBEX_DELEGATION_SIDECAR_COMMAND` | 伺服器二進位檔本身 | 提供委派 MCP sidecar 的可執行檔。 |
+| `VIBEX_HEALTHCHECK_URL` | `http://127.0.0.1:8765/api/v2/info` | 容器健康檢查位址。 |
+
+### 連線與限流
+
+| 變數 | 說明 |
+| --- | --- |
+| `VIBEX_MAX_CONNECTIONS` | 並行 WebSocket 連線數。 |
+| `VIBEX_MAX_IN_FLIGHT_RPCS` | 單一連線的並行 RPC 上限。 |
+| `VIBEX_OUTBOUND_QUEUE_CAPACITY` | 單一連線的事件佇列上限。 |
+| `VIBEX_UNAUTHENTICATED_REQUESTS_PER_WINDOW` | 未驗證路由（info、claim、ws-ticket）的每對端限流。 |
+| `VIBEX_AUTH_FAILURES_PER_WINDOW` | 觸發暫時封鎖前的驗證失敗預算。 |
+| `VIBEX_RATE_LIMIT_WINDOW_MS` | 限流視窗長度。 |
+| `VIBEX_MAX_TRACKED_PEERS` | 對端追蹤表容量上限。 |
+
+## Relay
+
+| 變數 | 預設值 | 說明 |
+| --- | --- | --- |
+| `VIBEX_RELAY_BIND_ADDR` | `127.0.0.1:9700` | 監聽位址。 |
+| `VIBEX_RELAY_HOST_BIND` | — | 明確使用主機網路時覆寫繫結。 |
+| `VIBEX_RELAY_SITE_ADDRESS` | — | Caddy profile 使用的公用網域。 |
+| `VIBEX_RELAY_ROOM_TTL_MS` | `3600000` | 房間存活時間。 |
+| `VIBEX_RELAY_BRIDGE_TIMEOUT_MS` | `30000` | 相容性橋接逾時。 |
+| `VIBEX_RELAY_HEARTBEAT_TIMEOUT_MS` | `45000` | 心跳逾時。 |
+| `VIBEX_RELAY_MAX_ROOMS` | `1024` | 最大房間數。 |
+| `VIBEX_RELAY_MAX_TOTAL_CONNECTIONS` | `4096` | 最大總連線數。 |
+| `VIBEX_RELAY_MAX_CONNECTIONS_PER_ROOM` | `1` | 每房間 PC 連線數，**固定為 1**。 |
+| `VIBEX_RELAY_MAX_DEVICES_PER_ROOM` | `8` | 每房間裝置數。 |
+| `VIBEX_RELAY_MAX_BODY_BYTES` | `1048576` | 要求主體上限。 |
+| `VIBEX_RELAY_MAX_REQUESTS_PER_WINDOW_PER_ROOM` | `120` | 每房間每視窗要求數。 |
+| `VIBEX_RELAY_MAX_QUEUE_BYTES_PER_CONNECTION` | `4194304` | 每連線佇列上限。 |
+| `VIBEX_RELAY_MAX_BANDWIDTH_BYTES_PER_WINDOW` | `16777216` | 每視窗頻寬上限。 |
+| `VIBEX_RELAY_PUSH_PROVIDER` | 未設定 | 選用推播供應方。 |
+| `VIBEX_RELAY_PUSH_AUTH_TOKEN` | 未設定 | 推播驗證權杖。 |
+| `VIBEX_RELAY_PUSH_ADAPTER_URL` | 未設定 | 推播配接器位址。 |
+| `VIBEX_RELAY_PUSH_ADAPTER_AUTH_TOKEN` | 未設定 | 推播配接器權杖。 |
+
+## 建置期變數
+
+這些只在從原始碼建置或封裝時生效：
+
+| 變數 | 說明 |
+| --- | --- |
+| `VIBEX_CHANNEL` | `preview` / `rc` / `stable`，決定產品身分和資料目錄。 |
+| `VIBEX_MOBILE_ANDROID_TARGETS` | 以空格分隔的 ABI 清單，覆寫 Debug 預設值。 |
+| `VIBEX_ANDROID_KEYSTORE_BASE64` | 發行簽章用的 keystore。 |
+| `VIBEX_ANDROID_KEYSTORE_PASSWORD` | keystore 密碼。 |
+| `VIBEX_ANDROID_KEY_PASSWORD` | 金鑰密碼（選填）。 |
+| `VIBEX_ANDROID_KEY_ALIAS` | 金鑰別名，預設為 `vibex`。 |
+| `VIBEX_UPDATE_PUBLIC_KEY` | 更新資訊清單簽章驗證用的公開金鑰。 |
+
+<Warning>
+  金鑰類環境變數不要寫入儲存庫、診斷資料或公開 Issue。
+</Warning>

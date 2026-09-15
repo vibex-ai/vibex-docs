@@ -1,29 +1,63 @@
 ---
 title: "Developer guide"
-description: "Understand Vibex engineering constraints from local development through release."
+description: "Understand Vibex engineering constraints from local development through cross-platform release."
 ---
 
-Vibex is a native application driven by a Rust workspace. The desktop `DesktopRuntime` owns authoritative state. Mobile and remote transports access it through shared contracts.
+Vibex is a native application driven by a Rust workspace. `DesktopRuntime` is the single authoritative state owner; the desktop workbench, headless server, mobile app, and remote transports all reach it through shared contracts.
 
 <Columns>
-  <Card title="Architecture boundaries" icon="sitemap" href="/en/developer/architecture">Learn the responsibilities of core crates, desktop, mobile, and Relay.</Card>
-  <Card title="Local setup" icon="terminal" href="/en/developer/setup">Prepare Rust, Node, pnpm, and graphics dependencies.</Card>
-  <Card title="Build and test" icon="flask" href="/en/developer/build-and-test">Run routine checks, smoke tests, and release gates.</Card>
+  <Card title="Architecture boundaries" icon="sitemap" href="/en/developer/architecture">
+    Learn the crate split, the authoritative runtime, and the responsibilities of clients and Relay.
+  </Card>
+  <Card title="Local setup" icon="terminal" href="/en/developer/setup">
+    Prepare Rust, Node, pnpm, and the graphics build environment.
+  </Card>
+  <Card title="Build and test" icon="flask" href="/en/developer/build-and-test">
+    Run routine checks, smoke tests, and release build gates.
+  </Card>
+  <Card title="Platform support" icon="devices" href="/en/developer/platforms">
+    Artifact formats, build methods, and verification requirements for each platform.
+  </Card>
+  <Card title="Remote v2 and Relay" icon="network" href="/en/developer/remote-protocol">
+    Protocol boundaries for pairing, handshake, sync, and self-hosted transport.
+  </Card>
+  <Card title="Contributing" icon="git-pull-request" href="/en/developer/contributing">
+    Architecture, testing, and privacy requirements for your changes.
+  </Card>
 </Columns>
 
-## Constraints to preserve
+## Constraints to preserve during development
 
-- The desktop owns Agents, sessions, timelines, files, Git, PTY, providers, permissions, and persistence.
-- Mobile consumes shared remote projections and sends typed operations. It does not duplicate business state.
-- Remote v2 DTOs, errors, capabilities, and sequence contracts live in the shared core layer.
-- Relay forwards encrypted frames. It does not own authorization, files, or the session database.
-- Cross-layer changes need deterministic checks or evidence and a test set proportional to their risk.
+- `DesktopRuntime` owns Agents, sessions, timelines, files, Git, PTY, providers, permissions, and persistence.
+- **One core, two frontends**: `apps/desktop` adds a GPUI window, and `apps/server` adds a daemon lifecycle. New capabilities must work for both.
+- Clients only consume shared remote projections and send typed operations; they never duplicate business state.
+- New capabilities should reach the authority through `BackendFacade`, not only through a local runtime path.
+- Remote v2 DTOs, errors, capabilities, and sequence-number contracts live in the shared `crates/core` layer.
+- Relay only forwards encrypted frames; it does not own business authorization, files, or the session database.
+- Cross-layer behavior changes need deterministic checks or evidence, plus the smallest test set that matches the risk.
 
-## Reading order
+## Recommended reading order
 
-1. [Architecture boundaries](/en/developer/architecture)
-2. [Local setup](/en/developer/setup)
+1. [Architecture and ownership boundaries](/en/developer/architecture)
+2. [Local development environment](/en/developer/setup)
 3. [Build and test](/en/developer/build-and-test)
 4. [Platform support](/en/developer/platforms)
 5. [Remote v2 and Relay](/en/developer/remote-protocol)
 6. [Contributing](/en/developer/contributing)
+
+## Design documents in the repository
+
+The public documentation site only covers what users need. More detailed design and operations material lives under the repository's `docs/` directory:
+
+| Path | Contents |
+| --- | --- |
+| `docs/architecture/ui-boundary.md` | The ownership boundary between the UI and the authority. |
+| `docs/remote/protocol-v2.md` | The complete Remote v2 wire protocol definition. |
+| `docs/platform/support-matrix.md` | Evidence requirements for platform capabilities. |
+| `docs/operations/release.md` | The release runbook. |
+| `docs/operations/release-packaging-matrix.md` | The artifact and build command matrix. |
+| `docs/operations/recovery-matrix.md` | Crash recovery: which state is persistent. |
+| `docs/smoke/relay-nat.md` | The operations checklist for Relay across NAT. |
+| `docs/licenses/` | Third-party licenses and the SBOM. |
+| `deploy/server/README.md` | Headless runtime deployment. |
+| `deploy/relay/README.md` | Relay deployment. |

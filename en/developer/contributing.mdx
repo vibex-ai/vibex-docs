@@ -1,23 +1,24 @@
 ---
 title: "Contributing"
-description: "Submit Vibex changes with the required architecture, testing, and privacy discipline."
+description: "Submit changes that meet the Vibex architecture, testing, and privacy requirements."
 ---
 
-## Before coding
+## Before you start
 
-1. Read the root `README.md` and relevant `docs/` design and check notes.
-2. Search existing facades, DTOs, reducers, and platform adapters before adding an abstraction.
-3. Preserve unrelated uncommitted work in the shared worktree.
+1. Read the root `README.md` and the relevant `docs/` design and check notes.
+2. Search for existing facades, DTOs, reducers, and platform adapters before you decide you need a new abstraction.
+3. Preserve existing uncommitted changes in the working tree; do not overwrite other people's files.
 
 ## Implementation principles
 
-- Keep `DesktopRuntime` as the only authoritative state owner.
-- Route mobile behavior through shared backends and Remote v2 contracts.
-- Use structured errors, capabilities, and sequence numbers instead of UI text to infer success.
+- Keep `DesktopRuntime` as the single authoritative state owner.
+- Expose new capabilities through `BackendFacade` so they work for both the embedded runtime and a paired remote runtime.
+- Have clients reach capabilities through the shared backend and Remote v2 contracts, without duplicating business state.
+- Use structured errors, capabilities, and sequence numbers; do not infer success from UI copy.
 - Check and audit permissions for file, Git, terminal, provider, and device operations.
-- Redact logs, test evidence, and diagnostics; never record secrets, Prompts, file contents, or terminal bytes.
+- Redact logs, test evidence, and diagnostics; never write keys, prompts, file contents, or terminal bytes into them.
 
-## Before submitting
+## Pre-submit checks
 
 ```bash
 pnpm check
@@ -25,12 +26,38 @@ pnpm release:build-smoke
 pnpm check:mobile-native
 ```
 
-Add `check:acp`, `check:code-workbench`, `check:terminal`, `smoke:relay:local`, or focused Cargo tests as appropriate. Cross-layer changes should cover disconnect, restart, insufficient permissions, sequence gaps, and recovery.
+Add the matching script for the area you changed:
+
+| Change area | Recommended command |
+| --- | --- |
+| ACP / Agent | `pnpm smoke:agents` |
+| File service | `pnpm smoke:files` |
+| Git | `pnpm smoke:git` |
+| Terminal | `pnpm smoke:pty` |
+| Database | `pnpm smoke:db` |
+| Backup and restore | `pnpm smoke:backup` |
+| Diagnostics | `pnpm smoke:diagnostics` |
+| Relay / remote | `pnpm smoke:relay:local` |
+| Cross-layer regression | `pnpm e2e:regression` |
+
+<Note>
+  `pnpm check:acp`, `pnpm check:code-workbench`, `pnpm check:terminal`, and `pnpm check:all` do not exist — use the real scripts in the table above. See [Build and test](/en/developer/build-and-test) for the full list.
+</Note>
+
+Cross-layer changes should cover disconnect, restart, insufficient permission, sequence gaps, and recovery paths.
 
 ## Documentation and evidence
 
-Update Simplified Chinese, Traditional Chinese, and English pages for user-visible behavior. Mark unconfirmed details with `TODO`; do not present test spikes as stable features. Use text workflows, state tables, protocol fields, and redacted diagnostics as evidence. Do not require visual captures or submit workspace contents.
+User-visible behavior must update the Simplified Chinese, Traditional Chinese, and English pages together. Mark implementation details you cannot confirm with `TODO`, and **do not document a feature that exists only in a code path but is unreachable for users** — if an entry point is not open yet, do not mention it in the documentation.
+
+Explain behavior with written steps, state tables, protocol fields, and redacted diagnostic records; do not require visual captures, and do not submit workspace contents as evidence.
+
+### Documentation site maintenance
+
+- The version number lives in `snippets/release.mdx`. **Do not hard-code a version in a page.** When you publish a release, change only that file.
+- Download and release links point to the GitHub Releases `latest` page, which resolves to the newest version automatically.
+- User interface copy is defined by `apps/desktop/src/locale.rs`; keep documentation wording consistent with it.
 
 ## Pull requests
 
-Describe behavior, ownership, tests, compatibility, migration, rollback, and known limits in the pull request. Use [GitHub](https://github.com/vibex-ai/vibex).
+Describe the behavior change, ownership boundaries, test commands, and known limitations. If you change a protocol or a persistence format, explain the compatibility, migration, and rollback strategy. Open issues and pull requests on [GitHub](https://github.com/vibex-ai/vibex).

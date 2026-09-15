@@ -1,36 +1,75 @@
 ---
 title: "Git 工作流程"
-description: "在 Vibex 中檢查、隔離、提交與交付程式碼變更。"
+description: "在 Vibex 中檢查、隔離、提交和交付程式碼變更。"
 ---
 
-Vibex 提供原生 Git 審查介面。停止 Agent 不會自動回復工作區，也不會替你決定何時提交。
+Vibex 提供 Git 原生審查介面。它不會替你決定何時提交，也不會在停止 Agent 時自動復原工作區。
+
+開啟右側欄的 **Git** 圖示進入 Git 面板，面板頂端有 **Changes** 和 **Commits** 兩個子分頁。
 
 ## 查看變更
 
-Git 面板提供 **Status**（未追蹤、已修改、已暫存、衝突）、**Diff**、**History** 和 **Blame**。選擇檔案後確認路徑、工作區與差異；行動端的寫入操作需要對應權限。
+**Changes** 分頁顯示工作區狀態和差異：
 
-## 分支和暫存
+- 檔案依狀態分組，以單字母標記：`M` 已修改、`A` 已新增、`D` 已刪除、`R` 已重新命名、`C` 已複製、`U` 未追蹤、`!` 衝突。
+- 選擇檔案後右側顯示**統一格式（unified）的 diff**，並標明是 `staged` 還是 `unstaged`。
+- 空狀態顯示 **No Git status**，沒有差異時顯示 **No diff**。
+
+**Commits** 分頁顯示提交歷史，支援：
+
+- **Search commits** 依提交訊息搜尋。
+- **Branch** 和作者篩選（作者選擇器預設為 **All Users**）。
+- 依作者日期範圍篩選。
+- 點擊提交開啟 **Commit detail** 抽屜查看完整差異。
+
+<Note>
+  差異檢視目前只有統一格式，沒有並排檢視；也**沒有逐區塊（hunk）暫存**——暫存以整個檔案為單位。沒有 stash 和 tag 介面，需要時請在終端機裡操作。
+</Note>
+
+## 分支與提交
+
+Git 面板工具列提供 **Fetch**、**Push**、**Refresh Git**，以及分支建立 / 切換和更多操作選單。
+
+典型流程：
 
 1. 建立或切換分支。
-2. 按檔案或區塊執行 **Stage** / **Unstage**。
-3. 使用 **Revert** 放棄單一變更前，先確認內容。
-4. 輸入訊息執行 **Commit**，必要時用 **Amend** 追加。
-5. 用 **Fetch** 更新遠端引用，用 **Push** 發布提交。
+2. 閱讀檔案差異。
+3. 在檔案上執行 **Stage** 或 **Unstage**（整個檔案）。
+4. 在 **Commit message** 輸入框填寫訊息並提交。
+5. 需要追加到上一個提交時使用 **Amend commit**。
+6. **Fetch** 更新遠端引用，**Push** 發佈本機提交。
 
 <Warning>
-  **Revert**、切換分支、Amend 與 Push 可能改變歷史或遠端狀態。執行前確認分支、遠端與待處理差異。
+  **Revert**、**Checkout branch**、**Amend commit**、**Push**、**Merge worktree** 和 **Discard worktree** 都會彈出確認對話方塊，因為它們可能改變已有歷史或遠端狀態。執行前確認分支、遠端和待處理差異；團隊政策要求時先建立備份分支。
 </Warning>
 
-## VibexWorktree
+## Worktree
 
-使用 **VibexWorktree** 時，建立隔離 worktree 和分支，在其中執行 Agent，檢查差異後合併或 rebase。衝突時逐檔處理並重新檢查狀態；確認結果後才丟棄 worktree，因為未提交內容會一併刪除。
+Worktree 是同一個專案下的獨立工作區，詳見[專案與工作區](/zh-TW/workspaces)。Git 面板提供完整生命週期：
+
+| 操作 | 說明 |
+| --- | --- |
+| **Create worktree** | 建立隔離目錄和關聯分支。 |
+| **Review changes** / **Mark ready** | 推進到可合併狀態。 |
+| **Merge** / **Rebase** | 合併回目標分支（分別對應 `NoFfMerge` 和 `RebaseAndMerge`）。 |
+| **Mark resolved** | 逐檔案解決衝突後標記該檔案已處理。 |
+| **Abort merge** | 放棄正在進行的合併。 |
+| **Rename Worktree** / **Delete Worktree** | 重新命名或刪除。刪除會連同未提交內容一起移除。 |
+
+衝突按檔案逐個處理，可以針對每個檔案選擇保留目標端或來源端版本。
 
 <Info>
-  **CurrentCheckout** 直接修改目前檢出目錄；**VibexWorktree** 為並行任務提供獨立目錄。兩者都以桌面端 Git 狀態為準。
+  **Local** 工作區直接修改主檢出目錄；**Worktree** 讓並行任務擁有獨立目錄。無論哪種模式，都以權威執行環境的 Git 狀態為準。
 </Info>
 
-## 建議流程
+## 常見流程
 
 ```text
 查看 status -> 閱讀 diff -> 執行測試 -> stage -> commit -> fetch -> rebase/merge -> push
 ```
+
+測試或 Agent 仍在執行時不要切換分支。提交前檢查敏感檔案、生成物和憑證是否被意外加入。
+
+## 行動端
+
+行動端可以讀取 Git 狀態與差異，也可以執行 stage / unstage / revert / commit / fetch / push 和建立 worktree——前提是裝置權限等級為 `full_control`。

@@ -8,3 +8,6 @@ skills-lock.json
 # Draft content
 drafts/
 *.draft.mdx
+
+# Internal review notes (not published)
+DOCS_REVIEW.md

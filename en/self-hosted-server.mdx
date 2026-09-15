@@ -1,0 +1,160 @@
+---
+title: "Self-hosted headless runtime"
+description: "Run vibex-server on your own server so the desktop and mobile share one authoritative runtime."
+---
+
+`vibex-server` is Vibex's **headless authoritative runtime**. It uses the same `DesktopRuntime` core as the runtime embedded in the desktop, just in daemon form: the desktop adds a GPUI window, and the server adds daemon lifecycle. Both expose the **exact same** Remote v2 gateway, so a paired mobile client cannot tell which one it is connected to.
+
+<Note>
+  `vibex-server` is a **single-user** runtime: it has one Vibex home, one database, and one gateway. It is not a multi-tenant service. The host administrator is the user.
+</Note>
+
+## When to use it
+
+- You want sessions and Agents to live on a server and keep going when your laptop is closed.
+- You want to share the same sessions, workspaces, and credentials between your desktop and phone.
+- Your team has an always-on development machine that you want to reach from any device.
+
+If you only need to forward traffic and do not need a hosted runtime, [Relay](/en/relay) is enough.
+
+## Quick start
+
+The container image is multi-arch (`linux/amd64`, `linux/arm64`) and is updated with every release:
+
+```bash
+export VIBEX_SERVER_IMAGE=ghcr.io/vibex-ai/vibex-server:rc
+docker compose -f deploy/server/docker-compose.yml pull vibex-server
+docker compose -f deploy/server/docker-compose.yml up -d --no-build vibex-server
+docker logs vibex-server | grep -E 'pairing_(code|link)|tls_fingerprint'
+curl -fsS http://127.0.0.1:8765/api/v2/info
+```
+
+Image tag rules: `rc` follows the latest release candidate, `latest` points only to stable releases, and `edge` and `sha-<commit>` follow the default branch.
+
+The startup log prints `server_id`, `endpoint`, a one-time `pairing_code` (of the form `NNN-NNN-NNN`), `pairing_link`, `tls_fingerprint`, and a QR code. Hand these to a client to pair it; see [Remote access and mobile](/en/remote-mobile).
+
+Regenerate a pairing code whenever you need a new one:
+
+```bash
+docker exec vibex-server vibex-server pairing-code
+docker exec vibex-server vibex-server pairing-code --permission read-only --ttl-ms 600000
+```
+
+## Commands
+
+```text
+Usage: vibex-server [serve|status|pairing-code|revoke|config-check]
+
+  serve [--no-pairing]                    run the authoritative headless runtime
+  pairing-code [--permission <level>] [--ttl-ms N]
+                                          mint a one-time code plus its pairing link
+  revoke DEVICE_ID [--reason TEXT]        revoke a paired device
+  config-check                            validate VIBEX_* deployment settings
+```
+
+With no arguments it behaves like `serve`. `--permission` accepts `read-only`, `approve-only`, or `full-control` (the default is `full-control`).
+
+## Deployment shapes
+
+### Loopback only (default)
+
+Binds to `127.0.0.1:8765` by default and publishes no ports. This suits bringing traffic in through an SSH tunnel or a reverse proxy.
+
+### Local network: self-signed certificate with pinning
+
+When you have no domain or CA (a home or office LAN), the runtime provides a **certificate it issues itself**. Clients learn that certificate from the connection string and pin it—trust comes from the connection string, not from the network.
+
+```bash
+VIBEX_BIND_ADDR=0.0.0.0:8765 \
+VIBEX_DEPLOYMENT_MODE=lan \
+VIBEX_TLS_MODE=pinned_certificate \
+VIBEX_PUBLIC_HOST=192.168.1.10:8765 \
+VIBEX_HEALTHCHECK_URL=https://127.0.0.1:8765/api/v2/info \
+  docker compose -f deploy/server/docker-compose.yml up --build -d vibex-server
+```
+
+- `VIBEX_PUBLIC_HOST` must be the address the client actually dials, **including the port**, and it must be a numeric local network address (`192.168.x.x`, `10.x.x.x`, `172.16–31.x.x`, or a link-local / unique-local IPv6 address).
+- The certificate stays the same for the lifetime of the runtime identity, so restarting the container does **not** require re-pairing. Only deleting `/data` invalidates it.
+- `pinned_certificate` really does terminate TLS at the gateway, so the listener is never plaintext. A client without the fingerprint cannot connect at all.
+
+### Public HTTPS
+
+Public exposure requires `VIBEX_DEPLOYMENT_MODE=public` and one of the TLS strategies:
+
+**Reverse proxy terminates TLS:**
+
+```bash
+VIBEX_PUBLIC_HOST=vibex.example.com \
+VIBEX_DEPLOYMENT_MODE=public \
+VIBEX_TLS_MODE=trusted_https_proxy \
+VIBEX_TRUST_FORWARDED_HEADERS=true \
+VIBEX_ALLOWED_HOSTS=vibex.example.com \
+VIBEX_ALLOWED_ORIGINS=https://vibex.example.com \
+  docker compose -f deploy/server/docker-compose.yml --profile caddy up -d
+```
+
+`VIBEX_TRUST_FORWARDED_HEADERS` can be enabled only in `trusted_https_proxy` mode; other modes reject forwarded headers.
+
+**The gateway terminates TLS itself:** set `VIBEX_TLS_MODE=server_certificate` and mount `VIBEX_TLS_CERT_FILE` / `VIBEX_TLS_KEY_FILE` (PEM) into the container.
+
+<Warning>
+  The gateway validates the configuration combination at startup: a public listener without trusted TLS, a loopback entry in `VIBEX_ALLOWED_HOSTS`, or trusting forwarded headers outside trusted-proxy mode will all **refuse to start**. This is deliberate, so a misconfiguration cannot quietly degrade into an unauthenticated public service.
+</Warning>
+
+### systemd (without Docker)
+
+The repository ships a hardened unit file that runs as a host process, with the same environment variable contract:
+
+```bash
+systemctl status vibex-server
+journalctl -u vibex-server -o cat | grep -E 'pairing_(code|link)|tls_fingerprint'
+```
+
+The state directory defaults to `/var/lib/vibex-server`; see `deploy/server/systemd.md` in the repository.
+
+## Environment variables
+
+The full list with defaults is in the [environment variables reference](/en/reference/environment-variables). The most common ones:
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `VIBEX_HOME` | `/data` | Runtime home: database, Agent installations, identity keys. |
+| `VIBEX_DB_PATH` | `$VIBEX_HOME/vibex.db` | Path to the authoritative SQLite database. |
+| `VIBEX_WORKSPACE_ROOTS` | `$VIBEX_HOME` | Comma-separated absolute paths that limit which project directories clients can choose. |
+| `VIBEX_BIND_ADDR` | `127.0.0.1:8765` | Gateway listen address. |
+| `VIBEX_DEPLOYMENT_MODE` | `loopback` | `loopback` / `lan` / `public`. |
+| `VIBEX_TLS_MODE` | See above | One of four values. |
+| `VIBEX_PUBLIC_HOST` | unset | The address advertised to pairing clients; also used to generate the connection string. |
+
+<Note>
+  Every entry in `VIBEX_WORKSPACE_ROOTS` must be an absolute path. If a mount point does not exist yet, it simply matches nothing rather than raising an error.
+</Note>
+
+## Credential storage
+
+Provider API keys are stored **on the server host**. They never enter the database and are never returned to clients.
+
+The desktop writes keys into the operating system keychain. A headless server usually has no usable keychain (the default container seccomp profile rejects the keyutils syscalls the Linux keychain backend needs), so it writes `provider-secrets.json` in the runtime home instead, with owner-only permissions (`0600`). This is an explicit self-hosting tradeoff: the host administrator is the user.
+
+```bash
+VIBEX_PROVIDER_SECRET_STORE=keychain   # force the OS keychain
+VIBEX_PROVIDER_SECRET_STORE=file       # force the host secret file
+```
+
+The gateway does not log keys, pairing codes, or authentication tokens. Credential values are **write-only** once stored and are never returned to any client.
+
+## Security recommendations
+
+1. **Keep the loopback default** and publish through Tailscale Serve or a controlled reverse proxy.
+2. Public deployments must configure `VIBEX_ALLOWED_HOSTS` (exact hostnames, otherwise the gateway returns `421`) and `VIBEX_ALLOWED_ORIGINS` (otherwise it returns `403`). Native clients do not send an `Origin` header and are unaffected.
+3. Use `vibex-server status` to review paired devices regularly, and `revoke` to clean up promptly.
+4. List only the directories you truly need in `VIBEX_WORKSPACE_ROOTS`.
+5. The gateway exposes only the protocol and health check endpoints. It serves no browser UI and no business API.
+
+## Health check
+
+```bash
+curl -fsS http://127.0.0.1:8765/api/v2/info
+```
+
+`/health` and `/api/info` belong to [Relay](/en/relay); the headless runtime's info endpoint is `/api/v2/info`.

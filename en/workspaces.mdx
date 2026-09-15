@@ -1,54 +1,96 @@
 ---
-title: "Workspaces"
+title: "Projects and workspaces"
 description: "Choose, switch, and isolate the file, Git, and Agent scope in Vibex."
 ---
 
-A workspace is the boundary for file access, terminals, and Git operations. The desktop stores workspace metadata and the current selection. Agents receive context from that workspace.
+A **project** is a folder you register in Vibex; a **workspace** is "using this project in a particular way". One project can hold several workspaces at the same time.
 
-## Workspace modes
+A workspace is the boundary within which Vibex reads and writes files, runs terminals, and performs Git operations. The authoritative runtime stores workspace metadata and the current selection, and the workspace also determines which files an Agent can see.
 
-| Mode | Use it when | Behavior |
+## Hierarchy
+
+```text
+Project
+├── Local workspace (CurrentCheckout)   ← work directly in the main checkout
+└── Worktree workspace (VibexWorktree)  ← isolated directory, several can coexist
+        └── Session
+```
+
+In other words: **a worktree is not "another mode", it is a second workspace under the same project.** That is exactly why you can keep working on the main branch while an Agent tries another approach in an isolated directory.
+
+## The two workspace modes
+
+| Mode | UI label | Behavior |
 | --- | --- | --- |
-| **CurrentCheckout** | You want to work directly on the checked-out branch. | Files and Git use the current directory; sessions can see the same changes. |
-| **VibexWorktree** | You want Agent changes isolated from the main checkout. | Vibex creates a managed Git worktree with merge, rebase, conflict, and discard flows. |
+| `CurrentCheckout` | **Local** / current checkout | Files and Git operations act directly on the main checkout directory; several sessions may see the same changes. |
+| `VibexWorktree` | **Worktree** | Vibex creates a managed Git worktree and provides merge, rebase, conflict handling, and discard flows. |
 
-<Warning>Concurrent Agents in **CurrentCheckout** can edit the same file. Prefer **VibexWorktree** for parallel attempts or review.</Warning>
+<Warning>
+  When several Agents run at once in a **Local** workspace, they can modify the same file. Use **Worktree** when you need parallel attempts or review.
+</Warning>
 
-## Open or switch a workspace
+## Open a project
 
-1. Open the workspace picker in the sidebar.
-2. Select a repository directory or create a managed worktree.
-3. Confirm the workspace root and Git branch.
-4. Check the current workspace shown at the top before opening files, terminals, or sessions.
+1. Click **New project** in the sidebar, or use **Project directory** on the **New chat** page.
+2. In the directory browser that opens, select the repository root. (This is an in-app browser that supports `↑↓` to navigate, `Enter` to open, and `⌘Enter` to select here.)
+3. Once you confirm, Vibex opens that directory in **Local** mode.
 
-Switching does not copy uncommitted changes. Save files and inspect Git status before switching.
+Projects stay in the sidebar permanently. Right-click a project to customize its icon, create a folder, enable **Auto continue**, import sessions, or delete it.
 
-If an editor has a dirty buffer, the desktop waits for you to save or discard it before switching. Opening or switching a workspace advances its generation; stale file, terminal, and Git requests are rejected instead of writing to the wrong directory.
+## Create a workspace under a project
 
-## Managed worktree lifecycle
+When you create a session, the location picker above Composer offers two options:
 
-1. Choose a base branch and name when creating the worktree.
-2. Run a session or edit files in the isolated directory.
-3. Review **Git diff** and commit when appropriate.
-4. Merge or rebase. Resolve conflicts file by file before continuing.
-5. Confirm the main workspace result, then discard the worktree. Discard removes the isolated directory and uncommitted changes.
+- **Local** — work on the main checkout directory.
+- **New Worktree** — create an isolated workspace. Once selected, a **Base ref** picker appears (with searchable branches) along with the **Worktree settings** panel:
+  - **Worktree name** — the branch name `vibex/<slug>` is derived from it.
+  - **Path** — must be an absolute path.
+  - **Default to a new Worktree for this Project** — future sessions in this project create a worktree by default.
 
-<Info>The desktop stores worktree paths, branches, and status. Mobile can request these operations remotely, but cannot create a local worktree.</Info>
+## Switch workspaces
+
+When **Workbench → Sidebar hierarchy** is set to **Workspace view**, each project lists its workspaces and their branches.
+
+Switching workspaces does not copy uncommitted changes anywhere else. The current session still belongs to the workspace it was created in, so save your files and check Git status before you switch.
+
+If the editor still has unsaved buffers, Vibex blocks the switch and asks you to save or discard them. Every time you open or switch a workspace the generation advances, and stale file, terminal, and Git requests are rejected so results never land in the wrong directory.
+
+## Worktree lifecycle
+
+| State | Main actions |
+| --- | --- |
+| **Working** | **Review changes** |
+| **Reviewing** | **Mark ready** |
+| **Ready** | **Merge** / **Rebase** (mapped to `NoFfMerge` and `RebaseAndMerge`) |
+| **Queued** | **Review merge** |
+| **Archived** | Restore |
+
+1. Choose the base branch and name when you create the worktree.
+2. Start a session in the isolated directory, or edit files by hand.
+3. Review the changes in the Git panel and commit as needed.
+4. Choose **Merge** or **Rebase**. When conflicts appear, resolve them file by file (for each file you can keep the target side or the source side), then click **Mark resolved**. You can give up midway with **Abort merge**.
+5. Once you have confirmed the result, discard the worktree. **Discarding deletes the isolated directory and any uncommitted changes.**
+
+You can also run **Rename Worktree** and **Delete Worktree** on a worktree.
+
+<Info>
+  The authoritative runtime stores each worktree's path, branch, and state. Mobile can request these operations over Remote v2, but the work itself always happens on the authoritative side.
+</Info>
 
 ## File access boundaries
 
-- The file tree, content search, and editor stay within the selected workspace.
-- The file service canonicalizes paths and checks symlinks, encoding, line endings, and size limits.
-- Opening a workspace does not grant every Agent capability; tools still pass permission gates.
-- Terminals start in the workspace, but a terminal tab can change its working directory.
-- Remote requests carry workspace scope and a generation; after reconnect, the desktop's fresh read is authoritative.
+- The file tree, content search, and editor only reach the current workspace.
+- The file service normalizes paths and checks symlinks, encoding, line endings, and size limits.
+- Agent tool calls are still subject to permission and capability gating — opening a workspace does not automatically authorize every operation.
+- Terminals bind to the current workspace by default, but you can also pick **Open In → Terminal** on a path in the file tree.
+- Remote requests also carry the workspace scope and generation; after a reconnect, trust the state re-read from the authoritative runtime.
 
 ## Common questions
 
-### Why cannot the Agent see a new file?
+### Why can't the Agent see the file I just created?
 
-Save it in the current workspace, then refresh the file tree or reopen the session. Move files from outside the workspace or attach their contents when allowed.
+Check that the file was saved inside the current workspace, then refresh the file tree or reopen the session. If the file is outside the workspace, move it inside first, or provide it as an attachment.
 
-### Why is Git diff empty?
+### Why doesn't the Git diff show my changes?
 
-Check that you did not switch to another workspace or worktree, save the file, and run `git status --short` in the terminal.
+Check whether you switched to another workspace or worktree — `Local` and `Worktree` are completely different directories. Confirm the file is saved, then run `git status --short` in the terminal to compare.

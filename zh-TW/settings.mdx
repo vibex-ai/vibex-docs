@@ -3,72 +3,97 @@ title: "設定"
 description: "調整 Vibex 的介面、工作台、會話、終端機、快捷鍵和診斷選項。"
 ---
 
-開啟 **Settings**（macOS 為 `cmd-,`，Windows/Linux 通常為 `ctrl-,`）可修改桌面端的本機偏好。設定不取代 Config Center 中的 Agent、供應商或工作流程資源。
+開啟 **Settings**（`cmd-,`）可以修改桌面端的本機偏好。設定不會取代 Config Center 中的 Agent、MCP 或 Skills 設定。
 
-## 設定分區
+頁面頂部有 **Search settings** 輸入框，可以依名稱或關鍵字直接跳到某一項。曾修改的選項旁邊會出現 **Undo changes**。
+
+## 分區
 
 | 分區 | 可調整內容 |
 | --- | --- |
-| **General** | 語言、啟動行為和一般應用偏好。 |
-| **Appearance** | 主題、字型、字級、密度和專案圖示。 |
-| **Workbench** | 側欄、預覽、面板、編輯器配置和顯示偏好。 |
-| **Session** | 會話寬度、預覽條、時間線顯示和執行體驗。 |
-| **Terminal** | 預設 shell、字型、滾動緩衝與終端機顯示。 |
-| **Shortcuts** | 查看和修改鍵盤快捷鍵。 |
-| **Data & Diagnostics** | 本機資料、診斷等級和脫敏匯出入口。 |
-| **About** | 版本、授權和建置資訊。 |
+| **General** | 語言、啟動行為、網路代理和通知。 |
+| **Appearance** | 主題、視窗縮放、介面字型與程式碼字型、動效與對比度。 |
+| **Workbench** | 側欄檢視、新會話預設位置、版面記憶和 Git 變更計數。 |
+| **Session** | 會話內容寬度、時間線顯示、訊息佇列和自動繼續。 |
+| **Terminal** | 預設 shell 和新增終端機的初始目錄。 |
+| **Shortcuts** | 檢視、修改和重設鍵盤快捷鍵。 |
+| **Data & Diagnostics** | 本機儲存用量與清理、診斷與還原入口。 |
+| **About** | 版本、通道、軟體更新、授權和平台資訊。 |
 
-## General 和啟動
+## General
 
-你可以選擇語言、關閉視窗時是否保留在系統匣、啟動後還原工作台或建立新會話、是否登入系統時啟動 Vibex，以及是否啟用網路代理。代理支援 `http`、`https`、`socks5` 和 `socks5h` 位址；啟用前會校驗位址，憑證不會同步到行動端。
-
-通知可以總開關，也可以分別控制 Agent 完成、需要輸入和失敗。更新提示只控制介面提示；背景安全檢查仍依發行策略執行。
+| 選項 | 說明 |
+| --- | --- |
+| **Language** | System default / 简体中文 / 繁體中文 / English。 |
+| **Keep running after closing the window** | 關閉視窗後保留在系統匣。 |
+| **Network proxy** | 讓 Vibex 的網路要求和 Agent 工具走本機或企業代理。支援 `http`、`https`、`socks5`、`socks5h`。啟用前會驗證位址。 |
+| **Startup** | 啟動後還原工作台，或直接新增會話。 |
+| **Launch at login** | 登入系統時啟動 Vibex。 |
+| **System notifications** | 桌面通知總開關。 |
+| **Agent completed / Agent needs input / Agent failed** | 分別控制三類通知；總開關關閉時這三項無法使用。 |
+| **Update prompts** | 控制是否顯示更新提示。背景安全檢查不受影響，仍依發行策略執行。 |
 
 ## Appearance
 
-Appearance 控制主題、視窗縮放、介面字體和程式碼字體。程式碼字體同時影響程式碼區塊、整合編輯器和終端機。你也可以調整字級、字重、減少動效和高對比度；這些選項只改變本機 UI。
+控制主題（System / Light / Dark）、視窗縮放（75%–200%）、**Interface font** 與 **Code font** 的字級和字重、**Reduced motion** 與 **High contrast**。程式碼字型同時影響程式碼區塊、整合編輯器和終端機。
 
-## Workbench 和 Session
+是否提供 **Frosted glass** 取決於平台是否支援背景模糊（Windows 不支援）。字型會從系統已安裝的字型中列出，缺少時會回退。
 
-Workbench 保存側欄、預覽、右側欄、分頁和分欄版面，以及編輯器的軟換行和空白字元顯示偏好，並可設定新會話預設使用 **CurrentCheckout** 或 **VibexWorktree**。Session 控制內容寬度、回合預覽條、reasoning 顯示、命令與檔案操作詳情，以及 Composer 的自動或手動佇列和傳送按鍵。
+## Workbench
+
+| 選項 | 說明 |
+| --- | --- |
+| **Sidebar hierarchy** | **Session view**（依會話分組）或 **Workspace view**（依工作區分組）。 |
+| **Default new-session location** | **Current checkout** 或 **Worktree**。 |
+| **Remember layout** | 記住側欄、預覽、右側欄和分欄版面。 |
+| **Show Git change count** | 在 Git 圖示上顯示待處理變更數。 |
+| **Project overrides** | 清除各專案的版面覆寫。 |
+| **Reset workbench layout** | 把工作台版面還原為預設。 |
+
+## Session
+
+控制會話內容寬度（Narrow / Standard / Full width）、時間線條目顯示（**Session preview rail**、**Agent generation status**、**Reasoning display**、**Expand reasoning by default**、**Command card rendering**、**File edit card rendering**），以及訊息佇列行為：
+
+- **Queue sending** —— Automatic 或 Manual。
+- **Message send key** —— Enter 或 Cmd/Ctrl+Enter。
+- **Auto-continue** —— 讓符合條件的回合自動推進；無法繼續時會停下來等待你處理。
+- **Remembered runtime** / **Auto-continue defaults** —— 清除已記住的選擇。
 
 ## Terminal
 
-Terminal 設定預設 shell 和新建終端機的初始目錄。初始目錄可以是目前工作區、專案根目錄或目前檔案；已開啟的終端機不會因修改偏好而遷移。
+設定預設 shell 和新增終端機的初始目錄（**Worktree** / **Project** / **Current file**）。
 
-## 修改偏好
+- 預設 shell 可以從系統偵測到的 shell 中選擇，也可以指定自訂路徑。
+- 已開啟的終端機不會因為修改偏好而遷移。
+- 滾動緩衝區固定為 10000 行，無法設定。
 
-1. 選擇設定分區。
-2. 修改選項，查看預覽或說明。
-3. 需要恢復時使用該選項的預設值或 **Reset**。
-4. 關閉設定頁；桌面端會保存本機偏好並在下次啟動恢復。
+## Shortcuts
 
-外觀偏好只改變本機 UI，不會修改 Agent 系統提示詞、工作區檔案或供應商設定。字型受作業系統安裝內容影響，無法使用時會回退。
+所有可重新綁定的快捷鍵、預設按鍵和分組請見[快捷鍵參考](/zh-TW/reference/shortcuts)。在這裡可以逐項修改，也可以 **Reset** 單項或 **Reset all** 全部還原為預設。衝突的按鍵組合會被拒絕，並提示 **Shortcut is invalid or already in use**。
 
-## 快捷鍵
+## Data & Diagnostics
 
-| 操作 | macOS | Windows/Linux |
-| --- | --- | --- |
-| 側欄 | cmd-b | ctrl-b |
-| 預覽 | cmd-shift-p | ctrl-shift-p |
-| 右側欄 | cmd-shift-r | ctrl-shift-r |
-| 對話/終端機模式 | cmd-shift-t | ctrl-shift-t |
-| 設定 | cmd-, | ctrl-, |
-| 會話內搜尋 | cmd-f | ctrl-f |
-| 重試執行環境 | cmd-r | ctrl-r |
-| 儲存檔案 | cmd-s | ctrl-s |
-| 前進/後退 | alt-left / alt-right | alt-left / alt-right |
+顯示本機儲存用量明細（資料庫、會話、終端機、附件、診斷、Agent 安裝），並提供分類清理入口：
 
-快捷鍵可在 **Settings > Shortcuts** 查看或調整，修改後請在對應視窗測試。
-
-## 資料與診斷
-
-診斷匯出前選擇最小範圍並確認脫敏結果。不要匯出 token、私鑰、Prompt、檔案內容、Git diff、終端機位元組或配對資料。備份或遷移 SQLite 前關閉桌面端，恢復後檢查工作區路徑、裝置授權和 secret reference。
+| 操作 | 影響 |
+| --- | --- |
+| **Clear sessions and attachments** | 刪除會話和附件記錄。 |
+| **Clear terminal data** | 刪除終端機中繼資料。 |
+| **Clear diagnostic data** | 刪除診斷資料。 |
+| **Open data directory** | 在檔案管理員中開啟資料目錄。 |
+| **Open Usage** | 跳至用量統計。 |
+| **Open Management Center** | 跳至 Config Center。 |
 
 <Warning>
-  重設設定只影響偏好；刪除本機資料庫或工作區目錄是不同的破壞性操作。先閱讀 [隱私與恢復](/zh-TW/privacy-and-recovery)。
+  這些清理操作是**破壞性**的，且不會復原。執行前請先閱讀[隱私與復原](/zh-TW/privacy-and-recovery)。
 </Warning>
 
-## 關於版本
+## About
 
-**About** 顯示建置版本、發行渠道、授權和平台資訊，並提供檢查已簽署發行版更新的入口。回報問題時附上這些不敏感資訊和結構化錯誤碼，不要附完整日誌。
+顯示目前的**版本**與**通道**（Preview / ReleaseCandidate / Stable）、平台資訊、授權，並提供：
+
+- **Software update** —— 更新狀態與操作按鈕（**Check now** / **Download** / **Install update** / **Restart now** / **Open release** / **Retry**）。更新資訊清單經過簽章驗證，驗證失敗時不會安裝。
+- **Environment summary** —— 可複製的不敏感環境資訊，回報問題時請附上。
+- **Source code** / **Release notes** —— 跳至儲存庫和發行說明。
+
+回報問題時請附上版本、通道、平台和結構化錯誤碼，不要附上完整日誌。

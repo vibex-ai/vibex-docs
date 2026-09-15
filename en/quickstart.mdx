@@ -1,65 +1,66 @@
 ---
 title: "Quickstart"
-description: "Install Vibex and complete your first Agent session."
+description: "Install Vibex, connect an Agent, and complete your first session."
 ---
 
-This guide starts the desktop from source, opens a workspace, configures a provider profile, and runs a small task that you can review. Use a disposable Git repository for the first run.
+This guide walks you through installing the desktop, adding an Agent, opening a project directory, and having the Agent finish a small, reviewable task. For your first try, use a throwaway Git repository.
 
-## Prerequisites
+## 1. Install the desktop
 
-- Git with submodule support.
-- Node.js 22 and pnpm 11.3.0.
-- Rust 1.97.0, pinned by `rust-toolchain.toml`.
-- A Linux, macOS, or Windows graphical session. Linux needs a working Vulkan driver.
-- An installed Agent runtime and provider credential. Keep credentials local and out of docs or logs.
+Download the installer that matches your platform from [GitHub Releases](https://github.com/vibex-ai/vibex/releases/latest) and install it. For full instructions and per-platform caveats, see [Install](/en/install).
 
-## Start the desktop
+<Note>
+  The macOS and Windows installers are currently unsigned, so Gatekeeper or SmartScreen stops you on first launch. For how to allow the app, see [Install](/en/install).
+</Note>
 
-<Steps>
-  <Step title="Get the repository">
-    ```bash
-    git clone https://github.com/vibex-ai/vibex.git
-    cd vibex
-    git submodule update --init --recursive
-    ```
-  </Step>
-  <Step title="Install dependencies">
-    ```bash
-    pnpm install --frozen-lockfile
-    ```
-  </Step>
-  <Step title="Run the workbench">
-    ```bash
-    pnpm dev:desktop
-    ```
+## 2. Add an Agent
 
-    The first build can take time. After startup, this process owns sessions, files, Git, and terminals.
-  </Step>
-</Steps>
+On first launch, Vibex shows the **Start something new** page. When no Agent is available it tells you **No Agent has been added. Open Config Center to add one.** — click **Add Agent** to open the Config Center.
 
-## Complete a first session
+1. Find the Agent you want in the **Agent** tab list. Built-in presets include **Claude Code**, **Codex**, **ZCode**, and **OpenCode**, plus more than a dozen ACP integrations.
+2. Click the **+** on the right of an entry to add it. Once added, the entry shows an enable toggle.
+3. If an Agent is managed by Vibex and not installed yet, its card shows **Install**. Click it and Vibex downloads and verifies the runtime. You cannot cancel during installation; when it finishes, the button becomes **Check for updates**.
+4. If an entry shows **Managed by user**, it is not in the managed directory, and Vibex uses the same-named command-line program on your `PATH` — you need to install it yourself first.
 
-1. In **Config Center > Agents** or **Model Providers**, add an available profile. Run a health check if an installed Agent is unavailable.
-2. Open a Git repository as the workspace. Use a test branch or temporary repository.
-3. In Composer, send a bounded task such as “Add installation steps to `README.md`, and show a plan first.”
-4. Read the timeline plan and tool calls. Vibex shows requests for files, terminals, or permissions.
-5. Open **Git diff** after the run, review every change, then save, commit, or continue.
+Next, expand the **Native credentials** card on the detail page to sign in (`Sign in` / `Open sign-in terminal`), then configure the model provider and credentials in the **Model provider configuration** card.
 
-## Composer input
+## 3. Open a project directory
 
-| Syntax | Purpose |
+1. Click **New project** in the sidebar, or use **Project directory** on the **New chat** page.
+2. In the directory browser that opens, select the repository root and confirm.
+3. For your first try, use a test branch or a temporary repository — the Agent really does modify files on disk.
+
+## 4. Complete your first session
+
+1. At the top of Composer, choose the Agent, provider profile, model, and **Thinking depth**.
+2. Type a clearly scoped task, such as "add installation steps to `README.md`, and show me the plan first".
+3. Watch the plan and tool calls in the timeline. When it needs files, a terminal, or permission, Vibex shows the specific request, and you can **Approve** or **Deny** it.
+4. When the Agent finishes, open the **Git** panel and check **Changes**, confirm each modification, then decide whether to commit or keep asking questions.
+
+<Tip>
+  For a first task, ask the Agent for a plan before letting it modify files. That way you can confirm the scope and risk in the timeline.
+</Tip>
+
+<Warning>
+  **Stop** only stops the run. It does not roll back files already written or commands already executed. After stopping, verify the result in the Git diff and in the terminal.
+</Warning>
+
+## Understanding Composer input
+
+You can combine several kinds of context in Composer:
+
+| Input | What it does |
 | --- | --- |
-| `/` | Select a Prompt or slash command. |
-| `@` | Reference a file or directory in the workspace. |
+| `/` | Pick an available Prompt or slash command. |
+| `@` | Reference a file or directory from the current project. |
 | `$` | Insert an enabled Skill. |
-| Attachment button | Add an image or other session attachment. |
+| Attachment button | Add images and other session attachments. |
 
-Before sending, choose an Agent, provider profile, model, reasoning depth, and conversation mode. The available choices depend on the Agent capability probe.
-
-<Tip>Ask for a plan before allowing file changes on your first task. You can check the scope and risk in the timeline.</Tip>
+Before sending, you can choose the Agent, provider profile, model, thinking depth, and conversation mode. Different Agents support different options; the interface shows what is available based on what the runtime detects.
 
 ## Next steps
 
-- [Install and platforms](/en/install)
-- [Workspaces](/en/workspaces)
-- [Config Center](/en/config-center)
+- [Core concepts](/en/concepts) — how projects, workspaces, sessions, and the authoritative runtime relate to each other.
+- [Workspaces](/en/workspaces) — the boundary for files and Git.
+- [Config Center](/en/config-center) — configuring Agents, MCP, and Skills.
+- [Pair mobile](/en/remote-mobile) — continue these sessions on your phone.

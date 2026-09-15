@@ -1,0 +1,88 @@
+---
+title: "從原始碼建置"
+description: "為貢獻者和沒有現成產物的平台建置 Vibex。"
+---
+
+如果你要修改 Vibex、審查實作，或你的平台沒有現成安裝套件，可以從原始碼建置。一般使用者請改用[安裝](/zh-TW/install)頁面的發行產物。
+
+## 先決條件
+
+| 工具 | 版本或說明 |
+| --- | --- |
+| Git | 需要子模組支援 |
+| Node.js | 22 |
+| pnpm | `11.3.0`，以 `package.json` 中的 `packageManager` 欄位為準 |
+| Rust | `1.97.0`，由儲存庫的 `rust-toolchain.toml` 固定 |
+| 圖形環境 | Linux、macOS 或 Windows 的原生圖形工作階段；Linux 需要可用的 Vulkan 驅動程式 |
+
+## 取得並執行桌面端
+
+```bash
+git clone https://github.com/vibex-ai/vibex.git
+cd vibex
+git submodule update --init --recursive
+pnpm install --frozen-lockfile
+pnpm dev:desktop
+```
+
+`pnpm dev:desktop` 會準備開發用圖示，然後以偵錯模式編譯並執行 `vibex-desktop`。首次編譯需要較長時間。
+
+只做 Rust 側檢查時可以跳過前端：
+
+```bash
+cargo check -p vibex-desktop --locked
+cargo test -p vibex-desktop --locked
+pnpm smoke:first-frame
+```
+
+## 封裝桌面端
+
+Linux 使用 cargo-packager 和隨儲存庫審查的 PDFium 執行環境：
+
+```bash
+cargo install cargo-packager --version 0.11.8 --locked
+pnpm prepare:pdfium
+pnpm package:preview   # 或 package:rc / package:stable
+```
+
+三個通道命令分別對應 Preview / RC / Stable 三種產品身份，產生的套件與執行環境二進位檔屬於建置產物，不會進入版本庫。發佈 RC 或 Stable 之前請先閱讀儲存庫中的 `docs/operations/release.md`。
+
+## 建置 Android
+
+需要 Android SDK/NDK、`cargo-ndk`，以及目標 ABI 對應的 Rust target。Debug 預設建置 `arm64-v8a` 與 `x86_64`，Release 預設只建置 `arm64-v8a`。
+
+```bash
+pnpm build:mobile:android
+pnpm package:mobile:android
+```
+
+用 `VIBEX_MOBILE_ANDROID_TARGETS`（以空格分隔）可以覆寫 Debug 的 ABI 清單。本機 `pnpm package:mobile:android` 產生的是**未簽章**的 Release APK，發佈前必須自行對齊並簽章；打 tag 的 GitHub Release 會由發佈流程自動完成簽章。
+
+## 建置 iOS
+
+需要 macOS、Xcode、XcodeGen，以及 `aarch64-apple-ios` 和 `aarch64-apple-ios-sim` 兩個 Rust target。
+
+```bash
+pnpm build:mobile:ios
+```
+
+腳本會建置 `VibexFFI.xcframework` 並產生 Xcode 專案。程式碼簽章、實機或模擬器選擇以及發佈憑證都由本機環境管理，不要提交憑證或 provisioning profile。
+
+## 在本機執行 Relay 與伺服器端
+
+```bash
+docker compose -f deploy/relay/docker-compose.yml up --build -d relay-server
+docker compose -f deploy/server/docker-compose.yml up --build -d vibex-server
+```
+
+詳細設定見[自託管 Relay](/zh-TW/relay)與[自託管無頭執行環境](/zh-TW/self-hosted-server)。
+
+## 提交前檢查
+
+```bash
+pnpm check
+pnpm release:build-smoke
+pnpm check:mobile-native
+```
+
+`pnpm check` 彙總 Rust 品質、前端型別與 lint、授權、UI 分層與視覺基線檢查。`pnpm release:build-smoke` 驗證桌面端、行動端和 Relay 的建置圖。完整命令清單見[建置與測試](/zh-TW/developer/build-and-test)。

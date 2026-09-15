@@ -1,53 +1,75 @@
 ---
 title: "Config Center"
-description: "集中管理 Vibex 的 Agent、供应商、MCP 和工作流配置。"
+description: "在 Config Center 中管理 Agent、MCP 服务器和 Skills。"
 ---
 
-**Config Center** 是 Vibex 的配置入口。它把容易散落在多个配置目录中的连接、提示词和自动化资源集中展示，并为每项资源标记作用域、状态和验证结果。
+**Config Center** 是 Vibex 的配置入口，从侧栏的 **Config Center** 按钮或系统托盘打开。它把 Agent 运行时、MCP 服务器和 Skills 集中在一处管理，并为每项资源显示状态和验证结果。
 
-## 配置分区
+## 分区
 
-| 分区 | 用途 |
+Config Center 顶部有三个标签页：
+
+| 标签页 | 用途 |
 | --- | --- |
-| **Agents** | 发现、启用和管理 Agent 运行时。 |
-| **Model Providers** | 配置模型供应商、模型、推理选项和认证。 |
-| **MCP** | 添加 MCP 服务器及其环境变量或请求头。 |
-| **Skills** | 导入可复用的 `SKILL.md` 能力包。 |
-| **Prompts & Hooks** | 管理 slash command、系统片段和事件钩子。 |
-| **Advanced** | 查看高级运行时和能力选项。 |
-| **Scheduled** | 创建一次性、周期性或每日任务。 |
-| **Automation** | 编排带审批和检查节点的 Agent 工作流。 |
-| **Relay** | 配置可选的自托管加密传输。 |
-| **Recovery** | 查看恢复、陈旧运行和诊断入口。 |
+| **Agent** | 添加、安装、登录和管理 Agent 运行时，并在其中配置模型供应商。 |
+| **MCP** | 添加 MCP 服务器，并逐个 Agent 启用。 |
+| **Skills** | 导入可复用的 `SKILL.md` 能力包，并逐个 Agent 启用。 |
 
-## 作用域
+<Note>
+  **Config Center 当前只提供这三个分区。** 模型供应商不是独立标签页——它在 **Agent** 标签页的详情区里，见[Agents 与供应商配置](/agents-and-providers)。
+</Note>
 
-资源通常可以设为 **global**、**user**、**project** 或 **workspace**。作用域决定资源在哪些会话和工作区可见；同名资源冲突时，界面会显示生效来源。
+## 通用操作
 
-开始配置时先选择最小作用域：
+### 保存与验证
 
-- 只给自己所有工作区使用的资源放在 user。
-- 团队或仓库约定放在 project。
-- 只服务当前检出的资源放在 workspace。
-- 需要全局默认时才使用 global。
-
-## 保存和验证
-
-1. 填写字段并保存草稿。
-2. 运行 **Validation**，检查命令、URL、必填能力和作用域。
-3. 对供应商运行 **Health probe** 或 **Capability probe**，确认连接和模型能力。
-4. 查看预览后应用变更。支持导入的原生配置会提供 apply 和 rollback 边界。
+1. 填写字段并保存。
+2. 在资源卡片上点击 **Validate** 运行校验。校验是**离线**的：它检查必填字段、格式和作用域，不会启动进程或发起网络请求。
+3. 对模型供应商可以额外运行 **Test connection**，它会真实调用一次模型接口。
 
 <Warning>
-  导入外部配置前先阅读预览。Vibex 默认不会改写真实 Agent home 配置；只有你明确应用时才会写入选定目标。
+  **Test connection** 和 **Fetch models** 会访问供应方网络并可能产生费用。确认地址、模型和权限后再运行。
 </Warning>
 
-## 凭据和日志
+### 作用域
+
+部分资源可以设定作用范围，取值通常是 **global**、**user**、**project** 或 **workspace**。作用域决定资源在哪些会话和项目里可见。
+
+开始配置时先选最小作用域：
+
+- 只给自己所有项目使用的资源放在 **user**。
+- 团队或仓库约定放在 **project**。
+- 只服务当前检出的资源放在 **workspace**。
+- 需要全局默认时才使用 **global**。
+
+<Info>
+  MCP 服务器的编辑器目前只提供 **User** 和 **Workspace** 两种作用域。
+</Info>
+
+### 启用与停用
+
+资源和 Agent 之间是**逐 Agent 启用**的关系。资源卡片下方的 **Agent enablement** 区域为每个已添加的 Agent 提供一个开关；只有打开开关的 Agent 才会加载该资源。
+
+不需要某个资源时先**停用**，而不是立刻删除——停用会保留记录，便于之后恢复。
+
+## 凭据
 
 使用 secret reference 或操作系统的安全存储引用凭据。不要把 token、私钥、完整环境变量、提示词或文件内容粘贴到配置描述或诊断日志中。
 
-桌面端会在本地持久化配置、会话元数据和终端元数据。远程移动端只读取经过权限过滤的配置投影。
+桌面端把凭据存在操作系统的钥匙串里。没有可用钥匙串的主机会退回写入仅属主可读的文件，详见[自托管无头运行时](/self-hosted-server)。
+
+## 导出到 Agent 原生配置
+
+在资源卡片上可以使用 **Preview export** / **Apply** / **Rollback**，把 Vibex 里的 MCP 或 Skills 写入对应 Agent 自己的配置文件（例如 Codex 的 `~/.codex/config.toml`、Claude 的 `~/.claude/settings.json`、以及各 Agent 的 Skills 目录）。
+
+<Warning>
+  **Apply 之前一定要看预览。** Vibex 默认不会改写 Agent 的原生 home 配置，只有你明确应用时才会写入。应用后可以从同一处 **Rollback** 恢复。
+</Warning>
 
 ## 配置出现问题时
 
-先查看资源的作用域和启用状态，再运行验证。若重启后状态不一致，打开 **Recovery** 检查持久化记录和陈旧运行；不要直接删除 SQLite 数据库。
+1. 确认资源的作用域和启用状态。
+2. 运行 **Validate** 看是否有结构化错误。
+3. 确认该资源已在目标 Agent 的 **Agent enablement** 里打开。
+
+如果重启后状态不一致，见[故障排查](/troubleshooting)。不要直接删除 SQLite 数据库。

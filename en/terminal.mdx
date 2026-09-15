@@ -1,0 +1,64 @@
+---
+title: "Terminal"
+description: "Run commands in a native PTY and share terminal sessions with Agents."
+---
+
+Vibex terminals use a native PTY with ANSI emulation, which makes them a good fit for dev servers, tests, and Git commands. Terminals are hosted by the **authoritative runtime**, so mobile can use the same terminals once it has permission.
+
+## Open a terminal
+
+Open one from the **New terminal** icon in the right sidebar, or choose **Open In → Terminal** on a path in the file tree to start the terminal in that directory.
+
+```bash
+git status --short
+pnpm test
+```
+
+There is also an **embedded terminal panel** above Composer. Press `cmd-shift-t` to switch between the conversation and the terminal.
+
+## Terminal actions
+
+| Capability | Description |
+| --- | --- |
+| Tabs | Create, close, rename (**Rename terminal** / `Terminal name`), and switch. |
+| Splits | The tab menu offers **Split right** and **Split down**; drag the split boundary to resize. |
+| Resize | Drag the panel boundary and the PTY receives the latest rows/columns. |
+| Scrollback | Fixed at **10000 lines**, not configurable. |
+| Search | **Search terminal** opens the search bar and shows `0 matches` or `{n} / {total}`. **Only next-match is supported**, cycling forward. |
+| Copy and paste | **Copy** / **Paste** in the toolbar, or `ctrl-shift-c` / `ctrl-shift-v`. |
+| Search shortcut | `ctrl-shift-f`. |
+| Open link | Hover the cursor over a hyperlink to see **Open link**. |
+| Status | The tab shows `running`, `exited`, `killed`, or `stale`. |
+
+The terminal handles output and ANSI control sequences as raw bytes and never treats binary output as text.
+
+## Shell selection
+
+The toolbar lists the available shells, and selecting one switches the shell for the current tab:
+
+- Windows: **PowerShell**, **Command**.
+- Other platforms: **bash**, **zsh**, **fish** (only those actually present on the system).
+
+Each tab can pick its own shell. To change the default shell, see [Settings](/en/settings).
+
+## Working with Agents
+
+When an Agent asks to run a command, the timeline shows the process details and the exit result. The command may wait for permission; check the command, working directory, and arguments before you approve it.
+
+<Warning>
+  Killing a terminal process does not undo the external operations it already completed. Stopping an Agent also does not reclaim the terminals it already opened.
+</Warning>
+
+## Stale terminals
+
+After the authoritative runtime restarts, terminal session content is not preserved (only tab metadata is). Lost terminals are marked `stale`.
+
+When you see `stale`, reopen the tab and trust the new snapshot — do **not** repeat commands based on the old snapshot.
+
+## Mobile terminals
+
+Mobile receives terminal snapshots and a permission-gated input channel. Input carries the workspace scope, generation checks, and an audit record. When the network drops, mobile does not assume a command ran; after reconnecting, trust the authoritative snapshot.
+
+<Note>
+  Terminal output can contain secrets, paths, and user data. Do not paste complete terminal output into public issues, logs, or diagnostic material.
+</Note>

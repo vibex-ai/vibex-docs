@@ -1,37 +1,117 @@
 ---
-title: "故障排除"
-description: "依工作區、Agent、遠端連線和恢復狀態定位常見問題。"
+title: "疑難排解"
+description: "依錯誤碼、Agent、檔案、終端機和遠端連線定位常見問題。"
 ---
 
-先確認桌面端仍在執行、目前工作區正確、資源範圍匹配，再查看結構化錯誤碼和最近時間線事件。不要把完整日誌直接貼到公開 Issue。
+先確認權威執行環境仍在執行、目前的專案和工作區正確，再查看結構化錯誤碼和最近一筆時間線事件。**不要把完整日誌直接發到公開 Issue**，請見文末的脫敏清單。
 
-## Agent 無法啟動
+## 常見錯誤碼
 
-1. 在 **Config Center > Agents** 確認命令存在且可執行。
-2. 檢查關聯的供應商設定、模型與 secret reference。
-3. 執行 health probe，再查看 capability probe。
-4. 在終端機執行不含敏感參數的版本命令，確認 PATH 與權限。
+Vibex 的失敗會以結構化錯誤碼傳回，介面會顯示 `錯誤碼: 說明`。常見錯誤碼如下：
 
-## 訊息卡住或狀態錯誤
+### 遠端與配對
 
-查看時間線是否在 waiting、permission request 或 elicitation，確認沒有其他執行佔用相同工作區。若剛重啟，等待持久化狀態載入；對沒有實際程序的 `running` 會話，使用 **Recovery** 支援的操作。
+| 錯誤碼 | 含義 | 處理 |
+| --- | --- | --- |
+| `remote_pairing_code_invalid` | 配對碼錯誤、已使用或不存在。 | 在權威端重新產生配對碼。 |
+| `remote_pairing_code_expired` | 配對碼已過期（預設 5 分鐘）。 | 重新產生，並注意盡快使用。 |
+| `remote_pairing_link_invalid` | 連線字串格式錯誤，或其中的位址不是允許的區域網路上位址。 | 使用權威端列印的完整連線字串，不要手動拼裝。 |
+| `device_revoked` | 該裝置已被撤銷。 | 重新配對。 |
+| `resync_required` | 用戶端偵測到序號或游標缺口。 | 等待權威端重新同步，不要重複傳送有副作用的命令。 |
+| `server_shutdown` | 權威執行環境正在關閉。 | 重新啟動執行環境後重新連線。 |
 
-## 檔案或 Git 結果不對
+### 會話與工作區
 
-確認目前工作區、分支和 CurrentCheckout/VibexWorktree 模式。儲存編輯器檔案後重新整理檔案樹與 Git status。檢查外部程序修改或衝突。終端機若無輸出，確認分頁、PTY stale 與 shell 狀態，以新快照為準，不要根據舊快照重複命令。
+| 錯誤碼 | 含義 | 處理 |
+| --- | --- | --- |
+| `remote_agent_workspace_root_missing` | 會話要求的工作區目錄在權威端不存在。 | 確認目錄已掛載且位於 `VIBEX_WORKSPACE_ROOTS` 之內。 |
+| `remote_agent_workspace_mode_mismatch` | 要求的工作區模式與權威端記錄不一致。 | 在權威端重新選擇工作區。 |
+| `permission_denied` | 目前裝置的權限等級不足。 | 用更高的權限等級重新配對，或改在權威端操作。 |
+
+### 檔案與 Git
+
+| 錯誤碼 | 含義 | 處理 |
+| --- | --- | --- |
+| `file_external_revision_changed` | 儲存時檔案已被外部處理程序修改。 | 重新載入檔案後再決定如何合併。 |
+| `office_legacy_format_unsupported` | 該 Office 格式（`doc` / `xls` / `ppt`）無法渲染。 | 用系統預設應用程式開啟，或先轉換為 `docx` / `xlsx` / `pptx`。 |
+
+### 設定與發行
+
+| 錯誤碼 | 含義 | 處理 |
+| --- | --- | --- |
+| `provider_native_import_source_missing` | 找不到要匯入的原生設定來源。 | 確認對應 Agent 的設定檔存在。 |
+| `release_channel_override_rejected` | 試圖在執行期間切換發行通道。 | 通道由安裝套件決定，請安裝對應通道的版本。 |
+
+如果你的問題不在表中，請在 Issue 中附上**完整的錯誤碼字串**——它是定位問題的關鍵。
+
+## Agent 無法啟動或無法使用
+
+1. 開啟 **Config Center → Agent**，確認該 Agent 的狀態不是 **Disabled**。
+2. 狀態為 **Not installed** 時點選 **Install**；狀態為 **Managed by user** 時，確認對應的命令列程式在 `PATH` 上且可執行。
+3. 展開 **Native credentials**，檢查登入狀態；必要時執行 **Re-authenticate**。
+4. 展開 **Model provider configuration**，確認已設定模型並用 **Test connection** 驗證連線。
+5. 在終端機中直接執行該 Agent 的版本檢查命令，確認 `PATH` 和權限沒有問題。
+
+## 訊息卡住或狀態不正確
+
+- 檢視時間線是否停在 permission request 或 elicitation，正在等待你處理。
+- 確認沒有另一個執行正在占用同一個工作區。
+- 應用程式剛重新啟動時，請等待持久化狀態載入完成。
+- 會話顯示 `running` 但實際上沒有處理程序時，請重新啟動一次權威執行環境，讓它重新偵測狀態。
+
+<Warning>
+  `running` 只是上次觀察到的狀態，不代表處理程序仍然存活。不要據此重複傳送有副作用的命令。
+</Warning>
+
+## 檔案或 Git 結果不正確
+
+- 確認目前的**專案**和**工作區**。`Local` 和 `Worktree` 是兩個不同的目錄，改錯地方很常見。
+- 儲存編輯器檔案後再重新整理檔案樹和 Git status。
+- 檢查是否存在外部修改或合併衝突。
+- 執行 revert、amend、push 或刪除 worktree 之前，先閱讀 diff 並建立還原點。
 
 ## 終端機沒有輸出
 
-確認分頁、工作區、PTY stale 和 shell 狀態。調整面板尺寸或重新開啟分頁後，以新的終端機快照為準，不要根據舊快照重複命令。
+檢查分頁是否繫結到正確的工作區、PTY 是否被標記為 `stale`，以及 shell 是否已結束。調整面板尺寸或重新開啟分頁，並以新的終端機快照為準。
 
-## 行動端無法連線
+Vibex 的終端機滾動緩衝區固定為 10000 行，更早的輸出已被丟棄，需要時請重新執行命令。
 
-1. 確認 Remote gateway 已啟用，監聽策略符合 Direct/Tailnet/Relay。
-2. 檢查手機網路與桌面端地址，Direct 失敗時測試 Tailnet 或 Relay。
-3. 重新產生短效 QR/deep link，不要重用舊 pairing offer。
-4. 顯示 revoked 必須重新配對；顯示 resync required 時等待權威 catch-up。
-5. Relay 模式可檢查 `/health` 與 `/api/info`，但不要把 room id 當作授權憑據。
+## 預覽無法開啟
 
-## 提交診斷
+| 現象 | 說明 |
+| --- | --- |
+| 顯示 **Unsupported file** | 該格式不支援預覽：`.bmp`、`.odt`、`.odp`，以及超過 8 MiB 或 5 萬行的檔案。 |
+| Office 檔案發生錯誤 | 只有 `docx`、`xlsx`、`ods`、`pptx` 能渲染；`doc` / `xls` / `ppt` 需要先轉換。 |
+| 音訊或視訊 | 不會內嵌播放，會交給系統預設應用程式。 |
+| HTML / JSON / YAML | 以帶語法高亮的原始文字開啟，不會渲染或格式化。 |
+| PDF 缺少某個相依項目 | 重新安裝 Vibex，或使用 **Open in system**。 |
 
-提供版本、作業系統、重現步驟、結構化錯誤碼和脫敏時間戳。移除 token、私鑰、配對資料、工作區路徑、Prompt、檔案內容、Git diff 和終端機輸出。入口在 [GitHub Issues](https://github.com/vibex-ai/vibex/issues)。
+## 桌面端無法連線到自託管執行環境
+
+1. 在伺服器上確認 `curl -fsS http://127.0.0.1:8765/api/v2/info` 有回應。
+2. 確認 `VIBEX_PUBLIC_HOST` 是**用戶端實際能連到的位址**，並包含連接埠。
+3. 區域網路模式必須使用 `VIBEX_TLS_MODE=pinned_certificate`，並從**連線字串**配對（連線字串中帶有憑證）；手動填入位址會因為缺少憑證而失敗。
+4. 公用網路模式請確認 `VIBEX_ALLOWED_HOSTS` 包含實際存取的網域，否則閘道會傳回 `421`。
+5. 檢查伺服器日誌中的 `tls_fingerprint`，與用戶端顯示的 **Certificate** 列進行比對。
+
+## 手機無法連線
+
+1. 確認權威執行環境正在執行，並且已啟用一種連線方式（**Tailscale Serve** / **Direct HTTPS** / **Self-hosted Relay** / **Local network pairing**）。
+2. 檢查手機和權威端的網路；Direct 失敗時請改用 Tailnet 或 Relay。
+3. 重新產生 QR Code 或連線字串，不要重複使用舊的配對憑據。
+4. 顯示 `revoked` 時必須重新配對；顯示 `resync_required` 時請等待權威端完成同步。
+5. 使用 Relay 時檢查 `/health` 和 `/api/info`——請注意 Relay 上**沒有** `/api/v2/info`。
+
+## 提交診斷資訊
+
+請提供：
+
+- Vibex 版本與發行通道（在 **Settings → About** 中檢視）
+- 作業系統與版本
+- 重現步驟
+- **結構化錯誤碼**（最關鍵）
+- 脫敏後的時間戳記
+
+提交前請移除：token、私鑰、配對碼、連線字串、工作區路徑、提示詞、檔案內容、Git diff 和終端機輸出。
+
+Issue 入口：[GitHub Issues](https://github.com/vibex-ai/vibex/issues)。

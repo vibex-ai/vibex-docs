@@ -1,71 +1,105 @@
 ---
-title: "安裝與平台"
-description: "準備 Vibex 桌面端、行動端與可選 Relay 的執行環境。"
+title: "安裝"
+description: "下載並安裝 Vibex 桌面端，準備行動端和自託管執行環境。"
 ---
 
-Vibex 儲存庫提供原始碼建置流程。桌面端支援 Linux、macOS 與 Windows；行動端使用原生 Android 與 iOS 專案；Relay 是可選的自託管元件。
+Vibex 為桌面端、Android 和自託管伺服器端提供現成的發行產物。**一般使用者不需要安裝 Rust、Node.js 或 pnpm**：桌面端安裝套件是自包含的。
+
+所有產物都在同一個頁面：
+
+<Card title="下載最新版本" icon="download" href="https://github.com/vibex-ai/vibex/releases/latest">
+  開啟 GitHub Releases 的 latest 頁面，選擇與你平台相符的產物。
+</Card>
+
+<Tip>
+  Vibex 仍在候選階段：除穩定版外，也可能發佈形如 `-rc.N` 或 `-preview.N` 的預發佈版本。**latest 頁面會解析到目前最新的一個**；需要指定版本時請改用 [全部發行清單](https://github.com/vibex-ai/vibex/releases)。
+</Tip>
 
 ## 桌面端
 
-| 項目 | 要求 |
-| --- | --- |
-| Node.js | 22。Node 26 不受目前 Mintlify 與部分建置腳本支援。 |
-| pnpm | 11.3.0，以 `package.json` 的 `packageManager` 為準。 |
-| Rust | 1.97.0，使用儲存庫提供的 toolchain 檔案。 |
-| 圖形環境 | Linux、macOS 或 Windows 的可用原生圖形工作階段。Linux 需要 Vulkan。 |
-| Git | 支援子模組，並能存取要開啟的儲存庫。 |
+| 平台 | 產物 | 說明 |
+| --- | --- | --- |
+| Linux x86_64 | `.deb` / `.AppImage` | 需要可用的 Vulkan 驅動程式 |
+| Linux aarch64 | `.deb` | 此架構不提供 AppImage |
+| macOS（Apple 晶片 / Intel） | `.dmg` | 需要較新的 macOS 與原生圖形工作階段 |
+| Windows x86_64 / ARM64 | `.exe`（NSIS） | 依目前使用者安裝，不需要系統管理員權限 |
 
-```bash
-git clone https://github.com/vibex-ai/vibex.git
-cd vibex
-git submodule update --init --recursive
-pnpm install --frozen-lockfile
-pnpm dev:desktop
-```
+Linux 的 `.deb` 相依於 `libvulkan1`、`libxcb1`、`libxcb-xkb1`、`libxkbcommon0`、`libxkbcommon-x11-0`、`libdbus-1-3`、`libfontconfig1`，以及一個 appindicator 程式庫（`libayatana-appindicator3-1` 或 `libappindicator3-1`）。發行版套件管理器通常會自動解決這些相依性。
 
-<Note>
-  上述命令會啟動開發版。正式安裝套件由發行流程產生，版本、簽章與下載渠道可能變更，請查看儲存庫 Release 頁面。
-</Note>
+<Warning>
+  **macOS 與 Windows 的安裝套件目前沒有程式碼簽章。**
+  - macOS 首次開啟會被 Gatekeeper 攔截：在 **Finder** 裡按住 Control 點擊應用程式圖示，選擇**打開**，再確認一次；或執行 `xattr -d com.apple.quarantine /Applications/Vibex*.app`。
+  - Windows 會彈出 SmartScreen 提示：選擇**更多資訊** → **仍要執行**。
+
+  這些提示來自缺少簽章憑證，不代表安裝套件有問題。每個產物旁邊都提供了 `.sha256` 驗證檔，`SHA256SUMS` 彙總了全部驗證值。
+</Warning>
+
+### 發佈通道
+
+桌面端安裝套件帶有**編譯期確定的通道標識**，通道之間可以並存安裝，互不干擾：
+
+| 通道 | 產品名稱 | 資料目錄 |
+| --- | --- | --- |
+| Preview | Vibex Preview | `desktop-preview` |
+| RC | Vibex RC | `desktop-rc` |
+| Stable | Vibex | `desktop-stable` |
+
+每個通道有**獨立的 SQLite 資料庫和設定**。切換通道不會遷移資料；如果你在 RC 裡設定好 Agent 和供應商，裝了 Stable 之後需要重新設定一次。通道由安裝套件決定，不能在應用程式內切換。
+
+### 升級
+
+桌面端內建經簽章驗證的自動更新。在 **Settings → About → Software update** 中：
+
+- 應用程式啟動約 30 秒後自動檢查一次，之後 RC / Preview 通道每 2 小時、Stable 通道每 6 小時檢查一次。
+- 更新清單經過 Ed25519 簽章驗證，產物再做 SHA-256 驗證，驗證失敗不會安裝。
+- 安裝方式取決於套件格式：**AppImage 會原地自我替換**；`.deb`、macOS `.app` 和 NSIS 會**啟動系統安裝程式**，完成後需要重新啟動應用程式。
+
+只有同通道的版本會被接受：RC 安裝套件只看 `-rc.*` 版本。如果自動更新無法使用，手動下載新安裝套件覆蓋安裝即可。
 
 ## Android
 
-Android 建置需要 Android SDK/NDK、`cargo-ndk` 與目標 ABI 的 Rust targets。Debug 預設建置 `arm64-v8a` 與 `x86_64`，Release 預設建置 `arm64-v8a`。
+Android 客戶端從 GitHub Releases 側載安裝：
 
-```bash
-pnpm build:mobile:android
-pnpm package:mobile:android
-```
+1. 下載 `vibex-<版本>-android-arm64.apk`。
+2. 在系統設定中允許來自該來源的安裝。
+3. 開啟 APK 完成安裝（應用程式 ID 為 `ai.vibex.mobile`）。
 
-可用 `VIBEX_MOBILE_ANDROID_TARGETS`（以空格分隔）覆寫 Debug ABI。本機 `pnpm package:mobile:android` 產生的 Release APK 預設未簽章，分發前要使用發行金鑰完成對齊與簽章。打 tag 的 GitHub Release 會在上傳前自動對齊並簽章 APK/AAB；RC 和 Preview 未設定儲存庫金鑰時使用臨時 CI key，Stable 則必須設定發行金鑰。
+<Warning>
+  候選版本之間**不能直接覆蓋升級**。未設定發行金鑰時，每次 RC 發佈使用一次性的 CI 簽章金鑰，因此不同 RC 的簽章不同。跨版本升級需要先解除安裝舊版，再安裝新版；解除安裝會清除本機儲存的配對憑證，需要重新配對。
+</Warning>
 
 ## iOS
 
-iOS 建置需要 macOS、Xcode、XcodeGen，以及 `aarch64-apple-ios` 和 `aarch64-apple-ios-sim` Rust targets。
+<Warning>
+  **iOS 目前沒有可分發給最終使用者的建置。** 發行產物只有未簽章的**模擬器**應用程式套件（`ios-simulator.app.zip`）和 `VibexFFI.xcframework`，兩者都需要 macOS 與 Xcode 才能執行或整合。實機安裝、TestFlight 和 App Store 發佈尚未提供。
+</Warning>
+
+如果你要在模擬器裡試用，需要 macOS、Xcode、XcodeGen，以及 `aarch64-apple-ios` 和 `aarch64-apple-ios-sim` 兩個 Rust target，然後從原始碼建置：
 
 ```bash
 pnpm build:mobile:ios
 ```
 
-腳本會產生 `VibexFFI.xcframework` 與 Xcode 專案。程式碼簽章、真機/模擬器選擇和分發憑證由本機環境管理。
+## 自託管
 
-## 自託管 Relay
+需要跨網路使用、或不想把會話資料留在某台常開的個人電腦上時，可以自行架設伺服器端：
 
-Relay 只在需要跨網路連線且不想交給第三方傳輸時使用。它轉發加密框，不儲存或解密工作區、會話、Git、終端機或供應商資料。
+- **[自託管無頭執行環境](/zh-TW/self-hosted-server)** —— `vibex-server` 是與你桌面端能力相同的權威執行環境，適合放在伺服器或家用常開機器上。
+- **[自託管 Relay](/zh-TW/relay)** —— 只轉發端對端加密訊框的中繼，不做業務授權，也不儲存業務資料。
 
-```bash
-docker compose -f deploy/relay/docker-compose.yml up --build -d relay-server
-curl -fsS http://127.0.0.1:9700/health
-docker compose -f deploy/relay/docker-compose.yml down
-```
+兩者都發佈了多架構容器映像（`linux/amd64`、`linux/arm64`）。
 
-生產環境應使用受控 HTTPS/WSS 入口，例如 Caddy 或私有 Tailnet。詳細設定見 [Remote v2 與 Relay](/zh-TW/developer/remote-protocol)。
+## 從原始碼建置
 
-## 驗證安裝
+需要改程式碼、或你的平台沒有現成產物時，見[從原始碼建置](/zh-TW/from-source)。
 
-```bash
-pnpm check
-pnpm release:build-smoke
-pnpm check:mobile-native
-```
+## 解除安裝
 
-這些命令分別涵蓋常規 Rust/前端/授權檢查、桌面/行動端/Relay 建置圖，以及行動端 crate 和原生專案契約。它們不取代真實裝置上的網路與簽章驗證。
+| 平台 | 方式 |
+| --- | --- |
+| Linux（deb） | `sudo apt remove vibex-rc`（依通道替換套件名稱） |
+| Linux（AppImage） | 刪除 AppImage 檔案 |
+| macOS | 把應用程式拖到垃圾桶 |
+| Windows | 使用「應用程式與功能」解除安裝 |
+
+解除安裝程式**不會**刪除資料目錄。要徹底清除，請先閱讀[隱私與恢復](/zh-TW/privacy-and-recovery)，再手動刪除對應通道的資料目錄。

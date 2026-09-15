@@ -1,39 +1,115 @@
 ---
 title: "Agents and provider profiles"
-description: "Connect ACP Agents, choose models, and verify provider capabilities."
+description: "Add Agents, install managed runtimes, sign in to accounts, and configure model providers."
 ---
 
-Vibex uses the [Agent Client Protocol](https://agentclientprotocol.com/) (ACP) for online Agent connections. Agent identity, provider profiles, and runtime capabilities are managed separately so you can switch implementations from one UI.
+Vibex uses the [Agent Client Protocol](https://agentclientprotocol.com/) (ACP) to connect to online Agents. The **Agent** (who does the work) and the **model provider configuration** (which model, over which route) are managed separately.
 
-## Available Agents
+You work with both in the **Config Center → Agent** tab.
 
-Built-in presets commonly include **Claude Code**, **Codex**, **ZCode**, and **OpenCode**. The ACP catalog may include more integrations. Availability depends on local installation, provider profiles, and live capability probes. You can also register any ACP-compatible executable with its command, arguments, environment, and display metadata.
+## How the Agent tab is organized
 
-## Create a provider profile
+When you open **Config Center → Agent**, the Agent list is on the left and the details area for the selected Agent is on the right. The details area has three cards, from top to bottom:
 
-1. In **Model Providers**, add a Codex, Claude, or ACP profile.
-2. Set the display name, base URL, model, and reasoning effort when supported.
-3. Select a secret reference instead of entering a raw token in a normal field.
-4. Choose global, project, or workspace scope and whether this is the default profile.
-5. Save, then run a health probe followed by a capability probe.
+| Card | Purpose |
+| --- | --- |
+| **Agent installation** | View installation status and install, upgrade, or uninstall the managed runtime. |
+| **Native credentials** | Sign in to the Agent's own account. |
+| **Model provider configuration** | Configure model providers, models, and credentials for this Agent. |
 
-The capability result can describe streaming, tools, reasoning, attachments, or structured elicitation. Composer uses it to limit choices.
+<Note>
+  Model providers are **not** a separate tab. They hang off each Agent, because different Agents support different communication protocols and model catalogs.
+</Note>
 
-## Switch models and inspect usage
+## Add an Agent
 
-Choose an Agent, provider profile, and model before sending a message. A switch affects later runs; the existing timeline keeps its original Agent and model identity.
+The list on the left is grouped by status, and the action on each entry depends on its current state:
 
-A usage summary helps you inspect recorded activity. It is informational and does not replace provider billing.
+| Status | Available actions |
+| --- | --- |
+| **Not added** | Click **+** to add it. |
+| **Not installed** | Click **Install**; Vibex downloads and verifies the managed runtime. |
+| **Update available** | Click **Upgrade** to move to the new version. |
+| **Available** | Ready. Use the enablement switch to control whether it appears in the session's Agent picker. |
+| **Managed by user** | This Agent is not in the managed catalog; Vibex uses the command-line program on your `PATH`. |
+| **Disabled** | Disabled. |
 
-## Native import and rollback
+Vibex ships four built-in presets: **Claude Code**, **Codex**, **ZCode**, and **OpenCode**. The ACP catalog also offers integrations such as **Google Antigravity**, **Cline**, **Codebuddy Code**, **GitHub Copilot**, **Cursor**, **DeepSeek Harness**, **Devin CLI**, **Gemini CLI**, **Grok**, **Hermes**, **Kimi Code CLI**, and **Pi**.
 
-Supported profiles offer native import/export previews. Review the target and fields before **Apply**. If the result is wrong, use **Rollback** for that resource instead of overwriting the entire Agent home.
+<Warning>
+  **Install** downloads and verifies the runtime over the network and cannot be canceled. **Uninstall** shows a confirmation dialog and deletes that Agent's managed runtime and cached versions; session history is kept.
+</Warning>
 
-<Warning>A health probe can contact a provider and consume quota. Read-only mobile devices cannot run health probes.</Warning>
+### Add a custom ACP Agent
+
+Click **Add custom ACP Agent** at the bottom of the list and fill in:
+
+| Field | Description |
+| --- | --- |
+| **Agent ID** | Lowercase kebab-case identifier, for example `my-acp-agent`. |
+| **Display name** | The name shown in the UI. |
+| **Description** | Optional; describe what it is for. |
+| **ACP command** | An executable, `npx`, or `uvx` command. |
+| **Arguments** | Space-separated arguments. |
+| **Environment variables** | One `KEY=value` per line. |
+
+Custom Agents can only be created, not edited. Turning the switch off deletes one, but session history is kept.
+
+## Sign in to an Agent account
+
+The **Native credentials** card manages the Agent's own account. It shares the same credentials as the external CLI—the card states this explicitly: "Agent-native account · shared with the external Agent CLI".
+
+- The available sign-in methods are up to the Agent. Common ones are **Sign in**, **Save and sign in**, and **Open sign-in terminal**.
+- The card provides **Refresh methods**, **Verify account**, **Refresh models**, **Re-authenticate**, and **Sign out**.
+- Re-authenticating affects Agent processes still using the old credentials; the UI warns you first.
+- **Sign out** affects both the external CLI and Vibex sessions, and shows how many sessions are affected before it runs.
+
+## Configure a model provider
+
+In the **Model provider configuration** card, click **Add config**, or click an existing configuration to edit it. The editor has three parts:
+
+### Basics
+
+| Field | Description |
+| --- | --- |
+| **Provider name** | Required. The display name. |
+| **Note** | Optional note. |
+| **Website URL** | Optional. |
+
+### Connection & credentials
+
+| Field | Description |
+| --- | --- |
+| Credentials | The selected Agent decides whether to use an API key, OAuth, or the Agent account. |
+| **Default API request URL** | The provider's API address, for example `https://provider.example/v1`. Some Agents lock this field. |
+| **Set an address per protocol** | A collapsible section; expand it when you need a separate address per protocol. |
+
+The API key field is **write-only**: it shows "Saved" when a value is stored, and leaving it blank keeps the current value. Enter a new value to replace it, or click **Clear** to remove it.
+
+### Models
+
+Vibex **does not ship a model list**; you add models manually or fetch them from the provider:
+
+- **Model ID** — enter the model identifier manually, for example `deepseek-chat`.
+- **Fetch models** — requires an API key and address; returns the models available to that account.
+- **Model API protocol** — each model can specify its own protocol; by default it inherits the provider setting.
+- **Reasoning** — choose whether to reason, or pick a **thinking depth** level.
+- **Context window / Max output tokens** — declare model limits in the Advanced collapsible section.
+
+The available thinking depth levels come from the provider or Agent. Common values are `off`, `minimal`, `low`, `medium`, `high`, `xhigh`, and `max`.
+
+## Use them in a session
+
+Before you send a message, choose the **Agent**, **Model provider**, **Model**, and **Thinking depth** from the cascading menus at the top of the Composer. A switch affects only later runs; existing timelines keep the Agent and model information from their original run.
+
+<Warning>
+  **Test connection** and **Fetch models** make real requests to the provider's network and may consume quota. `read_only` mobile devices cannot trigger these operations.
+</Warning>
 
 ## Troubleshooting
 
-- Agent missing: check the executable in PATH or the custom command and working directory.
-- Model missing: inspect the capability probe and profile scope.
-- Authentication failure: update the secret reference and probe again without sharing tokens or response headers.
-- Remote profile missing: check device permissions and the desktop Remote gateway.
+- **The Agent is not in the list**: confirm the executable is on `PATH`, or check the custom command and arguments.
+- **A model cannot be selected**: run **Refresh models** first, then check whether that model is enabled.
+- **Authentication fails**: check the account state and sign in again; do not paste response headers or tokens into an issue.
+- **Remote clients do not see the configuration**: confirm the device permission level is `full_control` and which authoritative runtime you are connected to.
+- **A managed Agent fails to install**: check whether the network can reach GitHub and nodejs.org, then retry.

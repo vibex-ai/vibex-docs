@@ -1,66 +1,108 @@
 ---
 title: "Agent sessions"
-description: "Create, inspect, stop, fork, and resume Vibex Agent sessions."
+description: "Create, watch, pause, fork, and resume Vibex Agent sessions."
 ---
 
-A session stores task input, Agent output, and tool activity in a structured timeline. The desktop owns the authoritative timeline; mobile renders a remote projection.
+A session stores the input, Agent output, and tool activity of one development task as a structured timeline. The **authoritative runtime** holds the authoritative timeline; other clients only display its projection.
 
 ## Create a session
 
-1. Choose the target workspace.
-2. Select an Agent, provider profile, model, reasoning depth, and conversation mode in Composer.
-3. Enter a task. Use `/` for Prompts, `@` for workspace files, `$` for Skills, and attachments when needed.
-4. Confirm the workspace and permission scope before sending. The Agent may request file, terminal, or other capabilities.
+1. Choose the target project and location (**Local** or a new **Worktree** — see [Projects and workspaces](/en/workspaces)).
+2. At the top of Composer, choose the Agent, provider profile, model, **Thinking depth**, and **Conversation mode**.
+3. Enter your task. Use `/` to pick a command, `@` to reference a workspace file, `$` to insert a Skill, or add an attachment.
+4. Confirm the workspace and permission scope before sending. The Agent may need to read files, run terminal commands, or request extra authorization.
 
-Switching an Agent or model affects later runs only. Timeline messages retain the identity of the run that produced them.
+Switching Agent or model only affects later runs. Messages already written to the timeline keep their original run identity.
 
-## Read the timeline
+## Reading the timeline
 
-| Item | What it shows |
+| Item | What you see |
 | --- | --- |
 | User and Agent messages | Markdown text and attachments. |
-| reasoning | An Agent reasoning summary, when exposed by the Agent and profile. |
-| plan | Steps and progress. |
-| tool/process details | Tool names, parameter summaries, processes, and exit results. |
-| permission approval | A protected operation waiting for a decision. |
-| elicitation | A typed form the Agent needs you to fill out. |
-| delegation | Child Agent or delegated task state and result. |
-| Status events | Running, queued, waiting, completed, failed, stopped, and reconnecting states. |
+| Reasoning | A summary of the Agent's reasoning, which you expand or collapse with **Expand reasoning** / **Collapse reasoning**. |
+| Plan | Pending steps and their progress. |
+| Tool and process details | Tool names, argument summaries, processes and exit results, and the **{n} process events** count. |
+| Permission requests | Operations waiting for you to approve or deny. |
+| Elicitation forms | Typed forms the Agent needs you to fill in. |
+| Delegation | The state and result of child Agents or delegated tasks. |
+| Status events | Running, queued, waiting, completed, failed, stopped, and reconnecting. |
 
-Tool parameters, terminal output, and diffs can contain sensitive data. Redact them before sharing.
+The elapsed time above a turn is shown as **Worked for**. While output is being generated you see **Thinking...** or **Waiting for confirmation...**.
 
-## Control a run
+Tool arguments, terminal output, and file diffs can contain sensitive content. Review and redact them before sharing diagnostics.
 
-- **Stop** stops the current run. It does not undo files or completed commands.
-- **Continue** sends another task in the same session.
-- **Retry** reruns a failed turn according to the Agent's retry semantics. Reconcile an uncertain external operation before retrying it.
-- **Fork** creates a branch session from the current timeline.
-- **Rename** changes the title without changing Agent context.
-- **Edit message** changes a message that has not become the basis of a new run; completed timeline events remain immutable.
-- **Resume** loads a persisted session after a restart.
+## Controlling a run
 
-<Warning>Stopping an Agent does not roll back file, Git, or external service changes. Inspect the diff and terminal separately.</Warning>
+| Action | Description |
+| --- | --- |
+| **Stop current response** | Stops the current run. Files already written or commands already executed are **not** rolled back automatically. |
+| **Continue** | Keep sending tasks in the same session. |
+| **Retry** | Re-run a failed turn according to the retry semantics the Agent supports; for external operations you are unsure about, check the result first. |
+| **Fork** | Create a branch session from the current timeline — handy for comparing two implementations. |
+| **Rename** | Change the session title. It does not change the Agent context. |
+| **Edit message** | Rewrite the last user message; timeline events that already completed are not rewritten. |
 
-## Queue, auto-continue, and delegation
+<Warning>
+  Stopping an Agent only stops the run. It does not undo file, Git, or external service changes. Check the result in the Git diff and in the terminal.
+</Warning>
 
-Follow-up messages sent while a run is active can enter a queue. The desktop shows their order and submits them after the current turn; canceling or deleting a queued item does not undo completed work.
+## Message queue and auto-continue
 
-With auto-continue enabled, only turns allowed by the session settings and Agent capabilities advance automatically. Permission requests, elicitations, failures, and choices that need you pause the run. **Delegation** creates an independent child state and links progress and the final result back to the parent session.
+Follow-up messages you send while a run is active go into a queue. The queue area above Composer gives you:
 
-## Permissions and forms
+- **Auto send** / **Manual send** — switch between automatic and manual submission of the queue.
+- **Send queued message**, **Edit queued message**, **Delete queued message** — act on one item at a time.
+- **Resume queued messages** / **Clear queued messages** — resume or clear the whole queue.
 
-When an Agent requests a terminal, file write, or protected capability, the timeline shows the reason and scope. Choose **Approve** or **Deny**; the result is recorded. Canceling an elicitation returns a cancellation result, not an implicit approval.
+Canceling or deleting a queue item does not undo work that already completed.
 
-## Import local history
+With **Auto-continue** enabled, only turns allowed by the session settings and the Agent's capabilities advance on their own. The run stops and waits when it hits a permission request, an elicitation form, a failure, or a choice that needs you.
 
-Use **Local history import** to scan local stores, then select sessions and a target workspace. Supported sources are Claude Code, Codex, OpenCode, Gemini CLI, Cline, Hermes, CodeBuddy Code, Kimi Code, Pi, Grok, Cursor, DeepSeek Harness, ZCode, and Google Antigravity.
+## Permission requests and elicitation forms
 
-The scanner keeps bounded metadata such as title, timestamps, workspace hint, message count, and source path. After you confirm, Vibex re-reads the selected source and materializes one atomic timeline import. Imported, deleted, and missing sources are reconciled without duplicate sessions. Credentials, private keys, and a complete Agent home are never imported.
+When an Agent asks for a terminal, a file write, or another protected capability, the timeline shows the reason and the scope of the request, usually including the working directory, arguments, and environment variables. Your options are **Approve**, **Deny**, and **Always allow for session**.
 
-## Search and notifications
+Elicitation forms ask for structured input. Check the values and the scope before you submit; canceling a form returns a cancellation result to the Agent rather than an implicit approval.
 
-Search the current timeline with `cmd-f` (usually `ctrl-f` on Windows/Linux). The desktop can notify you when a session completes, fails, or waits for input. Notification text is bounded and does not contain full messages or terminal output.
+## Searching sessions
 
-## Mobile sessions
+Vibex offers two kinds of search:
 
-Paired mobile clients can read the same timeline, send follow-ups, answer forms, and handle permitted approvals. They do not start a local Agent or own workspace files. Reconnection re-authenticates and catches up from authoritative state before live events resume; `resync_required` means the desktop must provide a fresh timeline.
+| Method | Scope | Entry point |
+| --- | --- | --- |
+| **Find in conversation** | The current session's timeline | `cmd-f` |
+| **Search sessions** | Every session title and message body | The search icon at the top of the session list in the sidebar |
+
+**Search sessions** opens a full-screen overlay showing **Recent sessions** (for an empty query) or **Search results**, with matching snippets highlighted. Selecting a result jumps to that session and to the matching message.
+
+<Note>
+  Cross-session search is **indexed on demand**: the index is built when you open search and released when you close it. While indexing, you see **Indexing session messages...**. Archived sessions are not searched.
+</Note>
+
+## Importing local history
+
+Import another Agent's history from the **More** menu in the sidebar or **Import sessions** in a project's context menu.
+
+Fourteen sources are supported: **Claude Code**, **Codex**, **OpenCode**, **Gemini CLI**, **Cline**, **Hermes**, **CodeBuddy Code**, **Kimi Code**, **Pi**, **Grok**, **Cursor**, **DeepSeek Harness**, **ZCode**, **Google Antigravity**.
+
+The flow:
+
+1. Vibex scans local history and shows **Scanning local Agent sessions...**.
+2. In the preview list, tick the sessions you want, grouped by project. You can filter by Agent or scan again.
+3. Click **Import {n} sessions** and wait for **Import complete**.
+
+Results fall into four groups: **Imported**, **Already imported**, **Not found**, and **Failed**.
+
+<Note>
+  The scanner reads metadata only: title, time, workspace path, message count, and source path. Content is re-read at import time and written to the timeline in one pass. Credentials, keys, and the full Agent home configuration are **not** imported. Sessions you already imported are never imported twice and are never overwritten by a refresh.
+</Note>
+
+## Notifications and unread
+
+The authoritative runtime can send desktop notifications when a session completes, fails, or waits for input. The three notification types can be toggled separately in **Settings → General**.
+
+Sessions with unread completions show a dot in the sidebar; opening the session clears the dot, and the authoritative timeline is the source of truth. The system tray menu also offers shortcuts to **New chat**, **Config Center**, and **Settings**.
+
+## Child Agent timelines
+
+When a session uses delegation, a **Child Agent timelines** entry appears in the right sidebar. From there you can open a child Agent's own timeline and jump to it from the parent session.

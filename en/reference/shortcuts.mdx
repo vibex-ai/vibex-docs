@@ -1,0 +1,74 @@
+---
+title: "Shortcuts"
+description: "Every default Vibex shortcut and how to rebind them."
+---
+
+You can view, change, and reset Vibex shortcuts in **Settings → Shortcuts**. Conflicting key bindings are rejected with **Shortcut is invalid or already in use**.
+
+## Rebindable shortcuts
+
+These 14 actions can be rebound in Settings:
+
+| Action | Default key | Group |
+| --- | --- | --- |
+| Toggle sidebar | `cmd-b` | Workbench |
+| Toggle preview | `cmd-shift-p` | Workbench |
+| Toggle right rail | `cmd-shift-r` | Workbench |
+| Open runtimes | `cmd-shift-o` | Workbench |
+| Toggle conversation / terminal | `cmd-shift-t` | Composer |
+| Find in conversation | `cmd-f` | Navigation |
+| Open settings | `cmd-,` | Navigation |
+| Navigate back | `alt-left` | Navigation |
+| Navigate forward | `alt-right` | Navigation |
+| Retry runtime | `cmd-r` | Runtime |
+| Save active file | `cmd-s` | Editor |
+| Go to line in editor | `ctrl-g` | Editor |
+| Undo image edit | `cmd-z` / `ctrl-z` | Image editor |
+| Redo image edit | `cmd-shift-z` / `ctrl-shift-z` | Image editor |
+
+<Note>
+  The table uses a `cmd-` prefix, which is the Command key on macOS and the Ctrl key on Windows / Linux. Only the image editor's undo / redo are defined per platform.
+</Note>
+
+**Reset** restores a single default, and **Reset all** clears every custom mapping.
+
+## Fixed shortcuts
+
+These shortcuts are fixed behavior:
+
+| Action | Keys | Scope |
+| --- | --- | --- |
+| Close the current preview tab | `cmd-w` | Non-terminal tabs |
+| Cycle through tabs | `cmd-tab` / `cmd-shift-tab` | Non-terminal tabs |
+| Switch to the previous / next tab | `cmd-pageup` / `cmd-pagedown` | Non-terminal tabs |
+| Terminal copy / paste / search | `ctrl-shift-c` / `ctrl-shift-v` / `ctrl-shift-f` | Terminal tabs |
+| Tab completion | `tab` / `shift-tab` | Terminal tabs (sent to the shell instead of moving focus) |
+| Close an overlay | `escape` | Runtime manager, find bar |
+
+## Mouse actions
+
+| Action | Effect |
+| --- | --- |
+| Drag a file tab | Reorder it, or drag it to an edge to split |
+| Drag a panel edge | Resize the sidebar / right rail / terminal |
+| Right-click a file tree entry | Open the file actions menu |
+| Right-click a tab | Open the tab actions menu (close, split, pin, and so on) |
+| Drag a file | Move it within the file tree; near an edge it scrolls automatically |
+| Zoom the image editor | Scroll to zoom, drag to pan |
+
+## Search entry points
+
+Vibex has several searches with different scopes. Do not confuse them:
+
+| Search | Scope | Entry point |
+| --- | --- | --- |
+| **Find in conversation** | The current session timeline | `cmd-f` |
+| **Search sessions** | All session titles and message bodies | The sidebar search icon |
+| **Search workspace files** | File contents in the current workspace | The file tree |
+| **Search MCP** / **Search Skills** / **Search Agent** | The matching Config Center list | The top of each list |
+| **Search commits** | Git commit history | The Commits tab of the Git panel |
+| **Search settings** | Settings options | The top of Settings |
+
+<Note>
+  There is currently **no** global command palette or cross-type quick open.
+</Note>

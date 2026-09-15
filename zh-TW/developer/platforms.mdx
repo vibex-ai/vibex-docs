@@ -1,38 +1,73 @@
 ---
 title: "平台支援"
-description: "了解 Linux、macOS、Windows、Android 和 iOS 的建置邊界。"
+description: "各平台的產物格式、建置方式和驗證要求。"
 ---
 
 ## 支援矩陣
 
-| 平台 | 產品形態 | 關鍵依賴 | 說明 |
-| --- | --- | --- | --- |
-| Linux | 原生桌面端 | Vulkan 圖形工作階段 | 可執行開發命令與預覽 smoke。 |
-| macOS | 原生桌面端 | Xcode 工具鏈 | 也支援 iOS 建置。 |
-| Windows | 原生桌面端 | Rust/Node 原生環境 | 使用平台對應 shell。 |
-| Android | 原生行動端 | Android SDK/NDK、`cargo-ndk` | Debug 預設 arm64-v8a/x86_64。 |
-| iOS | 原生行動端 | macOS、Xcode、XcodeGen | 產生 `VibexFFI.xcframework`。 |
-| 自託管 Linux/容器 | Relay | Rust/Axum 或 Docker | 只轉發加密框。 |
+| 平台 | 產物 | 關鍵相依 |
+| --- | --- | --- |
+| Linux x86_64 | `.deb`、`.AppImage` | Vulkan 圖形工作階段 |
+| Linux aarch64 | `.deb` | Vulkan；不提供 AppImage（linuxdeploy 無法交叉建置） |
+| macOS aarch64 / x86_64 | `.dmg` | 較新的 macOS；**未簽章、未公證** |
+| Windows x86_64 / aarch64 | NSIS `.exe` | **未簽章**；依目前使用者安裝 |
+| Android arm64 | `.apk`、`.aab` | Android SDK/NDK、`cargo-ndk` |
+| iOS | `ios-simulator.app.zip`、`xcframework.zip` | macOS、Xcode、XcodeGen；**僅模擬器，未簽章** |
+| 自架 Linux / 容器 | `ghcr.io/vibex-ai/vibex-server`、`ghcr.io/vibex-ai/vibex-relay-server` | Docker 或 Rust 二進位檔，多架構 amd64/arm64 |
+
+<Warning>
+  **簽章狀態是目前的已知限制：** macOS 與 Windows 安裝套件沒有程式碼簽章，使用者首次開啟需要手動放行；iOS 只發佈未簽章的模擬器建置。Android 在未設定儲存庫金鑰時使用每次發佈產生的一次性 CI 金鑰，因此**候選版本之間無法直接覆蓋升級**。發佈前請確認這些狀態是否已有變化。
+</Warning>
 
 ## 桌面平台邊界
 
-桌面端是 Agent、檔案、Git、PTY、Provider、權限和持久化的權威。平台差異應封裝在 `apps/desktop/src/platform` 或共享 facade，不要在 UI 複製業務分支。
+權威執行環境是 Agent、檔案、Git、PTY、供應商、權限和持久化的所有者。平台差異應封裝在 `apps/desktop/src/platform` 或共享 facade 中，不要在 UI 裡複製業務分支。
+
+## 發佈通道
+
+通道是**編譯期身份**，不是執行階段開關：
+
+| 通道 | 產品名 | 應用程式 ID | 資料目錄 |
+| --- | --- | --- | --- |
+| Preview | Vibex Preview | `dev.vibex.desktop.preview` | `desktop-preview` |
+| RC | Vibex RC | `dev.vibex.desktop.rc` | `desktop-rc` |
+| Stable | Vibex | `dev.vibex.desktop` | `desktop-stable` |
+
+通道由 tag 推導（`*-preview.*` / `*-rc.*` / 純 semver）。發佈流程會斷言 tag、`Cargo.toml`、`package.json` 與 `Packager.<channel>.toml` 中的版本完全一致。執行環境覆寫通道會被拒絕（`release_channel_override_rejected`）。
+
+## 發佈工作流程
+
+`.github/workflows/release.yml` 在 `v*` tag 上全自動執行，桌面端矩陣涵蓋六個平台 / 架構組合：
+
+| 平台 | Runner | 產物格式 |
+| --- | --- | --- |
+| Linux x86_64 | ubuntu-24.04 | `deb,appimage` |
+| Linux aarch64 | ubuntu-24.04（交叉） | `deb` |
+| macOS aarch64 | macos-14 | `dmg` |
+| macOS x86_64 | macos-14（交叉） | `dmg` |
+| Windows x86_64 | windows-2022 | `nsis` |
+| Windows aarch64 | windows-2022（交叉） | `nsis` |
+
+行動端在同一個 workflow 中建置：Android APK + AAB，iOS XCFramework + 未簽章模擬器應用程式。發佈 job 要求**全部**前置 job 成功才會建立 release，因此不會出現部分矩陣的殘缺發佈。
+
+<Note>
+  工作流程目前**沒有** macOS 公證和 Windows Authenticode 步驟。加入這兩步之前，安裝套件會一直帶有平台警告。
+</Note>
 
 ## Android 建置
 
 ```bash
-pnpm build:mobile:android
+pnpm build:mobile:android      # Debug
+pnpm package:mobile:android    # Release（未签名）
 ```
 
-使用以下命令封裝 Release APK：
+設定 `VIBEX_MOBILE_ANDROID_TARGETS`（以空格分隔）可覆寫 Debug ABI，Release 預設只建置 `arm64-v8a`。
 
-```bash
-pnpm package:mobile:android
-```
+發佈工作流程會呼叫 `apps/mobile/scripts/sign-android-release.sh`：APK 使用 `zipalign` + `apksigner`，AAB 使用 `jarsigner`。RC / Preview 在沒有儲存庫金鑰時產生一次性的 `vibex-ci` 金鑰；Stable 發佈必須設定 `VIBEX_ANDROID_KEYSTORE_BASE64` 和 `VIBEX_ANDROID_KEYSTORE_PASSWORD`，可選 `VIBEX_ANDROID_KEY_PASSWORD` 和儲存庫變數 `VIBEX_ANDROID_KEY_ALIAS`（預設 `vibex`）。
 
-設定 `VIBEX_MOBILE_ANDROID_TARGETS` 可覆寫 Debug ABI。Release APK 未簽章，分發前需要對齊和簽章。
-
-本機 `pnpm package:mobile:android` 只會產生未簽章 Release APK。打 tag 的 GitHub Release 會執行簽章腳本：APK 使用 `zipalign` 和 `apksigner`，AAB 使用 `jarsigner`。RC 和 Preview 未設定儲存庫金鑰時使用臨時 CI key；Stable 發行必須設定 `VIBEX_ANDROID_KEYSTORE_BASE64` 和 `VIBEX_ANDROID_KEYSTORE_PASSWORD`，也可選擇設定 `VIBEX_ANDROID_KEY_PASSWORD` 與儲存庫變數 `VIBEX_ANDROID_KEY_ALIAS`（預設別名為 `vibex`）。
+<Warning>
+  使用臨時金鑰意味著**每次 RC 發佈的 APK 簽章都不同**，使用者無法直接覆蓋升級，必須先解除安裝再安裝。這是目前 RC 階段的已知取捨。
+</Warning>
 
 ## iOS 建置
 
@@ -40,12 +75,35 @@ pnpm package:mobile:android
 pnpm build:mobile:ios
 ```
 
-簽章、Bundle identifier、真機/模擬器選擇由 Xcode 管理。不要提交憑證或 provisioning profile。
+建置 `VibexFFI.xcframework` 並產生 Xcode 專案。簽章、Bundle identifier、實機 / 模擬器選擇和發佈憑證都由本機 Xcode 流程決定，不要把憑證或 provisioning profile 提交到儲存庫。
+
+## 桌面封裝
+
+```bash
+cargo install cargo-packager --version 0.11.8 --locked
+pnpm prepare:pdfium
+pnpm package:preview    # 或 package:rc / package:stable
+```
+
+Linux 使用 cargo-packager 封裝，PDFium 執行環境只在 **linux-x86_64** 上隨套件散布。Wayland 相關程式庫**不**隨套件散布（主機 ABI 邊界），需由主機提供。
+
+## 自動更新
+
+`crates/app-update` 實作簽章更新：
+
+- 從 GitHub Releases Atom feed 探索候選版本，依通道篩選。
+- 驗證 `vibex-update.json` 的 Ed25519 簽章，並對產物做 SHA-256 驗證，URL 白名單限定在 releases 下載路徑。
+- 啟動 30 秒後首次檢查，之後 RC / Preview 每 2 小時、Stable 每 6 小時檢查一次，帶抖動與退避。
+- AppImage 走原地自我替換（帶 `.vibex-backup` 與 `pending-install.json` 崩潰恢復）；deb、macOS app 和 NSIS 拉起系統安裝程式並要求重新啟動。
+
+只有編譯進公開金鑰的建置才會自動檢查。
 
 ## 行動端生命週期
 
-行動端需要處理背景、網路切換、斷線和重連。恢復時先用 Remote v2 取得權威會話與時間線，再訂閱即時事件；不要讓過期的本機投影覆蓋桌面狀態。
+行動端需要處理背景、網路切換、斷線和重連。恢復時先用 Remote v2 取得權威會話和時間線，再訂閱即時事件；不要用過期投影覆寫權威狀態。
 
-## Relay 部署
+## 自架部署
 
-建議 Relay 綁定 loopback，再透過受控 HTTPS 反向代理或 Tailnet Serve 發布。獨立校驗 Host 和 Origin，CORS 不得使用 `*`。Relay 不應提供行動端 Web UI 或業務 API。
+建議把服務繫結 loopback，再透過受控 HTTPS 反向代理或 Tailnet Serve 發佈。Host 和 Origin 必須獨立驗證，CORS 不得使用 `*`。閘道只暴露協議與健康檢查端點，不提供瀏覽器 UI 或業務 API。
+
+詳見[自架無頭執行環境](/zh-TW/self-hosted-server)與[自架 Relay](/zh-TW/relay)。

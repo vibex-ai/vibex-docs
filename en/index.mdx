@@ -1,36 +1,54 @@
 ---
 title: "Vibex documentation"
-description: "User and developer documentation for the local-first Vibex AI coding workbench."
+description: "A guide to the local-first Vibex AI coding workbench, for users and developers."
 ---
 
-Vibex brings Agent sessions, workspace files, editing, Git, terminals, and previews into one native workbench. Ask an Agent to change code, inspect its plan and tools, review the diff, and deliver the result from the same workspace.
+Vibex puts Agent sessions, workspace files, the editor, Git, terminals, and previews into one native workbench. You can ask an Agent to change code, then inspect the plan, tool calls, and diff, and finally run and deliver the change from the same workspace.
 
-The desktop is Vibex's only authoritative runtime. It starts Agents, stores sessions and timelines, accesses files and Git, and controls terminals and permissions. The iOS and Android clients are remote companions. They do not run a local Agent or keep a second workspace.
+Vibex is built around an **authoritative runtime plus typed projections**:
+
+- The **authoritative runtime** owns Agent processes, session timelines, workspace files, Git, terminals, and provider credentials. It comes in two forms with identical capabilities:
+  - The **local runtime embedded in the desktop** (the default).
+  - The **headless runtime `vibex-server`**, running on your own server or home machine.
+- **Clients** are the desktop workbench and the iOS / Android mobile apps. They render the projections sent by the authoritative runtime and send typed operations. Mobile does not run Agents locally and does not keep a second copy of the workspace.
+
+In other words, the desktop can either **act as the authoritative runtime itself** or **connect to a remote authoritative runtime**. See [Remote access and mobile](/en/remote-mobile) and [Self-hosted headless runtime](/en/self-hosted-server).
 
 <Columns>
-  <Card title="Start here" icon="rocket" href="/en/quickstart">Complete your first Agent task in a local workspace.</Card>
-  <Card title="Install and platforms" icon="download" href="/en/install">Check desktop, mobile, and Relay prerequisites.</Card>
-  <Card title="Developer guide" icon="code" href="/en/developer">Learn the architecture, build, test, and Remote v2 contracts.</Card>
-  <Card title="Usage statistics" icon="bar-chart-3" href="/en/usage">Inspect local usage by time, Agent, provider, model, project, and session.</Card>
+  <Card title="Start here" icon="rocket" href="/en/quickstart">
+    Install the desktop and complete your first Agent task.
+  </Card>
+  <Card title="Core concepts" icon="book-open" href="/en/concepts">
+    Understand how projects, workspaces, sessions, the authoritative runtime, and provider profiles fit together.
+  </Card>
+  <Card title="Install" icon="download" href="/en/install">
+    Download a desktop installer, or prepare mobile and self-hosted environments.
+  </Card>
+  <Card title="Developer guide" icon="code" href="/en/developer">
+    Learn the architecture, build, tests, and Remote v2 contracts.
+  </Card>
 </Columns>
 
 ## What you can do with Vibex
 
-- Read Markdown replies, reasoning, plans, tool and process details, attachments, approvals, and elicitation forms in a structured timeline.
-- Use `/` commands, `@` workspace references, `$` Skills, and attachments in Composer.
-- Search, edit, save, rename, delete, and preview files from the file tree and editor.
-- Review Git status, diffs, history, and blame; create branches and commit or push changes.
-- Run project commands in native PTY tabs with ANSI emulation.
-- Configure Agents, model providers, MCP, Skills, Prompts, Hooks, scheduled tasks, and automation graphs.
-- Filter usage by time, Agent, provider, model, project, and session, with explicit coverage states.
-- Pair a desktop session with mobile to monitor progress, answer questions, and handle approvals.
+- Follow Markdown replies, reasoning, plans, tool calls, process details, attachments, approvals, and elicitation forms in a structured timeline.
+- Organize Composer input with `/` commands, `@` file references, `$` Skills, and attachments.
+- Let Vibex download, upgrade, and uninstall supported Agent runtimes for you.
+- Search, edit, save, rename, and preview files in the file tree and editor.
+- Review Git status, diffs, history, and blame; create branches and commit or push changes; run several tasks in parallel with isolated Git worktrees.
+- Run project commands in multiple terminal tabs on a native PTY with ANSI emulation.
+- Configure Agents, model providers, MCP, and Skills.
+- Filter usage by time, Agent, provider, model, project, and session, and tell complete, derived, partial, and unknown data apart.
+- Search across every session and message body.
+- Pair a desktop session securely with mobile to follow progress, answer questions, and handle approvals on your phone.
+- Pair the desktop or mobile with a self-hosted headless runtime and continue the same sessions from any device.
 
-<Info>
-  Vibex is currently maintained around its source repository. Package availability and download URLs follow the latest [Vibex GitHub repository](https://github.com/vibex-ai/vibex) release notes.
-</Info>
+## Next steps
 
-## Documentation navigation
+<Card title="Quickstart" icon="arrow-right" href="/en/quickstart">
+  Install the desktop and complete your first session.
+</Card>
 
-The User guide is organized as Get started, Daily work, Extensions and automation, and Remote and continuity. The Developer guide explains how to build and test each platform while preserving the desktop's authoritative model.
-
-<Card title="Quickstart" icon="arrow-right" href="/en/quickstart">When your environment is ready, create your first session.</Card>
+<Card title="Changelog" icon="list" href="/en/changelog">
+  See what each release adds, fixes, and changes internally.
+</Card>

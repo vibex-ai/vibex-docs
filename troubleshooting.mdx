@@ -1,43 +1,117 @@
 ---
 title: "故障排查"
-description: "按工作区、Agent、远程连接和恢复状态定位常见问题。"
+description: "按错误码、Agent、文件、终端和远程连接定位常见问题。"
 ---
 
-先确认桌面端仍在运行、当前工作区正确、资源作用域匹配，然后查看结构化错误码和最近一条时间线事件。不要把完整日志直接发到公开 Issue。
+先确认权威运行时仍在运行、当前项目和工作区正确，再去看结构化错误码和最近一条时间线事件。**不要把完整日志直接发到公开 Issue**，见文末的脱敏清单。
 
-## Agent 无法启动
+## 常见错误码
 
-1. 在 **Config Center > Agents** 确认命令存在且可执行。
-2. 检查关联的供应商配置、模型和 secret reference。
-3. 运行 health probe，再查看 capability probe。
-4. 用终端直接运行无敏感参数的版本检查命令，确认 PATH 和权限。
+Vibex 的失败以结构化错误码返回，界面会显示 `错误码: 说明`。常见错误码如下：
+
+### 远程与配对
+
+| 错误码 | 含义 | 处理 |
+| --- | --- | --- |
+| `remote_pairing_code_invalid` | 配对码错误、已使用或不存在。 | 在权威端重新生成配对码。 |
+| `remote_pairing_code_expired` | 配对码已过期（默认 5 分钟）。 | 重新生成，注意尽快使用。 |
+| `remote_pairing_link_invalid` | 连接串格式错误，或其中的地址不是允许的局域网地址。 | 使用权威端打印的完整连接串，不要手工拼装。 |
+| `device_revoked` | 该设备已被撤销。 | 重新配对。 |
+| `resync_required` | 客户端检测到序号或游标缺口。 | 等待权威端重新同步，不要重复发送有副作用的命令。 |
+| `server_shutdown` | 权威运行时正在关闭。 | 重启运行时后重连。 |
+
+### 会话与工作区
+
+| 错误码 | 含义 | 处理 |
+| --- | --- | --- |
+| `remote_agent_workspace_root_missing` | 会话请求的工作区目录在权威端不存在。 | 确认目录已挂载且位于 `VIBEX_WORKSPACE_ROOTS` 之内。 |
+| `remote_agent_workspace_mode_mismatch` | 请求的工作区模式与权威端记录不一致。 | 在权威端重新选择工作区。 |
+| `permission_denied` | 当前设备权限级别不足。 | 用更高权限级别重新配对，或改在权威端操作。 |
+
+### 文件与 Git
+
+| 错误码 | 含义 | 处理 |
+| --- | --- | --- |
+| `file_external_revision_changed` | 保存时文件已被外部进程修改。 | 重新加载文件后再决定如何合并。 |
+| `office_legacy_format_unsupported` | 该 Office 格式（`doc` / `xls` / `ppt`）无法渲染。 | 用系统默认应用打开，或先转换为 `docx` / `xlsx` / `pptx`。 |
+
+### 配置与发布
+
+| 错误码 | 含义 | 处理 |
+| --- | --- | --- |
+| `provider_native_import_source_missing` | 找不到要导入的原生配置来源。 | 确认对应 Agent 的配置文件存在。 |
+| `release_channel_override_rejected` | 试图在运行时切换发布通道。 | 通道由安装包决定，请安装对应通道的版本。 |
+
+如果你的问题不在表里，请在 Issue 里附上**完整的错误码字符串**——它是定位问题的关键。
+
+## Agent 无法启动或不可用
+
+1. 打开 **Config Center → Agent**，确认该 Agent 的状态不是 **Disabled**。
+2. 状态为 **Not installed** 时点击 **Install**；状态为 **Managed by user** 时，确认对应的命令行程序在 `PATH` 上且可执行。
+3. 展开 **Native credentials**，检查登录状态；必要时 **Re-authenticate**。
+4. 展开 **Model provider configuration**，确认已配置模型并用 **Test connection** 验证连通性。
+5. 在终端里直接运行该 Agent 的版本检查命令，确认 `PATH` 和权限没有问题。
 
 ## 消息卡住或状态不正确
 
-- 查看时间线是否处于 waiting、permission request 或 elicitation。
-- 确认没有另一个运行占用相同工作区资源。
-- 若应用刚重启，等待持久化状态加载完成。
-- 对 `running` 但没有进程的会话，使用 **Recovery** 的受支持恢复操作。
+- 查看时间线是否停在 permission request 或 elicitation，等待你处理。
+- 确认没有另一个运行正在占用同一个工作区。
+- 应用刚重启时，等待持久化状态加载完成。
+- 会话显示 `running` 但实际没有进程时，重启一次权威运行时让它重新探测状态。
+
+<Warning>
+  `running` 只是上次观察到的状态，不代表进程仍然存活。不要据此重复发送有副作用的命令。
+</Warning>
 
 ## 文件或 Git 结果不对
 
-- 确认当前工作区和分支；CurrentCheckout 与 VibexWorktree 是不同目录。
-- 保存编辑器文件后刷新文件树和 Git status。
-- 检查文件是否被外部进程修改或存在冲突。
-- 删除、revert、amend 或 push 前先阅读 diff 并创建恢复点。
+- 确认当前**项目**和**工作区**。`Local` 和 `Worktree` 是两个不同的目录，改错地方很常见。
+- 保存编辑器文件后再刷新文件树和 Git status。
+- 检查是否存在外部修改或合并冲突。
+- 执行 revert、amend、push 或删除 worktree 之前，先阅读 diff 并创建恢复点。
 
-## 终端无输出
+## 终端没有输出
 
-检查标签是否绑定正确工作区、PTY 是否被标记为 stale，以及 shell 是否退出。调整面板尺寸或重新打开标签后，以新的终端快照为准；不要根据旧快照重复执行命令。
+检查标签是否绑定到正确的工作区、PTY 是否被标记为 `stale`，以及 shell 是否已退出。调整面板尺寸或重新打开标签，以新的终端快照为准。
 
-## 移动端无法连接
+Vibex 的终端滚动缓冲区固定为 10000 行，更早的输出已经丢弃，需要时请重新运行命令。
 
-1. 确认桌面端 Remote gateway 已启用，且监听策略符合 Direct/Tailnet/Relay 选择。
-2. 检查手机网络和桌面端地址；Direct 失败时测试 Tailnet 或 Relay。
-3. 重新生成短期 QR/deep link，不要复用旧 pairing offer。
-4. 若显示 revoked，必须重新配对；若显示 resync required，等待权威 catch-up。
-5. 在 Relay 模式检查 `/health` 和 `/api/info`，但不要把 room id 当作授权凭据。
+## 预览打不开
+
+| 现象 | 说明 |
+| --- | --- |
+| 显示 **Unsupported file** | 该格式不支持预览：`.bmp`、`.odt`、`.odp`，以及超过 8 MiB 或 5 万行的文件。 |
+| Office 文件报错 | 只有 `docx`、`xlsx`、`ods`、`pptx` 能渲染；`doc` / `xls` / `ppt` 需要先转换。 |
+| 音频或视频 | 不会内嵌播放，会交给系统默认应用。 |
+| HTML / JSON / YAML | 以带高亮的源文本打开，不会渲染或格式化。 |
+| PDF 缺少某张依赖 | 重新安装 Vibex，或使用 **Open in system**。 |
+
+## 桌面端无法连接到自托管运行时
+
+1. 在服务器上确认 `curl -fsS http://127.0.0.1:8765/api/v2/info` 有响应。
+2. 确认 `VIBEX_PUBLIC_HOST` 是**客户端实际能拨到的地址**，并带上端口。
+3. 局域网模式必须使用 `VIBEX_TLS_MODE=pinned_certificate`，并从**连接串**配对（连接串里带证书）；手工填地址会因缺少证书而失败。
+4. 公网模式确认 `VIBEX_ALLOWED_HOSTS` 包含实际访问的域名，否则网关返回 `421`。
+5. 检查服务器日志里的 `tls_fingerprint`，与客户端显示的 **Certificate** 行比对。
+
+## 手机无法连接
+
+1. 确认权威运行时正在运行，并且已经启用了一种连接方式（**Tailscale Serve** / **Direct HTTPS** / **Self-hosted Relay** / **Local network pairing**）。
+2. 检查手机和权威端的网络；Direct 失败时改试 Tailnet 或 Relay。
+3. 重新生成二维码或连接串，不要复用旧的配对凭据。
+4. 显示 `revoked` 时必须重新配对；显示 `resync_required` 时等待权威端同步完成。
+5. 使用 Relay 时检查 `/health` 和 `/api/info`——注意 Relay 上**没有** `/api/v2/info`。
 
 ## 提交诊断信息
 
-提供 Vibex 版本、操作系统、复现步骤、结构化错误码和脱敏时间戳。移除 token、私钥、pairing 数据、工作区路径、Prompt、文件内容、Git diff 和终端输出。Issue 入口在 [GitHub Issues](https://github.com/vibex-ai/vibex/issues)。
+请提供：
+
+- Vibex 版本与发布通道（在 **Settings → About** 查看）
+- 操作系统与版本
+- 复现步骤
+- **结构化错误码**（最关键）
+- 脱敏后的时间戳
+
+提交前请移除：token、私钥、配对码、连接串、工作区路径、提示词、文件内容、Git diff 和终端输出。
+
+Issue 入口：[GitHub Issues](https://github.com/vibex-ai/vibex/issues)。

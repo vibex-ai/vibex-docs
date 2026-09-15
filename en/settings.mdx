@@ -1,72 +1,99 @@
 ---
 title: "Settings"
-description: "Adjust Vibex interface, workbench, session, terminal, shortcut, and diagnostic preferences."
+description: "Adjust Vibex's interface, workbench, session, terminal, shortcut, and diagnostic options."
 ---
 
-Open **Settings** (`cmd-,` on macOS, usually `ctrl-,` on Windows/Linux) to change local desktop preferences. Settings are separate from Agent, provider, and workflow resources in Config Center.
+Open **Settings** (`cmd-,`) to change the desktop's local preferences. Settings do not replace the Agent, MCP, or Skills configuration in the Config Center.
+
+A **Search settings** field at the top of the page jumps straight to an option by name or keyword. Options you have changed show **Undo changes** next to them.
 
 ## Sections
 
-| Section | Controls |
+| Section | What you can adjust |
 | --- | --- |
-| **General** | Language, startup behavior, and general application preferences. |
-| **Appearance** | Theme, fonts, size, density, and project icons. |
-| **Workbench** | Sidebar, previews, panels, editor layout, and display preferences. |
-| **Session** | Content width, preview rail, timeline presentation, and run experience. |
-| **Terminal** | Default shell, font, scrollback, and terminal display behavior. |
-| **Shortcuts** | View and edit keyboard shortcuts. |
-| **Data & Diagnostics** | Local data, diagnostic level, and redacted export entry points. |
-| **About** | Version, license, and build information. |
+| **General** | Language, startup behavior, network proxy, and notifications. |
+| **Appearance** | Theme, window zoom, interface and code fonts, motion, and contrast. |
+| **Workbench** | Sidebar view, default new-session location, layout memory, and Git change count. |
+| **Session** | Conversation content width, timeline display, message queue, and auto-continue. |
+| **Terminal** | Default shell and the starting directory for new terminals. |
+| **Shortcuts** | View, change, and reset keyboard shortcuts. |
+| **Data & Diagnostics** | Local storage usage and cleanup, plus diagnostics and recovery entry points. |
+| **About** | Version, channel, software updates, license, and platform information. |
 
-## General and startup
+## General
 
-Choose the language, whether closing keeps Vibex in the system tray, whether startup restores the workbench or opens a new session, whether to launch at login, and whether to use a network proxy. Proxy URLs support `http`, `https`, `socks5`, and `socks5h`; the desktop validates the address and does not sync credentials to mobile.
-
-Notifications have a master switch and separate controls for Agent completion, input requests, and failures. Update prompts control visible notices only; background security checks follow the release policy.
+| Option | Description |
+| --- | --- |
+| **Language** | System default / 简体中文 / 繁體中文 / English. |
+| **Keep running after closing the window** | Keep Vibex in the system tray after you close the window. |
+| **Network proxy** | Route Vibex network requests and Agent tools through a local or corporate proxy. Supports `http`, `https`, `socks5`, and `socks5h`. The address is validated before you enable it. |
+| **Startup** | Restore the workbench on launch, or open a new session directly. |
+| **Launch at login** | Start Vibex when you sign in to the system. |
+| **System notifications** | Master switch for desktop notifications. |
+| **Agent completed / Agent needs input / Agent failed** | Control the three notification types; they are unavailable while the master switch is off. |
+| **Update prompts** | Control whether update prompts appear. Background security checks are unaffected and still follow the release policy. |
 
 ## Appearance
 
-Appearance controls theme, window scale, interface font, and code font. The code font applies to code blocks, the integrated editor, and terminals. You can also change size, weight, reduced motion, and contrast. These options affect only the local UI.
+Controls the theme (System / Light / Dark), window zoom (75%–200%), the size and weight of the **Interface font** and **Code font**, **Reduced motion**, and **High contrast**. The code font also applies to code blocks, the integrated editor, and the terminal.
 
-## Workbench and session
+Whether **Frosted glass** is available depends on whether the platform supports background blur (Windows does not). Fonts are listed from those installed on the system, with a fallback when one is missing.
 
-Workbench stores sidebar, preview, right-rail, tab, and split layout preferences, along with editor soft-wrap and whitespace-display preferences. It can choose **CurrentCheckout** or **VibexWorktree** as the default location for new sessions. Session settings control content width, turn preview, reasoning display, command and file-operation details, and whether Composer queues messages automatically or manually.
+## Workbench
+
+| Option | Description |
+| --- | --- |
+| **Sidebar hierarchy** | **Session view** (grouped by session) or **Workspace view** (grouped by workspace). |
+| **Default new-session location** | **Current checkout** or **Worktree**. |
+| **Remember layout** | Remember the sidebar, preview, right rail, and split layouts. |
+| **Show Git change count** | Show the number of pending changes on the Git icon. |
+| **Project overrides** | Clear per-project layout overrides. |
+| **Reset workbench layout** | Restore the workbench layout to its defaults. |
+
+## Session
+
+Controls the conversation content width (Narrow / Standard / Full width), the timeline entry display (**Session preview rail**, **Agent generation status**, **Reasoning display**, **Expand reasoning by default**, **Command card rendering**, **File edit card rendering**), and message queue behavior:
+
+- **Queue sending** — Automatic or Manual.
+- **Message send key** — Enter or Cmd/Ctrl+Enter.
+- **Auto-continue** — Let eligible turns advance on their own; when a turn cannot continue, it stops and waits for you.
+- **Remembered runtime** / **Auto-continue defaults** — Clear remembered choices.
 
 ## Terminal
 
-Terminal settings choose the default shell and the initial directory for new terminals. The directory can be the current workspace, project root, or current file. Existing terminals keep their current directory when the preference changes.
+Set the default shell and the starting directory for new terminals (**Worktree** / **Project** / **Current file**).
 
-## Change a preference
-
-1. Choose a section.
-2. Change an option and check its preview or description.
-3. Use the option's default value or **Reset** to restore it.
-4. Close Settings. The desktop persists local preferences for the next launch.
-
-Appearance preferences change only the local UI. They do not edit Agent system Prompts, workspace files, or provider profiles. Available fonts depend on the operating system; unsupported fonts fall back to an available choice.
+- The default shell can be picked from the shells detected on your system, or you can specify a custom path.
+- Open terminals do not move when you change this preference.
+- The scrollback buffer is fixed at 10000 lines and is not configurable.
 
 ## Shortcuts
 
-| Action | macOS | Windows/Linux |
-| --- | --- | --- |
-| Sidebar | cmd-b | ctrl-b |
-| Preview | cmd-shift-p | ctrl-shift-p |
-| Right sidebar | cmd-shift-r | ctrl-shift-r |
-| Conversation/terminal mode | cmd-shift-t | ctrl-shift-t |
-| Settings | cmd-, | ctrl-, |
-| Search in session | cmd-f | ctrl-f |
-| Retry runtime | cmd-r | ctrl-r |
-| Save file | cmd-s | ctrl-s |
-| Back/forward | alt-left / alt-right | alt-left / alt-right |
+All rebindable shortcuts, their default keys, and their groups are listed in the [shortcuts reference](/en/reference/shortcuts). Here you can change them one by one, **Reset** a single shortcut, or **Reset all** to restore every default. Conflicting key bindings are rejected with **Shortcut is invalid or already in use**.
 
-Shortcuts can conflict with the operating system or terminal. Test a changed shortcut in its target window.
+## Data & Diagnostics
 
-## Data and diagnostics
+Shows local storage usage broken down by category (database, sessions, terminals, attachments, diagnostics, Agent installations) and offers a cleanup entry point for each:
 
-Choose the smallest diagnostic scope and inspect the redaction before exporting. Never export tokens, private keys, Prompts, file contents, Git diffs, terminal bytes, or pairing data. Close the desktop or use the project backup procedure before copying SQLite. After restore, verify workspace paths, device grants, and secret references.
+| Action | Effect |
+| --- | --- |
+| **Clear sessions and attachments** | Deletes session and attachment records. |
+| **Clear terminal data** | Deletes terminal metadata. |
+| **Clear diagnostic data** | Deletes diagnostic data. |
+| **Open data directory** | Opens the data directory in your file manager. |
+| **Open Usage** | Jumps to usage statistics. |
+| **Open Management Center** | Jumps to the Config Center. |
 
-<Warning>Resetting a preference is different from deleting the local database or workspace. Read [Privacy and recovery](/en/privacy-and-recovery) before destructive recovery actions.</Warning>
+<Warning>
+  These cleanup operations are **destructive** and cannot be rolled back. Read [Privacy and recovery](/en/privacy-and-recovery) before you run them.
+</Warning>
 
-## Version information
+## About
 
-**About** shows the build version, release channel, license, and platform, and lets you check for a signed release. Include these non-sensitive values and structured errors in an Issue, not complete logs.
+Shows the current **version** and **channel** (Preview / ReleaseCandidate / Stable), platform information, and license, and offers:
+
+- **Software update** — Update status and action buttons (**Check now** / **Download** / **Install update** / **Restart now** / **Open release** / **Retry**). Update manifests are signature-verified; a build that fails verification is never installed.
+- **Environment summary** — Copyable, non-sensitive environment information. Include it when you report a problem.
+- **Source code** / **Release notes** — Links to the repository and release notes.
+
+When you report a problem, include the version, channel, platform, and structured error code, but not full logs.

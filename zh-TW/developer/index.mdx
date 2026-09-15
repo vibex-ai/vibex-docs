@@ -1,23 +1,40 @@
 ---
 title: "開發者指南"
-description: "從本機開發到跨平台發行，了解 Vibex 的工程約束。"
+description: "從本機開發到跨平台發佈，了解 Vibex 的工程約束。"
 ---
 
-Vibex 是由 Rust workspace 驅動的原生應用程式。桌面端 `DesktopRuntime` 是唯一權威狀態所有者；行動端與遠端傳輸透過共享契約存取它。
+Vibex 是 Rust workspace 驅動的原生應用程式。`DesktopRuntime` 是唯一的權威狀態所有者；桌面端工作臺、無頭伺服器、行動端和遠端傳輸都透過共享契約存取它。
 
 <Columns>
-  <Card title="架構邊界" icon="sitemap" href="/zh-TW/developer/architecture">了解核心 crate、桌面端、行動端與 Relay 的職責。</Card>
-  <Card title="本機設定" icon="terminal" href="/zh-TW/developer/setup">準備 Rust、Node、pnpm 與圖形建置環境。</Card>
-  <Card title="建置與測試" icon="flask" href="/zh-TW/developer/build-and-test">執行日常檢查、smoke test 與發行門禁。</Card>
+  <Card title="架構邊界" icon="sitemap" href="/zh-TW/developer/architecture">
+    了解 crate 劃分、權威執行環境、客戶端和 Relay 的職責。
+  </Card>
+  <Card title="本機設定" icon="terminal" href="/zh-TW/developer/setup">
+    準備 Rust、Node、pnpm 和圖形建置環境。
+  </Card>
+  <Card title="建置與測試" icon="flask" href="/zh-TW/developer/build-and-test">
+    執行日常檢查、smoke test 和發佈建置門禁。
+  </Card>
+  <Card title="平台支援" icon="devices" href="/zh-TW/developer/platforms">
+    各平台的產物格式、建置方式和驗證要求。
+  </Card>
+  <Card title="Remote v2 與 Relay" icon="network" href="/zh-TW/developer/remote-protocol">
+    配對、握手、同步和自架傳輸的協議邊界。
+  </Card>
+  <Card title="貢獻程式碼" icon="git-pull-request" href="/zh-TW/developer/contributing">
+    提交變更時的架構、測試和隱私要求。
+  </Card>
 </Columns>
 
-## 必須維持的約束
+## 開發時必須維持的約束
 
-- 桌面端負責 Agent、會話、時間線、檔案、Git、PTY、Provider、權限和持久化。
-- 行動端只消費共享遠端投影並傳送型別化操作，不複製業務狀態。
-- Remote v2 的 DTO、錯誤、能力與序號契約位於共享 core 層。
-- Relay 只轉發加密框，不擁有業務授權、檔案或會話資料庫。
-- 跨層行為變更需補充確定性檢查或證據，並執行與風險匹配的測試集。
+- `DesktopRuntime` 負責 Agent、會話、時間線、檔案、Git、PTY、供應商、權限和持久化。
+- **同一個核心有兩種前端**：`apps/desktop` 加上 GPUI 視窗，`apps/server` 加上常駐程式生命週期。新增能力要同時適用於兩者。
+- 客戶端只消費共享的遠端投影並傳送型別化操作，不複製業務狀態。
+- 新能力應經由 `BackendFacade` 觸達權威端，而不是只走本機執行環境路徑。
+- Remote v2 的 DTO、錯誤、能力和序號契約位於共享 `crates/core` 層。
+- Relay 只轉發加密幀，不擁有業務授權、檔案或會話資料庫。
+- 跨層行為變更必須補充確定性檢查或證據，並執行與風險相符的最小測試集。
 
 ## 建議閱讀順序
 
@@ -27,3 +44,20 @@ Vibex 是由 Rust workspace 驅動的原生應用程式。桌面端 `DesktopRunt
 4. [平台支援](/zh-TW/developer/platforms)
 5. [Remote v2 與 Relay](/zh-TW/developer/remote-protocol)
 6. [貢獻程式碼](/zh-TW/developer/contributing)
+
+## 儲存庫內的設計文件
+
+公開文件站只涵蓋使用者需要的內容。更細的設計與維運資料在儲存庫 `docs/` 下：
+
+| 路徑 | 內容 |
+| --- | --- |
+| `docs/architecture/ui-boundary.md` | UI 與權威端的所有權邊界。 |
+| `docs/remote/protocol-v2.md` | Remote v2 線協議完整定義。 |
+| `docs/platform/support-matrix.md` | 各平台能力的證據要求。 |
+| `docs/operations/release.md` | 發佈 runbook。 |
+| `docs/operations/release-packaging-matrix.md` | 產物與建置命令矩陣。 |
+| `docs/operations/recovery-matrix.md` | 崩潰恢復：哪些狀態是持久的。 |
+| `docs/smoke/relay-nat.md` | Relay 跨 NAT 的維運檢查清單。 |
+| `docs/licenses/` | 第三方授權與 SBOM。 |
+| `deploy/server/README.md` | 無頭執行環境部署。 |
+| `deploy/relay/README.md` | Relay 部署。 |

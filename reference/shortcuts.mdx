@@ -1,0 +1,74 @@
+---
+title: "快捷键"
+description: "Vibex 的全部默认快捷键，以及如何重新绑定。"
+---
+
+Vibex 的快捷键可以在 **Settings → Shortcuts** 中查看、修改和重置。冲突的键位会被拒绝，并提示 **Shortcut is invalid or already in use**。
+
+## 可重绑定的快捷键
+
+以下 14 个动作可以在设置里重新绑定：
+
+| 操作 | 默认键 | 分组 |
+| --- | --- | --- |
+| Toggle sidebar | `cmd-b` | Workbench |
+| Toggle preview | `cmd-shift-p` | Workbench |
+| Toggle right rail | `cmd-shift-r` | Workbench |
+| Open runtimes | `cmd-shift-o` | Workbench |
+| Toggle conversation / terminal | `cmd-shift-t` | Composer |
+| Find in conversation | `cmd-f` | Navigation |
+| Open settings | `cmd-,` | Navigation |
+| Navigate back | `alt-left` | Navigation |
+| Navigate forward | `alt-right` | Navigation |
+| Retry runtime | `cmd-r` | Runtime |
+| Save active file | `cmd-s` | Editor |
+| Go to line in editor | `ctrl-g` | Editor |
+| Undo image edit | `cmd-z` / `ctrl-z` | Image editor |
+| Redo image edit | `cmd-shift-z` / `ctrl-shift-z` | Image editor |
+
+<Note>
+  表中写的是 `cmd-` 前缀，它在 macOS 上是 Command 键，在 Windows / Linux 上是 Ctrl 键。只有图片编辑器的撤销 / 重做按平台分别定义。
+</Note>
+
+**Reset** 恢复单项默认值，**Reset all** 清除全部自定义映射。
+
+## 不可重绑定的快捷键
+
+这些快捷键是固定行为：
+
+| 操作 | 按键 | 作用范围 |
+| --- | --- | --- |
+| 关闭当前预览标签 | `cmd-w` | 非终端标签 |
+| 循环切换标签 | `cmd-tab` / `cmd-shift-tab` | 非终端标签 |
+| 切换上一个 / 下一个标签 | `cmd-pageup` / `cmd-pagedown` | 非终端标签 |
+| 终端复制 / 粘贴 / 搜索 | `ctrl-shift-c` / `ctrl-shift-v` / `ctrl-shift-f` | 终端标签 |
+| Tab 补齐 | `tab` / `shift-tab` | 终端标签（发送给 shell 而非移动焦点） |
+| 关闭弹层 | `escape` | 运行时管理器、查找栏 |
+
+## 鼠标操作
+
+| 操作 | 效果 |
+| --- | --- |
+| 拖动词标签 | 重新排列，或拖到边缘分栏 |
+| 拖动面板边界 | 调整侧栏 / 右侧栏 / 终端尺寸 |
+| 右键文件树条目 | 打开文件操作菜单 |
+| 右键标签 | 打开标签操作菜单（关闭、分栏、固定等） |
+| 拖动文件 | 在文件树内移动文件，靠近边缘会自动滚动 |
+| 缩放图片编辑器 | 滚轮缩放，拖拽平移 |
+
+## 搜索入口一览
+
+Vibex 有多个作用域不同的搜索，不要把它们的范围搞混：
+
+| 搜索 | 范围 | 入口 |
+| --- | --- | --- |
+| **Find in conversation** | 当前会话时间线 | `cmd-f` |
+| **Search sessions** | 全部会话标题与消息正文 | 侧栏搜索图标 |
+| **Search workspace files** | 当前工作区文件内容 | 文件树 |
+| **Search MCP** / **Search Skills** / **Search Agent** | 对应 Config Center 列表 | 各自列表顶部 |
+| **Search commits** | Git 提交历史 | Git 面板 Commits 标签 |
+| **Search settings** | 设置项 | Settings 顶部 |
+
+<Note>
+  目前**没有**全局命令面板或跨类型快速打开。
+</Note>

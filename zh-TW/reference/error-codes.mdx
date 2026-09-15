@@ -1,0 +1,70 @@
+---
+title: "錯誤碼"
+description: "Vibex 傳回的結構化錯誤碼及其處理方式。"
+---
+
+Vibex 的失敗會以**結構化錯誤碼**傳回，介面會顯示為 `錯誤碼: 說明`。提交 Issue 時請附上完整的錯誤碼字串——它比日誌內文更有用。
+
+## 遠端與配對
+
+| 錯誤碼 | 含義 | 處理 |
+| --- | --- | --- |
+| `remote_pairing_code_invalid` | 配對碼錯誤、已被使用或不存在。 | 在權威端重新產生。 |
+| `remote_pairing_code_expired` | 配對碼已過期（預設 5 分鐘，最長 30 分鐘）。 | 重新產生並盡快使用。 |
+| `remote_pairing_link_invalid` | 連線字串格式錯誤，或其中位址不是允許的區域網路上位址。 | 使用權威端列印的完整連線字串。 |
+| `device_revoked` | 裝置已被撤銷。 | 重新配對。 |
+| `resync_required` | 偵測到序號或游標缺口。 | 等待權威端重新同步。 |
+| `server_shutdown` | 權威執行環境正在關閉。 | 重新啟動後重新連線。 |
+| `permission_denied` | 目前裝置的權限等級不足。 | 用更高的權限等級重新配對。 |
+
+## 會話與工作區
+
+| 錯誤碼 | 含義 | 處理 |
+| --- | --- | --- |
+| `remote_agent_workspace_root_missing` | 會話要求的工作區目錄在權威端不存在。 | 確認目錄已掛載且位於 `VIBEX_WORKSPACE_ROOTS` 內。 |
+| `remote_agent_workspace_mode_mismatch` | 要求的工作區模式與權威端記錄不一致。 | 在權威端重新選擇工作區。 |
+
+## 檔案與內容
+
+| 錯誤碼 | 含義 | 處理 |
+| --- | --- | --- |
+| `file_external_revision_changed` | 儲存時檔案已被外部處理程序修改。 | 重新載入後再決定如何合併。 |
+| `office_legacy_format_unsupported` | `doc` / `xls` / `ppt` 無法渲染。 | 用系統預設應用程式開啟，或轉換為新格式。 |
+
+## 設定與匯入
+
+| 錯誤碼 | 含義 | 處理 |
+| --- | --- | --- |
+| `provider_native_import_source_missing` | 找不到要匯入的原生設定來源。 | 確認對應 Agent 的設定檔存在。 |
+
+## 用量統計
+
+| 錯誤碼 | 含義 | 處理 |
+| --- | --- | --- |
+| `agent_usage_query_too_large` | 查詢超過 100000 列上限。 | 縮小時間範圍或增加篩選條件。 |
+
+## 發行與更新
+
+| 錯誤碼 | 含義 | 處理 |
+| --- | --- | --- |
+| `release_channel_override_rejected` | 試圖在執行期間切換發行通道。 | 安裝對應通道的版本。 |
+| `stable_channel_requires_release_build` | Stable 通道需要正式發行建置。 | 使用正式發行的安裝套件。 |
+
+## 狀態值
+
+這些不是錯誤，但經常被誤解：
+
+| 值 | 出現在 | 含義 |
+| --- | --- | --- |
+| `stale` | 終端機、執行狀態 | 上次觀察到的狀態已失效，不代表處理程序仍存活。 |
+| `revoked` | 裝置 | 授權已被撤銷。 |
+| `running` | 會話 | **只是上次觀察到的狀態**，重新啟動後需要重新偵測。 |
+| `Not reported` / `Partial` | 用量 Coverage | 資料缺失或不全，**不要當作零**。 |
+
+## 一般排查順序
+
+1. 確認權威執行環境正在執行，以及目前連線的是哪一個（本機內嵌，還是遠端伺服器）。
+2. 確認目前的專案和工作區正確——`Local` 和 `Worktree` 是不同目錄。
+3. 確認裝置權限等級足夠（寫入操作需要 `full_control`）。
+4. 檢視時間線最近一筆事件，確認是否在等待你處理核准或詢問表單。
+5. 仍無法解決時，請依[疑難排解](/zh-TW/troubleshooting)提交脫敏資訊。

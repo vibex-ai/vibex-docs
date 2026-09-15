@@ -1,37 +1,118 @@
 ---
 title: "Troubleshooting"
-description: "Diagnose common workspace, Agent, remote, and recovery problems."
+description: "Diagnose common problems by error code, Agent, file, terminal, and remote connection."
 ---
 
-Confirm that the desktop is running, the workspace is correct, and resource scopes match before reading the latest structured error and timeline event. Do not publish complete logs.
+First confirm that the authoritative runtime is still running and that the current project and workspace are correct, then look at the structured error code and the latest timeline event. **Do not post complete logs to a public issue**; see the redaction checklist at the end.
 
-## Agent will not start
+## Common error codes
 
-1. In **Config Center > Agents**, confirm the command exists and is executable.
-2. Check the provider profile, model, and secret reference.
-3. Run a health probe, then inspect the capability probe.
-4. Use the terminal to run a non-sensitive version command and verify PATH and permissions.
+Vibex reports failures as structured error codes, shown in the UI as `error code: description`. The common ones are:
 
-## A message is stuck
+### Remote and pairing
 
-Check for waiting, permission request, or elicitation states. Confirm another run is not using the same workspace. After a restart, wait for persisted state to load. For a `running` session without a process, use the supported **Recovery** action.
+| Error code | Meaning | What to do |
+| --- | --- | --- |
+| `remote_pairing_code_invalid` | The pairing code is wrong, already used, or does not exist. | Generate a new pairing code on the authority. |
+| `remote_pairing_code_expired` | The pairing code has expired (5 minutes by default). | Generate a new one and use it promptly. |
+| `remote_pairing_link_invalid` | The connection string is malformed, or the address in it is not an allowed local network address. | Use the complete connection string printed by the authority; do not assemble one by hand. |
+| `device_revoked` | The device has been revoked. | Pair again. |
+| `resync_required` | The client detected a sequence or cursor gap. | Wait for the authority to resynchronize, and do not resend commands that have side effects. |
+| `server_shutdown` | The authoritative runtime is shutting down. | Restart the runtime and reconnect. |
 
-## Files or Git results are wrong
+### Sessions and workspaces
 
-Check the workspace, branch, and CurrentCheckout/VibexWorktree mode. Save the editor file and refresh the file tree and Git status. Check external edits and conflicts. For a silent terminal, verify the tab, PTY stale state, and shell; use a new snapshot instead of repeating a command from an old one.
+| Error code | Meaning | What to do |
+| --- | --- | --- |
+| `remote_agent_workspace_root_missing` | The workspace directory requested by the session does not exist on the authority. | Confirm the directory is mounted and inside `VIBEX_WORKSPACE_ROOTS`. |
+| `remote_agent_workspace_mode_mismatch` | The requested workspace mode does not match the authority's record. | Select the workspace again on the authority. |
+| `permission_denied` | The current device permission level is insufficient. | Re-pair with a higher permission level, or perform the action on the authority instead. |
 
-## Terminal has no output
+### Files and Git
 
-Verify the tab, workspace, PTY stale state, and shell. Resize or reopen the tab, then use the new terminal snapshot instead of repeating a command from an old one.
+| Error code | Meaning | What to do |
+| --- | --- | --- |
+| `file_external_revision_changed` | The file was modified by an external process when you saved it. | Reload the file, then decide how to merge. |
+| `office_legacy_format_unsupported` | This Office format (`doc` / `xls` / `ppt`) cannot be rendered. | Open it in the system default application, or convert it to `docx` / `xlsx` / `pptx` first. |
 
-## Mobile cannot connect
+### Configuration and releases
 
-1. Confirm Remote gateway is enabled and its listener matches Direct, Tailnet, or Relay.
-2. Check the phone network and desktop address; test Tailnet or Relay if Direct fails.
-3. Generate a new short-lived QR/deep link instead of reusing a pairing offer.
-4. Re-pair when revoked; wait for authoritative catch-up when resync is required.
-5. In Relay mode, check `/health` and `/api/info`, but never treat a room id as authorization.
+| Error code | Meaning | What to do |
+| --- | --- | --- |
+| `provider_native_import_source_missing` | The native configuration source to import from cannot be found. | Confirm the corresponding Agent's configuration file exists. |
+| `automation_graph_version_conflict` | The automation graph was modified by another session. | Reload it, then submit again. |
+| `release_channel_override_rejected` | An attempt was made to switch the release channel at runtime. | The channel is determined by the installer; install the build for the channel you want. |
 
-## Submit diagnostics
+If your problem is not in these tables, include the **complete error code string** in your issue—it is the key to diagnosing the problem.
 
-When opening an Issue, include the version, operating system, reproduction steps, structured error, and a redacted timestamp. Remove tokens, private keys, pairing data, workspace paths, Prompts, file contents, Git diffs, and terminal output. Use [GitHub Issues](https://github.com/vibex-ai/vibex/issues).
+## An Agent will not start or is unavailable
+
+1. Open **Config Center → Agent** and confirm the Agent's status is not **Disabled**.
+2. If the status is **Not installed**, click **Install**; if it is **Managed by user**, confirm the corresponding command-line program is on `PATH` and executable.
+3. Expand **Native credentials** and check the sign-in state; use **Re-authenticate** if needed.
+4. Expand **Model provider configuration**, confirm a model is configured, and use **Test connection** to verify connectivity.
+5. Run the Agent's version command directly in a terminal to confirm `PATH` and permissions are fine.
+
+## A message is stuck or its state looks wrong
+
+- Check whether the timeline is waiting on a permission request or an elicitation for you to handle.
+- Confirm no other run is occupying the same workspace.
+- Right after the app restarts, wait for persisted state to finish loading.
+- If a session shows `running` but no process exists, restart the authoritative runtime once so it re-detects state.
+
+<Warning>
+  `running` is only the last observed state; it does not mean the process is still alive. Do not resend commands that have side effects because of it.
+</Warning>
+
+## File or Git results are wrong
+
+- Confirm the current **project** and **workspace**. `Local` and `Worktree` are different directories, and editing the wrong one is a common mistake.
+- Save the editor file before refreshing the file tree and Git status.
+- Check for external modifications or merge conflicts.
+- Before revert, amend, push, or deleting a worktree, read the diff and create a recovery point.
+
+## The terminal shows no output
+
+Check whether the tab is bound to the right workspace, whether the PTY is marked `stale`, and whether the shell has exited. Resize the panel or reopen the tab, and trust the new terminal snapshot.
+
+Vibex's terminal scrollback buffer is fixed at 10000 lines; earlier output has already been discarded, so rerun the command if you need it.
+
+## Preview will not open
+
+| Symptom | Explanation |
+| --- | --- |
+| **Unsupported file** appears | The format cannot be previewed: `.bmp`, `.odt`, `.odp`, and files larger than 8 MiB or 50000 lines. |
+| An Office file errors | Only `docx`, `xlsx`, `ods`, and `pptx` can be rendered; `doc` / `xls` / `ppt` must be converted first. |
+| Audio or video | Not played inline; handed to the system default application. |
+| HTML / JSON / YAML | Opened as highlighted source text; not rendered or formatted. |
+| A PDF is missing a dependency | Reinstall Vibex, or use **Open in system**. |
+
+## The desktop cannot connect to a self-hosted runtime
+
+1. On the server, confirm that `curl -fsS http://127.0.0.1:8765/api/v2/info` responds.
+2. Confirm `VIBEX_PUBLIC_HOST` is an address the **client can actually dial**, including the port.
+3. Local network mode requires `VIBEX_TLS_MODE=pinned_certificate`, and you must pair from the **connection string** (which carries the certificate); entering the address by hand fails for lack of the certificate.
+4. In public mode, confirm `VIBEX_ALLOWED_HOSTS` contains the domain actually being used, or the gateway returns `421`.
+5. Check the `tls_fingerprint` in the server log and compare it with the **Certificate** line shown by the client.
+
+## The phone cannot connect
+
+1. Confirm the authoritative runtime is running and that a connection method is enabled (**Tailscale Serve** / **Direct HTTPS** / **Self-hosted Relay** / **Local network pairing**).
+2. Check the network between the phone and the authority; if Direct fails, try Tailnet or Relay.
+3. Generate a new QR code or connection string; do not reuse old pairing credentials.
+4. When `revoked` appears, you must pair again; when `resync_required` appears, wait for the authority to finish synchronizing.
+5. When using Relay, check `/health` and `/api/info`—and note that Relay has **no** `/api/v2/info`.
+
+## Submitting diagnostics
+
+Please provide:
+
+- The Vibex version and release channel (see **Settings → About**)
+- Your operating system and version
+- Steps to reproduce
+- The **structured error code** (the most important part)
+- Redacted timestamps
+
+Before submitting, remove: tokens, private keys, pairing codes, connection strings, workspace paths, prompts, file contents, Git diffs, and terminal output.
+
+Issue tracker: [GitHub Issues](https://github.com/vibex-ai/vibex/issues).

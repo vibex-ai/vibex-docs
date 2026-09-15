@@ -1,33 +1,87 @@
 ---
 title: "Privacy and recovery"
-description: "Understand local storage, remote privacy, and restart behavior in Vibex."
+description: "Understand Vibex's local storage, restart recovery behavior, and diagnostic data boundaries."
 ---
 
-Vibex is local-first. The desktop stores projects, workspaces, sessions, timelines, provider profiles, terminal metadata, and remote device records. Remote clients receive only authorized projections.
+Vibex is local-first: the authoritative runtime stores projects, workspaces, sessions, timelines, provider profiles, terminal metadata, and remote device records. Remote connections receive only authorized projections.
 
-## Data locations
+## Where data lives
 
-- SQLite stores authoritative metadata and recoverable session state.
-- Workspace files stay in your local directory or Git worktree.
-- Agents, terminals, and Git processes run on the desktop.
-- Self-hosted Relay forwards encrypted frames and does not hold the business database.
+| Data | Location |
+| --- | --- |
+| Authoritative metadata and session state | The SQLite database in the authoritative runtime home |
+| Project files | The local directories you choose, or Git worktrees managed by Vibex |
+| Provider credentials | The operating system keychain; on headless hosts, a fallback key file readable only by its owner |
+| Agent installations | The authoritative runtime's home directory |
+| Relay data | **None.** Relay only forwards encrypted frames; it keeps no business database |
 
-Relay rooms and connections are ephemeral; Relay logs should contain only routing, counts, and timing metadata.
+Relay rooms and connections are ephemeral. Relay logs should contain only routing, counts, and timing metadata.
 
-## Restart and stale state
+## What survives a restart
 
-After restart, the desktop reloads workspaces, sessions, and configuration from persisted records. A database `running` value records the last observed state, not proof of a live process. Lost terminals become stale. Check the real process and workspace before recovery.
+When you restart the authoritative runtime, it reloads workspaces, sessions, and configuration from persisted records. The key distinction:
 
-<Info>When you see stale or resync required, refresh authoritative state before retrying. Do not repeat side-effecting commands because a mobile view is temporarily quiet.</Info>
+**Kept (written to SQLite):**
+- Projects, workspaces, and workspace modes
+- Sessions, timeline events, and messages
+- Provider profiles, MCP servers, and Skills
+- Terminal **metadata** (tab names and bindings)
+- Remote device authorizations
+
+**Not kept (in memory only):**
+- Running Agent processes
+- Terminal **session contents and scrollback buffers**
+- Active connections and live event subscriptions
+
+<Info>
+  A `running` value in the database is only the **last observed state**; it does not mean the process is still running. If you see a session marked `running` after a restart, confirm whether the process actually exists before you decide to retry.
+</Info>
+
+Lost terminals are marked `stale`. Trust the new terminal snapshot and do not repeat commands based on an old one.
 
 ## Device revocation
 
-Revoking a device in the desktop remote-device list sends a revoked state and closes active connections. Re-pair to use it again; old QR codes, grants, and tickets must not be reused.
+After you revoke a device in the authoritative runtime's device list, that device's active connections immediately receive `device_revoked` and close.
 
-## Diagnostics and backups
+- Using it again requires **re-pairing**.
+- The old QR code, connection string, authorization, and ticket are all invalid and must not be reused.
+- The revocation is written to the device audit record.
 
-Redact tokens, private keys, pairing codes, Prompts, file contents, Git diffs, and terminal bytes. Keep the version, platform, structured error, time, and non-sensitive resource ids. Close the desktop or use the project backup procedure before copying SQLite. After restore, verify workspace paths, device grants, and secret references.
+## Diagnostic data
+
+**Settings → Data & Diagnostics** provides the diagnostic export entry point. Before exporting, verify the redaction:
+
+**Must be removed:**
+- Tokens, private keys, pairing codes, and connection strings
+- Full prompts and file contents
+- Git diffs and raw terminal bytes
+
+**Safe to keep:**
+- Version, release channel, and platform
+- Structured error codes
+- Redacted timestamps
+- Non-sensitive resource ids
+
+<Warning>
+  A diagnostic export is **one-way**: once you post it to a public channel, you cannot take it back. Read it yourself after exporting before you decide to upload it.
+</Warning>
+
+## Backup
+
+- **Shut down** the authoritative runtime before backing up SQLite, or use the safe backup procedure the project provides.
+- After restoring, check that workspace paths, device authorizations, and provider credential references are still valid.
+- Headless runtime data lives in `/data` by default; mount it as a persistent volume so sessions survive a container rebuild.
+
+## Cleaning up data
+
+**Settings → Data & Diagnostics** lets you clean up local storage by category: sessions and attachments, terminal data, and diagnostic data. These operations **cannot be rolled back**.
+
+<Warning>
+  Resetting settings only affects preferences; deleting the database, the data directory, or a workspace directory are different destructive operations. Before you run any of them, make sure you really no longer need that data.
+</Warning>
 
 ## External service boundaries
 
-Agents and MCP may send context you explicitly provide to external providers. Read their privacy terms and limit data with workspace scope, approval gates, and minimal attachments.
+Agents and MCP servers may send context you explicitly provide to providers or external services. Read the privacy policy of each service before you use it, and control the data range with the smallest scope, permission approvals, and minimal attachments.
+
+Pairing with a remote authoritative runtime means **the administrator of that runtime can see your session data**. When you self-host, that administrator is you; confirm this before you connect to someone else's runtime.

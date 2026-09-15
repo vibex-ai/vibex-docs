@@ -1,67 +1,66 @@
 ---
 title: "快速開始"
-description: "安裝並完成你的第一個 Vibex Agent 會話。"
+description: "安裝 Vibex，連上一個 Agent，完成第一次會話。"
 ---
 
-這篇指南帶你從原始碼啟動桌面端、開啟工作區、設定供應商，並讓 Agent 完成一個可檢查的小任務。第一次使用建議採用可丟棄的 Git 儲存庫。
+這篇指南帶你安裝桌面端、加入一個 Agent、開啟專案目錄，然後讓 Agent 完成一個可檢查的小任務。第一次嘗試建議使用一個可丟棄的 Git 儲存庫。
 
-## 前置條件
+## 1. 安裝桌面端
 
-- 支援子模組的 Git。
-- Node.js 22 與 pnpm 11.3.0。
-- Rust 1.97.0；`rust-toolchain.toml` 會固定工具鏈版本。
-- Linux、macOS 或 Windows 圖形工作階段；Linux 需要可用 Vulkan 驅動程式。
-- 至少一個可用的 Agent 執行環境與供應商憑證。憑證只在本機設定，不要寫入文件或日誌。
+從 [GitHub Releases](https://github.com/vibex-ai/vibex/releases/latest) 下載與你平台相符的安裝套件並安裝。完整說明和各平台注意事項見[安裝](/zh-TW/install)。
 
-## 啟動桌面端
+<Note>
+  macOS 和 Windows 的安裝套件目前沒有程式碼簽章，首次開啟會被 Gatekeeper 或 SmartScreen 攔一下。放行方法見[安裝](/zh-TW/install)。
+</Note>
 
-<Steps>
-  <Step title="取得儲存庫">
-    ```bash
-    git clone https://github.com/vibex-ai/vibex.git
-    cd vibex
-    git submodule update --init --recursive
-    ```
-  </Step>
-  <Step title="安裝依賴">
-    ```bash
-    pnpm install --frozen-lockfile
-    ```
-  </Step>
-  <Step title="執行桌面工作台">
-    ```bash
-    pnpm dev:desktop
-    ```
+## 2. 加入一個 Agent
 
-    第一次編譯可能需要較長時間。桌面端啟動後，會話、檔案、Git 與終端機操作都由這個程序負責。
-  </Step>
-</Steps>
+第一次啟動時，Vibex 會顯示 **Start something new** 頁面。沒有可用 Agent 時會提示 **No Agent has been added. Open Config Center to add one.**，點擊 **Add Agent** 進入 Config Center。
 
-## 完成第一次會話
+1. 在 **Agent** 分頁的清單中找到你想用的 Agent。內建預設包括 **Claude Code**、**Codex**、**ZCode** 和 **OpenCode**，另有十多個 ACP 整合。
+2. 點擊項目右側的 **+** 將它加入。加入後項目會顯示啟用開關。
+3. 如果該 Agent 由 Vibex 託管且尚未安裝，安裝卡片會顯示 **Install**。點擊後 Vibex 會下載並驗證執行環境；安裝過程中不能取消，裝好後按鈕會變成 **Check for updates**。
+4. 如果項目顯示 **Managed by user**，代表它不在託管目錄裡，Vibex 會直接使用你 `PATH` 上的同名命令列程式——你需要先自行安裝好它。
 
-1. 在 **Config Center** 的 **Agents** 或 **Model Providers** 中加入可用設定。若 Agent 已安裝但不可用，先執行健康檢查。
-2. 開啟 Git 儲存庫作為工作區。第一次操作請使用測試分支或暫存儲存庫。
-3. 在 Composer 輸入範圍明確的任務，例如「在 `README.md` 補充安裝步驟，並先顯示計畫」。
-4. 查看時間線中的計畫與工具呼叫。需要檔案、終端機或權限時，Vibex 會顯示具體請求。
-5. Agent 完成後開啟 **Git diff**，檢查每一處變更，再決定是否儲存、提交或繼續追問。
+接著展開詳細頁裡的 **Native credentials** 卡片完成登入（`Sign in` / `Open sign-in terminal`），再在 **Model provider configuration** 卡片裡設定模型供應商和憑證。
 
-## Composer 輸入方式
+## 3. 開啟一個專案目錄
+
+1. 在側欄點擊 **New project**，或使用 **New chat** 頁面上的 **Project directory**。
+2. 在彈出的目錄瀏覽器裡選擇儲存庫根目錄，確認。
+3. 第一次嘗試請使用測試分支或臨時儲存庫——Agent 會實際修改磁碟上的檔案。
+
+## 4. 完成第一次會話
+
+1. 在 Composer 頂端選擇 Agent、供應商設定、模型和**思考深度**。
+2. 輸入一個範圍明確的任務，例如「在 `README.md` 中補充安裝步驟，並先顯示計畫」。
+3. 查看時間線中的計畫和工具呼叫。需要檔案、終端機或權限時，Vibex 會顯示具體請求，你可以 **Approve** 或 **Deny**。
+4. Agent 完成後開啟 **Git** 面板檢查 **Changes**，逐處確認變更，再決定是否提交或繼續追問。
+
+<Tip>
+  第一次任務先要求 Agent 提出計畫，再允許它修改檔案。這樣你能在時間線裡確認範圍和風險。
+</Tip>
+
+<Warning>
+  **Stop** 只停止執行，不會復原已經寫入的檔案或已經執行的命令。停止後請在 Git diff 和終端機裡分別確認結果。
+</Warning>
+
+## 了解 Composer 輸入
+
+在 Composer 中可以組合多種上下文：
 
 | 寫法 | 作用 |
 | --- | --- |
-| `/` | 選擇 Prompt 或 slash command。 |
-| `@` | 從目前工作區引用檔案或目錄。 |
+| `/` | 選擇可用的 Prompt 或 slash command。 |
+| `@` | 從目前專案引用檔案或目錄。 |
 | `$` | 插入已啟用的 Skill。 |
 | 附件按鈕 | 加入圖片等會話附件。 |
 
-傳送前可以選擇 Agent、供應商設定、模型、推理深度與 conversation mode。可用選項取決於 Agent 的能力探測結果。
-
-<Tip>
-  第一次任務先要求 Agent 顯示計畫，再允許它修改檔案。你可以先確認範圍與風險。
-</Tip>
+傳送前可以選擇 Agent、供應商設定、模型、思考深度和對話模式。不同 Agent 支援的選項不同，介面會根據執行環境探測結果顯示可用項目。
 
 ## 下一步
 
-- [安裝與平台](/zh-TW/install)
-- [工作區](/zh-TW/workspaces)
-- [Config Center](/zh-TW/config-center)
+- [核心概念](/zh-TW/concepts) —— 專案、工作區、會話和權威執行環境之間的關係。
+- [工作區](/zh-TW/workspaces) —— 檔案與 Git 的作用邊界。
+- [Config Center](/zh-TW/config-center) —— Agent、MCP 和 Skills 設定。
+- [配對行動端](/zh-TW/remote-mobile) —— 在手機上繼續這些會話。

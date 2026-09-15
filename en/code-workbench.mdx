@@ -1,74 +1,113 @@
 ---
 title: "Code workbench"
-description: "Browse, search, edit, and preview files in a Vibex workspace."
+description: "Browse, search, edit, and preview workspace files."
 ---
 
-The code workbench combines the file tree, search, editor, Git diff, and content previews. File operations stay within the selected workspace.
+The code workbench puts the file tree, search, editor, Git diff, and content previews in one window. Every file operation is bounded by the current workspace.
 
 ## File tree and search
 
-1. Open the file tree in the sidebar.
-2. Use filename search to locate a path.
-3. Use content search to find text and its line location.
-4. Open a result in a preview tab. Tabs can be arranged side by side or in splits.
+Open the file tree from the **Files** icon in the right sidebar:
 
-Large files, undecodable content, and paths outside the workspace can be rejected by the file service.
+1. Expand workspace directories, or type a file name to jump straight to it (type-ahead).
+2. Use **Search workspace files** to search by content; you can toggle **Match case**, **Match whole word**, and regular expression mode.
+3. Click a file to open it in a preview tab. Several tabs can sit side by side or in splits.
 
-## Edit and save
+The file tree context menu offers **New File**, **New Folder**, **Cut**, **Copy**, **Paste**, **Copy Relative Path**, **Copy Absolute Path**, **Copy File Name**, **Rename**, **Delete**, and the **Open In** submenu (**Editor** / **Default App** / **Terminal** / **Native Terminal** / **File Manager**). You can also drag and drop files to move them.
+
+Search never modifies files on its own. Large files, undecodable content, and paths outside the workspace are rejected by the file service.
+
+## Editing and saving
 
 - Edit text directly in the editor.
-- Select **Save** or press `cmd-s` (usually `ctrl-s` on Windows/Linux).
-- Confirm the path before creating, renaming, or deleting a file.
-- The editor persists soft-wrap and whitespace-display preferences, which you can toggle from the toolbar.
-- The editor header shows the file name, relative directory, and state. Its footer shows the cursor position, line count, language, encoding, line ending, and file size.
-- **Save** carries the revision that was read. If an external process changed the file, saving pauses for a reload or diff instead of silently overwriting it.
-- If an external process deletes the file, the editor marks it missing and keeps dirty content in a recovery buffer until you save it elsewhere or discard it.
+- Use **Save file** to save the current file (`cmd-s`).
+- The toolbar toggles **soft wrap** and **whitespace** display.
+- The status bar shows `Ln N, Col N`, the total line count, language, encoding (`UTF-8` / `UTF-8 BOM` / `Binary`), line endings (`LF` / `CRLF` / `Mixed EOL`), and file size.
+- The title bar shows **Modified** (unsaved changes), **Saving**, or **Saved**.
 
-<Warning>Deleting a file changes the workspace. Check Git status and create a recovery point before deleting.</Warning>
+<Note>
+  The editor has **no** Save As: saving always writes back to the original path. There is also no in-file find bar — `cmd-f` opens session search.
+</Note>
+
+### Large files and read-only
+
+These files open read-only and are marked **Large file - read only** or **Binary - read only** in the title bar:
+
+- Larger than 8 MiB
+- More than 50,000 lines
+- Truncated content
+- Content detected as binary
 
 ## Editor protection and recovery
 
-Each editor buffer tracks saved content, the external revision, and a local revision. A save is accepted only while those values still match; a concurrent edit produces a conflict that requires a fresh read and an explicit merge decision. Before switching workspaces or closing a tab, the desktop checks dirty, save-pending, external-conflict, and missing-file states and blocks the action when needed.
+Each editor buffer tracks the saved content, the external revision, and the local revision at the same time. Save requests use optimistic concurrency control: if the content on disk has already changed, the save fails with `file_external_revision_changed` instead of overwriting silently.
 
-After a restart or workspace reload, the desktop restores bounded dirty buffers. Restored content still requires an explicit save and never silently overwrites the file on disk.
+Tabs with unsaved changes prompt **Save or discard the dirty editor before closing it** when you close them; switching workspaces is blocked the same way.
 
-## Content previews
+After the authoritative runtime restarts, Vibex restores unsaved buffers (marked **Restored buffer**). Restored content still needs an explicit save and never overwrites files on disk automatically.
 
-| Type | Supported workflow |
+<Warning>
+  Deleting a file changes the workspace. Check Git status before you delete, and copy the content or create a commit first if you need to.
+</Warning>
+
+## Content preview
+
+| Type | Extensions | What you can do |
+| --- | --- | --- |
+| Markdown | `md` `mdx` `markdown` | Rendered view with code blocks, tables, task lists, footnotes, math, and diagrams (Mermaid / PlantUML). |
+| Images | `png` `jpg` `jpeg` `gif` `webp` `svg` | Preview the image. |
+| PDF | `pdf` | Native PDF preview with **Fit width**, 50%–200% zoom, and page jumping. |
+| Office | `docx` `xlsx` `ods` `pptx` | Read-only content preview. |
+| Audio and video | `mp4` `mp3` `wav`, and more | **Not played in the app**; handed to the system default app. |
+| Other | Every other text format | Opens in the editor. |
+
+The Markdown preview offers a **Contents** outline, **Copy document text**, per-block **Copy code** / **Copy diff**, diagram source viewing, and full screen. Workspace-relative links open inside the preview; external links go to the system browser.
+
+Office previews are a **read-only extracted view**, not a faithful rendering:
+
+- `docx` — headings and paragraphs.
+- `xlsx` / `ods` — **the first worksheet only**, up to 80 rows × 20 columns.
+- `pptx` — slide text, up to 200 slides.
+
+PDF previews are read-only too, with no search, annotations, or forms.
+
+### Formats that cannot be previewed
+
+| Format | What happens |
 | --- | --- |
-| Markdown | Switch between editing and rendered views, including code, tables, formulas, and diagrams. |
-| Images | View and edit images with undo and redo. |
-| PDF | Use the native page preview. |
-| Office documents | Preview supported Office content. |
-| Other text | Open in the editor while preserving encoding and line endings. |
+| `.bmp` | Shows **Unsupported file**. |
+| `doc` `xls` `ppt` | Reports `office_legacy_format_unsupported`; convert to a modern format first. |
+| `odt` `odp` | No handler. |
+| `.html` | Opens as highlighted source text; **the page is not rendered**. |
+| `.json` `.yaml` `.csv` | Opens as source text with no formatting or table view. |
+| `.ipynb` | Opens as JSON text, not as a notebook. |
 
-Binary files and files beyond the editor limits remain read-only. Markdown resources honor workspace paths, size limits, and resource-count limits; undecodable content is not forced into the text editor.
+<Info>
+  Syntax highlighting covers Rust, TypeScript/TSX, JavaScript, JSON, Markdown, TOML, YAML, Python, Go, Java, CSS, HTML, and Shell. Other languages display as plain text.
+</Info>
 
 ## Image editing
 
-Image editing uses `cmd-z`/`cmd-shift-z` on macOS and `ctrl-z`/`ctrl-shift-z` on Windows/Linux. Confirm the output path and format before saving.
+The image editor is for **annotating images you attach before sending them**, not a general editor for image files in the workspace. Open it from **Edit image** in the Composer attachment area.
+
+Available tools: **Crop**, **Brush**, **Text**, **Rectangle**, **Circle**, **Arrow**, **Mosaic**, and **Undo edit** / **Redo edit**. Zoom runs from 25% to 400%, and you can pan by dragging.
+
+- macOS: `cmd-z` to undo, `cmd-shift-z` to redo.
+- Windows/Linux: `ctrl-z` to undo, `ctrl-shift-z` to redo.
+
+Saving re-encodes the image as **PNG**; you cannot choose another format, and there is no rotate, scale, flip, or layers.
 
 ## Preview tabs and splits
 
-Drag tabs or use the split control to inspect code, diffs, terminals, and documents together. Closing a tab does not delete its file or terminal; it closes only the current view.
+Drag a tab, or use **Split right** / **Split down** in the tab menu, to split the view; you can drag the split boundary to resize it. Code, diffs, terminals, and documents can all share one window.
+
+Closing a tab does not delete a file or a terminal — it only closes the current view.
 
 ## Tab actions
 
 - Hover a file or diff tab to see its full path.
-- Use a tab context menu to close the current, other, or all tabs and to pin a tab. The **Tab actions** menu on the tab strip provides the other-tab and all-tab commands.
-- A pinned tab must be unpinned before it can close. **Close other tabs** and **Close all tabs** keep pinned tabs and dirty editor tabs open; save or discard dirty content first.
-- For non-terminal preview tabs, `cmd-w` (`ctrl-w` on Windows/Linux) closes the active tab. `cmd-tab`/`cmd-shift-tab` and `cmd-pageup`/`cmd-pagedown` (`ctrl` on Windows/Linux) cycle tabs. When a tab has focus, the left and right arrow keys also cycle them.
+- Tab context menu: **Close tab**, **Close other tabs**, **Close tabs to the left**, **Close tabs to the right**, **Close all tabs**, **Split right**, **Split down**, **Pin tab** / **Unpin tab**, **Reveal in Files**, **Open In**.
+- A pinned tab must be unpinned before it can close. When you close other tabs, pinned tabs and unsaved tabs stay open.
+- `cmd-w` closes the current preview tab; `cmd-tab` / `cmd-shift-tab` and `cmd-pageup` / `cmd-pagedown` cycle through tabs. Terminal tabs do not use these shortcuts.
 
-## Common shortcuts
-
-| Action | macOS | Windows/Linux |
-| --- | --- | --- |
-| Save file | `cmd-s` | `ctrl-s` |
-| Open preview | `cmd-shift-p` | `ctrl-shift-p` |
-| Sidebar | `cmd-b` | `ctrl-b` |
-| Close active preview tab | `cmd-w` | `ctrl-w` |
-| Cycle preview tabs | `cmd-tab` / `cmd-shift-tab` | `ctrl-tab` / `ctrl-shift-tab` |
-| Previous/next tab | `cmd-pageup` / `cmd-pagedown` | `ctrl-pageup` / `ctrl-pagedown` |
-| Back/forward | `alt-left` / `alt-right` | `alt-left` / `alt-right` |
-
-Review or change shortcuts in **Settings > Shortcuts**.
+For the complete shortcut list, see [Shortcut reference](/en/reference/shortcuts).

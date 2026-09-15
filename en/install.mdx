@@ -1,69 +1,105 @@
 ---
-title: "Install and platforms"
-description: "Prepare desktop, mobile, and optional self-hosted Relay environments for Vibex."
+title: "Install"
+description: "Download and install the Vibex desktop, and prepare mobile and a self-hosted runtime."
 ---
 
-The Vibex repository provides source builds. The desktop supports Linux, macOS, and Windows. Mobile uses native Android and iOS projects. Relay is optional.
+Vibex ships ready-made release artifacts for the desktop, Android, and the self-hosted server. **End users do not need to install Rust, Node.js, or pnpm**: the desktop installers are self-contained.
+
+Every artifact lives on the same page:
+
+<Card title="Download the latest release" icon="download" href="https://github.com/vibex-ai/vibex/releases/latest">
+  Open the GitHub Releases latest page and pick the artifact that matches your platform.
+</Card>
+
+<Tip>
+  Vibex is still in a candidate phase: besides stable builds, releases may be published as `-rc.N` or `-preview.N` prereleases. **The latest page always resolves to the newest one**; use the [full release list](https://github.com/vibex-ai/vibex/releases) when you need a specific version.
+</Tip>
 
 ## Desktop
 
-| Item | Requirement |
-| --- | --- |
-| Node.js | 22. Node 26 is not supported by the current Mintlify and some build scripts. |
-| pnpm | 11.3.0, as declared by `package.json`. |
-| Rust | 1.97.0, using the repository toolchain file. |
-| Graphics | A native graphical session. Linux needs Vulkan. |
-| Git | Submodules and access to the repository you want to open. |
+| Platform | Artifact | Notes |
+| --- | --- | --- |
+| Linux x86_64 | `.deb` / `.AppImage` | Requires a working Vulkan driver |
+| Linux aarch64 | `.deb` | No AppImage for this architecture |
+| macOS (Apple silicon / Intel) | `.dmg` | Requires a recent macOS and a native graphical session |
+| Windows x86_64 / ARM64 | `.exe` (NSIS) | Installs per user; no administrator rights needed |
 
-```bash
-git clone https://github.com/vibex-ai/vibex.git
-cd vibex
-git submodule update --init --recursive
-pnpm install --frozen-lockfile
-pnpm dev:desktop
-```
+The Linux `.deb` depends on `libvulkan1`, `libxcb1`, `libxcb-xkb1`, `libxkbcommon0`, `libxkbcommon-x11-0`, `libdbus-1-3`, `libfontconfig1`, and an appindicator library (`libayatana-appindicator3-1` or `libappindicator3-1`). Your distribution's package manager usually resolves these dependencies for you.
 
-<Note>The command starts a development build. Release packages, signing, and download channels are defined by the repository Release process.</Note>
+<Warning>
+  **The macOS and Windows installers are currently unsigned.**
+  - On macOS, Gatekeeper blocks the first launch: in **Finder**, hold Control and click the app icon, choose **Open**, then confirm once more. Alternatively, run `xattr -d com.apple.quarantine /Applications/Vibex*.app`.
+  - On Windows, SmartScreen shows a prompt: choose **More info** → **Run anyway**.
+
+  These prompts come from the missing signing certificate, not from a problem with the installer. Every artifact ships with a matching `.sha256` file, and `SHA256SUMS` collects all the checksums.
+</Warning>
+
+### Release channels
+
+Desktop installers carry a **channel identity baked in at compile time**, and different channels can be installed side by side without interfering:
+
+| Channel | Product name | Data directory |
+| --- | --- | --- |
+| Preview | Vibex Preview | `desktop-preview` |
+| RC | Vibex RC | `desktop-rc` |
+| Stable | Vibex | `desktop-stable` |
+
+Each channel has its **own SQLite database and configuration**. Switching channels does not migrate data, so if you configured Agents and providers on RC, you need to configure them again after installing Stable. The channel is determined by the installer and cannot be switched inside the app.
+
+### Upgrades
+
+The desktop has built-in signed automatic updates. In **Settings → About → Software update**:
+
+- The app checks once about 30 seconds after launch, then every 2 hours on the RC / Preview channels and every 6 hours on Stable.
+- The update manifest is verified with an Ed25519 signature, and the artifact is then verified with SHA-256. A failed check is never installed.
+- The install method depends on the package format: **AppImage replaces itself in place**; `.deb`, macOS `.app`, and NSIS **hand off to the system installer** and need an app restart afterwards.
+
+Only builds from the same channel are accepted: an RC installer only looks at `-rc.*` versions. If automatic updates are unavailable, download the new installer manually and install it over the old one.
 
 ## Android
 
-Android needs the SDK/NDK, `cargo-ndk`, and Rust targets for the selected ABIs. Debug defaults to `arm64-v8a` and `x86_64`; Release defaults to `arm64-v8a`.
+The Android client is side-loaded from GitHub Releases:
 
-```bash
-pnpm build:mobile:android
-pnpm package:mobile:android
-```
+1. Download `vibex-<version>-android-arm64.apk`.
+2. Allow installs from that source in your system settings.
+3. Open the APK to finish installing (the app ID is `ai.vibex.mobile`).
 
-Set `VIBEX_MOBILE_ANDROID_TARGETS` to a space-separated ABI list to override Debug targets. A local `pnpm package:mobile:android` build produces an unsigned Release APK that must be aligned and signed with your distribution key. A tagged GitHub Release aligns and signs the APK/AAB before upload; RC and Preview use an ephemeral CI key when no repository key is configured, while Stable requires a release key.
+<Warning>
+  Candidate builds **cannot upgrade in place over one another**. When no release key is configured, every RC release uses a one-time CI signing key, so different RCs are signed differently. Upgrading across versions requires uninstalling the old build first and then installing the new one. Uninstalling clears the locally stored pairing credentials, so you need to pair again.
+</Warning>
 
 ## iOS
 
-iOS needs macOS, Xcode, XcodeGen, and the `aarch64-apple-ios` and `aarch64-apple-ios-sim` Rust targets.
+<Warning>
+  **There is currently no iOS build that can be distributed to end users.** The only release artifacts are an unsigned **simulator** app bundle (`ios-simulator.app.zip`) and `VibexFFI.xcframework`, both of which need macOS and Xcode to run or integrate. On-device installs, TestFlight, and App Store distribution are not available yet.
+</Warning>
+
+To try it in the simulator, you need macOS, Xcode, XcodeGen, and the `aarch64-apple-ios` and `aarch64-apple-ios-sim` Rust targets, then build from source:
 
 ```bash
 pnpm build:mobile:ios
 ```
 
-The script creates `VibexFFI.xcframework` and an Xcode project. Your local environment controls signing, device/simulator selection, and distribution credentials.
+## Self-hosting
 
-## Self-hosted Relay
+Build your own server when you want to work across networks, or when you would rather not keep session data on an always-on personal computer:
 
-Use Relay when the desktop and phone cannot connect directly and you want to operate the transport yourself. Relay forwards encrypted frames. It does not store or decrypt workspace, session, Git, terminal, or provider data.
+- **[Self-hosted headless runtime](/en/self-hosted-server)** — `vibex-server` is an authoritative runtime with the same capabilities as your desktop, and it suits a server or an always-on home machine.
+- **[Self-hosted Relay](/en/relay)** — a relay that only forwards end-to-end encrypted frames. It performs no business authorization and stores no business data.
 
-```bash
-docker compose -f deploy/relay/docker-compose.yml up --build -d relay-server
-curl -fsS http://127.0.0.1:9700/health
-docker compose -f deploy/relay/docker-compose.yml down
-```
+Both publish multi-architecture container images (`linux/amd64`, `linux/arm64`).
 
-Use a controlled HTTPS/WSS entry point such as Caddy or a private Tailnet in production. See [Remote v2 and Relay](/en/developer/remote-protocol).
+## Build from source
 
-## Verify the environment
+If you need to change the code, or your platform has no ready-made artifact, see [Build from source](/en/from-source).
 
-```bash
-pnpm check
-pnpm release:build-smoke
-pnpm check:mobile-native
-```
+## Uninstall
 
-These commands cover routine Rust/frontend/license checks, the desktop/mobile/Relay build graph, and native mobile contracts. They do not replace network or signing tests on physical devices.
+| Platform | How |
+| --- | --- |
+| Linux (deb) | `sudo apt remove vibex-rc` (swap the package name for your channel) |
+| Linux (AppImage) | Delete the AppImage file |
+| macOS | Drag the app to the Trash |
+| Windows | Uninstall from "Apps & features" |
+
+The uninstaller does **not** delete the data directory. To remove everything, read [Privacy and recovery](/en/privacy-and-recovery) first, then delete the data directory for that channel by hand.

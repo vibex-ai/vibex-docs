@@ -1,17 +1,17 @@
 ---
-title: "Local setup"
-description: "Install Vibex Rust, Node, pnpm, and platform dependencies."
+title: "Local development environment"
+description: "Install the Rust, Node, pnpm, and platform dependencies for Vibex."
 ---
 
 ## Toolchain
 
-| Tool | Version or note |
+| Tool | Version or notes |
 | --- | --- |
-| Node.js | 22. |
-| pnpm | 11.3.0, declared by `packageManager`. |
-| Rust | 1.97.0, pinned by `rust-toolchain.toml`. |
-| Git | Submodule support required. |
-| Linux graphics | A graphical session with a working Vulkan driver. |
+| Node.js | 22 |
+| pnpm | 11.3.0, declared by the `packageManager` field in `package.json` |
+| Rust | 1.97.0, pinned by `rust-toolchain.toml` |
+| Git | Submodule support required |
+| Linux graphics | A working Vulkan driver and a graphical session |
 
 ```bash
 git clone https://github.com/vibex-ai/vibex.git
@@ -20,35 +20,52 @@ git submodule update --init --recursive
 pnpm install --frozen-lockfile
 ```
 
-## Run the desktop
+## Start the desktop
 
 ```bash
 pnpm dev:desktop
 ```
 
-Targeted Rust checks:
+The script prepares development icons and runs `vibex-desktop`. To check Rust on its own:
 
 ```bash
 cargo check -p vibex-desktop --locked
 cargo test -p vibex-desktop --locked
+pnpm smoke:first-frame
 ```
 
-## Optional mobile environments
+## Optional: mobile environment
 
-Android needs the SDK/NDK, `cargo-ndk`, and Rust targets for the selected ABIs. iOS needs macOS, Xcode, XcodeGen, `aarch64-apple-ios`, and `aarch64-apple-ios-sim` targets.
+- **Android** — Android SDK/NDK, `cargo-ndk`, and the Rust targets for the target ABI.
+- **iOS** — macOS, Xcode, XcodeGen, and the `aarch64-apple-ios` and `aarch64-apple-ios-sim` targets.
 
-## Optional Relay environment
+## Optional: self-hosted environment
 
-Relay development can use Docker with loopback binding:
+Local development needs a runnable Rust binary or Docker:
 
 ```bash
 docker compose -f deploy/relay/docker-compose.yml up --build -d relay-server
+docker compose -f deploy/server/docker-compose.yml up --build -d vibex-server
 curl -fsS http://127.0.0.1:9700/health
-docker compose -f deploy/relay/docker-compose.yml down
+curl -fsS http://127.0.0.1:8765/api/v2/info
 ```
 
-See [Remote v2 and Relay](/en/developer/remote-protocol) for production networking.
+Note that the two services expose different info endpoints. For networking, HTTPS, Tailnet, and environment variables, see [Self-hosted headless runtime](/en/self-hosted-server) and [Self-hosted Relay](/en/relay); for protocol details, see [Remote v2 and Relay](/en/developer/remote-protocol).
 
-## Workspace conventions
+## Desktop debug switches
 
-Run scripts from the repository root. Do not commit `target`, signed packages, PDFium runtimes, or local credentials. Preserve unrelated uncommitted changes in the product repository.
+```bash
+VIBEX_DISABLE_REMOTE_CLIENT=1 pnpm dev:desktop   # Ignore saved remote credentials and force the local runtime
+VIBEX_HOME=/tmp/vibex-dev pnpm dev:desktop       # Use a separate runtime home
+VIBEX_PROVIDER_SECRET_STORE=file pnpm dev:desktop # Fall back to a host key file when there is no keychain
+```
+
+`vibex-desktop` also exposes several probe entry points (`--probe`, `--spike-*`, `--native-content-*`). These are developer tools, not user features; do not present them as product capabilities in documentation.
+
+## Repository conventions
+
+Run scripts from the repository root.
+
+- Do not commit `target`, signed packages, the PDFium runtime, or local credentials.
+- Before you change the product repository, check for existing uncommitted changes in the working tree and preserve them.
+- User-visible behavior changes require updating the documentation in all three languages; see [Contributing](/en/developer/contributing).

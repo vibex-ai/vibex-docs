@@ -1,50 +1,136 @@
 ---
 title: "Remote v2 與 Relay"
-description: "實作配對、認證、同步和自託管加密傳輸時遵循的協議邊界。"
+description: "實作配對、認證、同步和自架加密傳輸時遵循的協議邊界。"
 ---
 
-Remote v2 是桌面端與行動端之間的型別化協議。業務授權留在桌面端，傳輸路線（Direct、Tailnet、Relay）可替換。
+Remote v2 是權威執行環境與客戶端之間的型別化協議。它把業務授權留在權威端，把傳輸路線（Direct、Tailnet、Relay、區域網路）當作可替換的基礎設施。
 
-## 配對與身份
+線協議的完整定義在儲存庫 `docs/remote/protocol-v2.md`，`crates/core/src/remote_v2.rs` 是 wire 層面的唯一事實來源。本頁只涵蓋實作時必須遵守的邊界。
 
-- 桌面身份在執行環境 home 產生並以 Unix `0600` 保存。
-- pairing offer 有效約 60–120 秒，可取消且只能使用一次。
-- QR/deep link 格式為 `vibex://open/<transport>#/pair/<base64url-offer>`。
-- offer 不含長期 grant、供應商 secret、私鑰或工作區資料。
-- 撤銷裝置後，所有活動連線收到 `device_revoked`。
+## 兩種配對路徑
 
-## 握手與金鑰
+Vibex 有兩條形式不同的配對路徑，不要混用：
 
-使用 X25519、HKDF-SHA256、HMAC-SHA256 與 ChaCha20-Poly1305。WebSocket ticket 有效 30 秒且只能使用一次，透過受控 subprotocol 傳遞，不放在 URL。
+| 路徑 | 連結形式 | 有效期 | 由誰產生 |
+| --- | --- | --- | --- |
+| 桌面端 SAS offer | `vibex://open/<transport>#/pair/<base64url-offer>` | 60–120 秒 | 桌面端（配對手機） |
+| 無頭執行環境配對碼 | `vibex://pair#/code/<base64url-payload>` | 預設 5 分鐘，最長 30 分鐘 | `vibex-server` |
 
-hello proof 綁定 ticket challenge、完整 hello transcript、伺服器身份、session epoch、配對裝置身份與暫時金鑰。`server_info` 回傳伺服器暫時金鑰和會話金鑰確認。
+`<transport>` 取值 `direct`、`tailnet` 或 `self_hosted_relay`。
 
-## RPC、事件與同步
+### offer 路徑
 
-業務操作都經過裝置認證、權限與工作區授權。變更使用有界 idempotency key；檔案寫入使用修訂/CAS。序號或 cursor 有缺口時回傳 `resync_required`。附件和終端機串流必須在授權後建立。
+- 桌面端身份在執行環境 home 中產生，Unix 下以 `0600` 權限儲存。
+- offer 可取消、只能使用一次，其取用與裝置授權的建立在**同一個 SQLite 交易**中完成。
+- offer 包含候選路線、桌面公開金鑰、權限摘要、過期時間和一次性 challenge，**不包含**長期授權、金鑰或工作區資料。
+- 行動端在本機解析連結，非同步處理前先剝離 fragment。
 
-終端機附件串流帶有工作區範圍。終端機輸入需經 generation 檢查和審計，且不保存原始位元組。
+### 配對碼路徑
+
+- 九位數字，按 `NNN-NNN-NNN` 分組，由 UUIDv4 衍生，**只持久化它的 SHA-256 雜湊**。
+- 客戶端在 `POST /api/v2/pairing/code/claim` 宣告配對碼；配對碼**只出現在請求主體裡，從不放入 URL**，因此不會進入代理和存取日誌。
+- 該端點與其他未認證路由共享每個對等端的限流和認證失敗預算。
+- 宣告是一次性的：重複使用、格式錯誤或已過期會回傳 `remote_pairing_code_invalid` / `remote_pairing_code_expired`，並寫入 `pairing_code_rejected` 審計記錄。
+- 成功宣告回傳**恰好一個**裝置授權，權限層級在建立配對碼時決定。
+
+### 連線串與證書固定
+
+`vibex://pair#/code/<payload>` 的 payload 是一個 JSON 物件：
+
+```json
+{
+  "schemaVersion": "vibex-pairing-code.v1",
+  "serverUrl": "https://192.168.1.10:8765",
+  "pairingCode": "123-456-789",
+  "tlsCertificateDer": "<base64 DER>"
+}
+```
+
+`tlsCertificateDer` 是可選的。**證書隨連線串帶外傳遞**（來自伺服器主控台，而不是網路），客戶端在發出第一個 TLS 請求之前就固定它，因此區域網路自簽場景不需要公共 CA。指紋格式為 `sha256:<base64url(sha256(DER))>`。
+
+固定型連結必須是 `https` 且指向數值型區域網路位址（loopback、RFC1918 或連結本機 / 唯一本機 IPv6），否則回傳 `remote_pairing_link_invalid`。這是刻意限制：配對不能變成繞過公網 CA 體系的手段。
+
+伺服器身份金鑰與 TLS 證書**分開**固定，前者從 `/api/v2/info` 的 `serverIdentityPublicKey` 取得。
+
+## 握手和金鑰
+
+實作使用 X25519、HKDF-SHA256、HMAC-SHA256 和 ChaCha20-Poly1305 等成熟原語。
+
+- 連線以 `control/hello` 開始，收到 `control/server_info` 結束握手；協議使用範圍協商，目前選擇 `2.0`。
+- WebSocket ticket 有效期 30 秒、單次使用，透過受控 subprotocol 交換，**不放在 URL 中**。
+- hello proof 綁定 ticket challenge、完整 hello transcript、伺服器身份、session epoch、裝置身份和客戶端臨時金鑰。
+- `server_info` 回傳伺服器臨時金鑰和會話金鑰確認。
+
+## 幀類型
+
+| 類型 | 用途 |
+| --- | --- |
+| JSON `control` | hello、ping/pong、subscribe、attach/detach、resync、close。 |
+| JSON `rpc_request` / `rpc_response` | 帶請求和關聯 id。RPC 逾時只結束該請求，不會斷開 socket；每條連線有有界 in-flight 上限。 |
+| JSON `event` | 攜帶 domain generation 與單調序號。 |
+| 二進位幀 | 以 `VBX2` 開頭，接大端 JSON 標頭長度、型別化標頭和原始負載。終端機位元組**從不**轉成 UTF-8。 |
+
+未知的 client、control、JSON message、attachment、binary frame、timeout、close 和 transport 列舉值一律解碼為 `unknown`；未知的活動訊息以結構化協議原因關閉，而不是 panic。舊版 `0.4` HTTP 與 `/ws` 路由是相容端點，新客戶端使用 `/ws/v2`。
+
+## RPC、事件和同步
+
+所有業務操作都經過裝置認證、權限和工作區授權。變更使用有界冪等鍵；檔案操作額外使用內容修訂 / CAS。
+
+客戶端發現序號或游標間隙時回傳 `resync_required`，並指向一個權威操作重新取得。附件串流在開始前重新認證並授權其 domain；終端機附件帶工作區作用域，終端機輸入需 generation 檢查、授權和審計，**不保留原始位元組**。
+
+裝置授權撤銷後，該裝置的所有活動連線立即收到 `device_revoked`。執行環境關閉時傳送 `server_shutdown`，排空監聽並釋放 socket。
+
+## 權限模型
+
+`RemoteDevicePermissionLevel` 有三個取值，序列化為 `read_only` / `approve_only` / `full_control`：
+
+| 層級 | 允許的操作類 |
+| --- | --- |
+| `read_only` | `ReadProject`、`ReadAgentSession`、`ReadProviderSettings`；其餘一律拒絕並審計為 `permission_denied`。 |
+| `approve_only` | 上述讀取，加上 `ResolvePermission`、`ResolveElicitation`。 |
+| `full_control` | 全部 13 類，包含 `MutateAgentSession`、`MutateAgentAuthentication`、`MutateFile`、`MutateGit`、`MutateTerminal`、`MutateProviderSettings`、`ReadDeviceManagement`、`MutateDeviceManagement`。 |
+
+層級在權威端建立 offer / 配對碼時決定，客戶端無法自行提權。
+
+## 閘道端點
+
+| 端點 | 說明 |
+| --- | --- |
+| `/api/v2/info` | 能力、`serverIdentityPublicKey`、`pairingCodeClaimPath`。 |
+| `/api/v2/pairing/claim` | offer 宣告。 |
+| `/api/v2/pairing/code/claim` | 配對碼宣告。 |
+| `/api/v2/pairing/lan`、`/request`、`/status` | 區域網路配對。 |
+| `/api/v2/ws-ticket` | 換取 WebSocket ticket。 |
+| `/ws/v2` | Remote v2 主通道。 |
 
 ## Relay 約束
 
-Relay 只轉發不透明加密框，可提供 `/health`、`/api/info` 和 WebSocket bridge 的路由中繼資料，不執行業務授權或讀寫工作區。
+Relay 是一個**零知識房間路由器**：它只轉發不透明加密幀，可以暴露 `/health`、`/api/info` 和 WebSocket bridge 所需的路由中繼資料，但**不**執行業務授權、不讀寫工作區、不保存供應商設定或時間線。
+
+Relay 上的端點是 `/health`、`/api/info`、`/ws`、`/api/rooms/{room_id}/pair|command` 和兩個 `/api/push/*`。**Relay 上沒有 `/api/v2/info`**——那是權威執行環境的端點。
+
+本機檢查：
 
 ```bash
 pnpm smoke:relay:local
 cargo test -p vibex-remote-client --test relay_smoke --locked -- --nocapture
 ```
 
-Relay 日誌不得記錄 token、配對碼、私鑰、Prompt、檔案路徑、終端機內容、Git diff、Provider 設定、原始密文或 nonce。
-
 ## 連線策略
 
-Remote client 可在 Direct、Tailnet、Relay 間探測和回退，不需重新配對。路線恢復後先重新探測再切換；裝置撤銷後，任何路線都必須失敗。
+客戶端可以在 Direct、Tailnet、Relay 和區域網路之間探測和回退。路線恢復後應重新探測並切換，**不需要重複配對**；如果裝置已被撤銷，任何路線都必須失敗。
 
-## 部署範例
+## 部署
 
 ```bash
 docker compose -f deploy/relay/docker-compose.yml up --build -d relay-server
 curl -fsS http://127.0.0.1:9700/health
 ```
 
-公開部署前設定 HTTPS/WSS、Host/Origin 校驗、連線和房間上限，並閱讀儲存庫的 `docs/smoke/relay-nat.md`。
+發佈到公網前請設定 HTTPS/WSS、Host/Origin 驗證、連線與房間上限，並閱讀儲存庫中的 `docs/smoke/relay-nat.md` 與 `docs/smoke/remote-lan.md`。
+
+## 日誌與證據要求
+
+不要在 Relay 日誌和測試證據中記錄：token、配對碼、私密金鑰、提示詞、檔案路徑、終端機內容、Git diff、供應商設定、原始密文或 nonce。
+
+Relay 日誌應只包含路由、計數和時序中繼資料。

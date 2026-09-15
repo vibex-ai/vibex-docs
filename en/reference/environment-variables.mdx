@@ -1,0 +1,102 @@
+---
+title: "Environment variables"
+description: "Reference for self-hosted runtime, Relay, and desktop configuration."
+---
+
+## Desktop
+
+| Variable | Description |
+| --- | --- |
+| `VIBEX_HOME` | Overrides the base directory of the runtime home. Channel-specific directories (`desktop-preview` / `desktop-rc` / `desktop-stable`) are created under it. |
+| `VIBEX_PROVIDER_SECRET_STORE` | `keychain` (default) or `file`. Hosts without a usable keychain must set `file`. |
+| `VIBEX_DISABLE_REMOTE_CLIENT` | Set to `1` to force the local authoritative runtime and ignore saved remote credentials. |
+| `VIBEX_CHANNEL` | A build-time variable that cannot be overridden at runtime. Trying to switch channels at runtime returns `release_channel_override_rejected`. |
+
+## Headless runtime `vibex-server`
+
+### Paths and identity
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `VIBEX_HOME` | `/data` | Runtime home: database, Agent installations, identity keys. |
+| `VIBEX_DB_PATH` | `$VIBEX_HOME/vibex.db` | Path to the authoritative SQLite database. |
+| `VIBEX_WORKSPACE_ROOTS` | `$VIBEX_HOME` | Comma-separated absolute paths that limit which project directories clients can choose. |
+| `VIBEX_APPLICATION_ID` | `dev.vibex.server` | The application identity used for the home lock. |
+| `VIBEX_ACQUIRE_HOME_LOCK` | `true` | Fail immediately when another runtime already holds this home. |
+
+### Network and TLS
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `VIBEX_BIND_ADDR` | `127.0.0.1:8765` | Gateway listen address. |
+| `VIBEX_DEPLOYMENT_MODE` | `loopback` | `loopback` / `lan` / `public`. |
+| `VIBEX_TLS_MODE` | `loopback_http` in loopback mode, otherwise `trusted_https_proxy` | Can also be set to `pinned_certificate` or `server_certificate`. |
+| `VIBEX_TLS_CERT_FILE` / `VIBEX_TLS_KEY_FILE` | unset | Required in `server_certificate` mode. |
+| `VIBEX_PUBLIC_HOST` | unset | The address advertised to pairing clients; also used to generate the connection string. Include the port for direct local network connections. |
+| `VIBEX_ALLOWED_HOSTS` | `localhost,127.0.0.1,::1` | Accepted `Host` values; a mismatch returns `421`. |
+| `VIBEX_ALLOWED_ORIGINS` | The loopback HTTP origin | Accepted browser origins; a mismatch returns `403`. |
+| `VIBEX_TRUST_FORWARDED_HEADERS` | `false` | Can be enabled only in `trusted_https_proxy` mode. |
+| `VIBEX_GATEWAY_ENABLED` | `true` | Master switch for the Remote v2 listener. |
+
+### Runtime behavior
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `VIBEX_PROVIDER_SECRET_STORE` | `file` | Headless hosts write `provider-secrets.json` (`0600`) by default. Can be set to `keychain`. |
+| `VIBEX_INSTALL_MANAGED_ADAPTERS` | `true` | Install managed Agent runtimes at startup. |
+| `VIBEX_EVENT_CAPACITY` | `512` | Backlog cap for events broadcast by the runtime. |
+| `VIBEX_DELEGATION_SIDECAR_COMMAND` | The server binary itself | The executable that provides the delegation MCP sidecar. |
+| `VIBEX_HEALTHCHECK_URL` | `http://127.0.0.1:8765/api/v2/info` | Container health check address. |
+
+### Connections and rate limiting
+
+| Variable | Description |
+| --- | --- |
+| `VIBEX_MAX_CONNECTIONS` | Number of concurrent WebSocket connections. |
+| `VIBEX_MAX_IN_FLIGHT_RPCS` | Concurrent RPC cap per connection. |
+| `VIBEX_OUTBOUND_QUEUE_CAPACITY` | Event queue cap per connection. |
+| `VIBEX_UNAUTHENTICATED_REQUESTS_PER_WINDOW` | Per-peer rate limit for unauthenticated routes (info, claim, ws-ticket). |
+| `VIBEX_AUTH_FAILURES_PER_WINDOW` | Authentication failure budget before a temporary ban. |
+| `VIBEX_RATE_LIMIT_WINDOW_MS` | Length of the rate limit window. |
+| `VIBEX_MAX_TRACKED_PEERS` | Capacity cap for the peer tracking table. |
+
+## Relay
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `VIBEX_RELAY_BIND_ADDR` | `127.0.0.1:9700` | Listen address. |
+| `VIBEX_RELAY_HOST_BIND` | — | Overrides the binding when you explicitly use host networking. |
+| `VIBEX_RELAY_SITE_ADDRESS` | — | The public domain used by the Caddy profile. |
+| `VIBEX_RELAY_ROOM_TTL_MS` | `3600000` | How long a room lives. |
+| `VIBEX_RELAY_BRIDGE_TIMEOUT_MS` | `30000` | Compatibility bridge timeout. |
+| `VIBEX_RELAY_HEARTBEAT_TIMEOUT_MS` | `45000` | Heartbeat timeout. |
+| `VIBEX_RELAY_MAX_ROOMS` | `1024` | Maximum number of rooms. |
+| `VIBEX_RELAY_MAX_TOTAL_CONNECTIONS` | `4096` | Maximum total connections. |
+| `VIBEX_RELAY_MAX_CONNECTIONS_PER_ROOM` | `1` | PC connections per room, **fixed at 1**. |
+| `VIBEX_RELAY_MAX_DEVICES_PER_ROOM` | `8` | Devices per room. |
+| `VIBEX_RELAY_MAX_BODY_BYTES` | `1048576` | Request body limit. |
+| `VIBEX_RELAY_MAX_REQUESTS_PER_WINDOW_PER_ROOM` | `120` | Requests per room per window. |
+| `VIBEX_RELAY_MAX_QUEUE_BYTES_PER_CONNECTION` | `4194304` | Queue limit per connection. |
+| `VIBEX_RELAY_MAX_BANDWIDTH_BYTES_PER_WINDOW` | `16777216` | Bandwidth limit per window. |
+| `VIBEX_RELAY_PUSH_PROVIDER` | unset | Optional push provider. |
+| `VIBEX_RELAY_PUSH_AUTH_TOKEN` | unset | Push authentication token. |
+| `VIBEX_RELAY_PUSH_ADAPTER_URL` | unset | Push adapter address. |
+| `VIBEX_RELAY_PUSH_ADAPTER_AUTH_TOKEN` | unset | Push adapter token. |
+
+## Build-time variables
+
+These apply only when building or packaging from source:
+
+| Variable | Description |
+| --- | --- |
+| `VIBEX_CHANNEL` | `preview` / `rc` / `stable`; determines product identity and data directories. |
+| `VIBEX_MOBILE_ANDROID_TARGETS` | Space-separated ABI list that overrides the Debug defaults. |
+| `VIBEX_ANDROID_KEYSTORE_BASE64` | The keystore used for release signing. |
+| `VIBEX_ANDROID_KEYSTORE_PASSWORD` | Keystore password. |
+| `VIBEX_ANDROID_KEY_PASSWORD` | Key password (optional). |
+| `VIBEX_ANDROID_KEY_ALIAS` | Key alias; defaults to `vibex`. |
+| `VIBEX_UPDATE_PUBLIC_KEY` | Public key for verifying update manifests. |
+
+<Warning>
+  Never write secret environment variables into version control, diagnostics, or public issues.
+</Warning>

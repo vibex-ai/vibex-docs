@@ -1,0 +1,75 @@
+---
+title: "MCP 與 Skills"
+description: "為 Agent 新增可重複使用的工具與上下文。"
+---
+
+MCP 伺服器和 Skills 擴充了 Agent 能做什麼、知道什麼。兩者都在 Config Center 中管理，且都是**依 Agent 逐一啟用**的。
+
+## MCP 伺服器
+
+MCP（Model Context Protocol）伺服器為 Agent 提供額外工具。Vibex 支援三種傳輸方式：
+
+| 傳輸 | 適用情境 |
+| --- | --- |
+| **stdio** | 本機處理程序。填寫啟動命令、參數和環境變數。 |
+| **HTTP** | 遠端服務。填寫 URL 和請求標頭。 |
+| **SSE** | 遠端服務，Server-Sent Events。填寫 URL 和請求標頭。 |
+
+### 新增步驟
+
+1. 開啟 **Config Center → MCP**，點選 **New MCP server**。
+2. 填寫 **Name**，選擇傳輸方式。
+3. 依傳輸方式填寫 **Command** / **Arguments** / **Environment**，或 **URL** / **Headers**。
+4. 選擇作用範圍：**User** 或 **Workspace**。
+5. 儲存，然後在資源卡片上點選 **Validate**。
+6. 在卡片下方的 **Agent enablement** 區域，為需要使用它的 Agent 開啟開關。
+
+<Info>
+  驗證是**離線**的：它只檢查必填欄位和 URL 格式（HTTP/SSE 必須以 `http://` 或 `https://` 開頭），不會啟動處理程序，也不會發出網路要求。因此驗證通過不代表真的能連上伺服器。
+</Info>
+
+<Warning>
+  MCP 工具可能讀取檔案、存取網路或修改外部系統。先確認伺服器來源和權限，再將它關聯到 Agent。
+</Warning>
+
+## Skills
+
+Skill 是一份 `SKILL.md` 加上它引用的輔助資源，用來為 Agent 補充可重複使用的領域知識或操作流程。來源可以是：
+
+| 來源 | 說明 |
+| --- | --- |
+| `manual` | 直接在 Vibex 中手寫。 |
+| `local_folder` | 本機資料夾。 |
+| `git_repo` | Git 儲存庫。 |
+| `marketplace` | 市集來源。 |
+
+### 新增步驟
+
+1. 開啟 **Config Center → Skills**，點選 **New Skill** 或 **Import Existing Skills**。
+2. 填寫 **Name**、**Description** 和 **Instructions**（也就是 `SKILL.md` 的正文）。
+3. 儲存並執行 **Validate**。
+4. 在 **Agent enablement** 中為需要的 Agent 開啟開關。
+
+設定完成後，在 Composer 中輸入 `$` 就能尋找並插入已啟用的 Skill。
+
+## 匯出至 Agent 原生設定
+
+MCP 和 Skills 都可以寫入 Agent 自己的設定檔，這樣 Agent 的其他入口（例如外部 CLI）也能使用同一份設定。
+
+在資源卡片上使用 **Preview export** → **Apply** → **Rollback**：
+
+1. **Preview export** 會列出將要修改或新增的檔案。
+2. 確認無誤後再執行 **Apply**。
+3. 發生問題時從同一處 **Rollback** 還原。
+
+寫入目標取決於 Agent，例如 Codex 的 `~/.codex/config.toml`、Claude 的 `~/.claude/settings.json`，以及各 Agent 的 Skills 目錄。
+
+<Warning>
+  **執行 Apply 之前一定要先看預覽。** Vibex 預設不會改寫 Agent 的原生 home 設定，只有你明確套用時才會寫入。
+</Warning>
+
+## 作用範圍與安全性
+
+使用最小作用範圍，避免把專案專屬工具暴露給所有專案。MCP 伺服器目前只提供 **User** 和 **Workspace** 兩種作用範圍。
+
+任何日誌和診斷資料都必須移除 token、私鑰、環境變數值、提示詞和檔案內容。

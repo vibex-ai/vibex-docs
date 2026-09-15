@@ -1,0 +1,74 @@
+---
+title: "快捷鍵"
+description: "Vibex 的所有預設快捷鍵，以及如何重新綁定。"
+---
+
+Vibex 的快捷鍵可以在 **Settings → Shortcuts** 中檢視、修改和重設。衝突的按鍵組合會被拒絕，並提示 **Shortcut is invalid or already in use**。
+
+## 可重新綁定的快捷鍵
+
+以下 14 個動作可以在設定中重新綁定：
+
+| 操作 | 預設鍵 | 分組 |
+| --- | --- | --- |
+| Toggle sidebar | `cmd-b` | Workbench |
+| Toggle preview | `cmd-shift-p` | Workbench |
+| Toggle right rail | `cmd-shift-r` | Workbench |
+| Open runtimes | `cmd-shift-o` | Workbench |
+| Toggle conversation / terminal | `cmd-shift-t` | Composer |
+| Find in conversation | `cmd-f` | Navigation |
+| Open settings | `cmd-,` | Navigation |
+| Navigate back | `alt-left` | Navigation |
+| Navigate forward | `alt-right` | Navigation |
+| Retry runtime | `cmd-r` | Runtime |
+| Save active file | `cmd-s` | Editor |
+| Go to line in editor | `ctrl-g` | Editor |
+| Undo image edit | `cmd-z` / `ctrl-z` | Image editor |
+| Redo image edit | `cmd-shift-z` / `ctrl-shift-z` | Image editor |
+
+<Note>
+  表中寫的是 `cmd-` 前置字元，它在 macOS 上是 Command 鍵，在 Windows / Linux 上是 Ctrl 鍵。只有圖片編輯器的復原 / 重做是依平台分別定義。
+</Note>
+
+**Reset** 會還原單項的預設值，**Reset all** 會清除所有自訂對應。
+
+## 不可重新綁定的快捷鍵
+
+這些快捷鍵是固定行為：
+
+| 操作 | 按鍵 | 作用範圍 |
+| --- | --- | --- |
+| 關閉目前預覽分頁 | `cmd-w` | 非終端機分頁 |
+| 循環切換分頁 | `cmd-tab` / `cmd-shift-tab` | 非終端機分頁 |
+| 切換上一個 / 下一個分頁 | `cmd-pageup` / `cmd-pagedown` | 非終端機分頁 |
+| 終端機複製 / 貼上 / 搜尋 | `ctrl-shift-c` / `ctrl-shift-v` / `ctrl-shift-f` | 終端機分頁 |
+| Tab 補齊 | `tab` / `shift-tab` | 終端機分頁（傳送給 shell 而非移動焦點） |
+| 關閉彈出視窗 | `escape` | 執行環境管理員、搜尋列 |
+
+## 滑鼠操作
+
+| 操作 | 效果 |
+| --- | --- |
+| 拖曳分頁 | 重新排列，或拖曳至邊緣進行分欄 |
+| 拖曳面板邊界 | 調整側欄 / 右側欄 / 終端機的尺寸 |
+| 在檔案樹項目上按滑鼠右鍵 | 開啟檔案操作選單 |
+| 在分頁上按滑鼠右鍵 | 開啟分頁操作選單（關閉、分欄、釘選等） |
+| 拖曳檔案 | 在檔案樹內移動檔案，靠近邊緣時會自動捲動 |
+| 縮放圖片編輯器 | 使用滾輪縮放，拖曳平移 |
+
+## 搜尋入口一覽
+
+Vibex 有多個作用範圍不同的搜尋功能，不要把它們的範圍搞混：
+
+| 搜尋 | 範圍 | 入口 |
+| --- | --- | --- |
+| **Find in conversation** | 目前會話時間線 | `cmd-f` |
+| **Search sessions** | 所有會話標題與訊息內文 | 側欄搜尋圖示 |
+| **Search workspace files** | 目前工作區的檔案內容 | 檔案樹 |
+| **Search MCP** / **Search Skills** / **Search Agent** | 對應的 Config Center 清單 | 各自清單頂部 |
+| **Search commits** | Git 提交歷程 | Git 面板的 Commits 分頁 |
+| **Search settings** | 設定項目 | Settings 頂部 |
+
+<Note>
+  目前**沒有**全域命令選擇區或跨類型的快速開啟。
+</Note>

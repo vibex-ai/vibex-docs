@@ -1,0 +1,75 @@
+---
+title: "MCP and Skills"
+description: "Add reusable tools and context to your Agents."
+---
+
+MCP servers and Skills expand what your Agents can do and know. Both are managed in the Config Center, and both are enabled **per Agent**.
+
+## MCP servers
+
+MCP (Model Context Protocol) servers give Agents extra tools. Vibex supports three transports:
+
+| Transport | When to use it |
+| --- | --- |
+| **stdio** | A local process. Provide the launch command, arguments, and environment variables. |
+| **HTTP** | A remote service. Provide the URL and headers. |
+| **SSE** | A remote service over Server-Sent Events. Provide the URL and headers. |
+
+### Add an MCP server
+
+1. Open **Config Center → MCP** and click **New MCP server**.
+2. Enter a **Name** and choose the transport.
+3. Depending on the transport, fill in **Command** / **Arguments** / **Environment**, or **URL** / **Headers**.
+4. Choose the scope: **User** or **Workspace**.
+5. Save, then click **Validate** on the resource card.
+6. In the **Agent enablement** area below the card, switch on each Agent that should use it.
+
+<Info>
+  Validation is **offline**: it only checks required fields and the URL format (HTTP/SSE must start with `http://` or `https://`). It starts no processes and makes no network requests, so passing validation does not mean the server is actually reachable.
+</Info>
+
+<Warning>
+  MCP tools can read files, access the network, or modify external systems. Confirm the server's origin and permissions before you attach it to an Agent.
+</Warning>
+
+## Skills
+
+A Skill is a `SKILL.md` file plus the supporting resources it references. It gives an Agent reusable domain knowledge or a repeatable procedure. Sources can be:
+
+| Source | Description |
+| --- | --- |
+| `manual` | Written directly in Vibex. |
+| `local_folder` | A local folder. |
+| `git_repo` | A Git repository. |
+| `marketplace` | A marketplace source. |
+
+### Add a Skill
+
+1. Open **Config Center → Skills** and click **New Skill** or **Import Existing Skills**.
+2. Fill in **Name**, **Description**, and **Instructions** (the body of `SKILL.md`).
+3. Save and **Validate**.
+4. In **Agent enablement**, switch on each Agent that needs it.
+
+Once configured, type `$` in the Composer to find and insert an enabled Skill.
+
+## Export to Agent-native configuration
+
+Both MCP and Skills can be written into an Agent's own configuration files, so the Agent's other entry points (such as its external CLI) use the same configuration.
+
+On a resource card, use **Preview export** → **Apply** → **Rollback**:
+
+1. **Preview export** lists the files that will be changed or created.
+2. Review the list, then **Apply**.
+3. If something goes wrong, restore from the same place with **Rollback**.
+
+The write target depends on the Agent—for example Codex's `~/.codex/config.toml`, Claude's `~/.claude/settings.json`, and each Agent's Skills directory.
+
+<Warning>
+  **Always review the preview before you Apply.** By default Vibex does not rewrite an Agent's native home configuration; it writes only when you explicitly apply.
+</Warning>
+
+## Scope and safety
+
+Use the smallest scope so you do not expose project-specific tools to every project. MCP servers currently offer only the **User** and **Workspace** scopes.
+
+Strip tokens, private keys, environment variable values, prompts, and file contents from any logs or diagnostics.

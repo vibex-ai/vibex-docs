@@ -3,11 +3,11 @@ title: "开发者指南"
 description: "从本地开发到跨平台发布，了解 Vibex 的工程约束。"
 ---
 
-Vibex 是 Rust workspace 驱动的原生应用。桌面端 `DesktopRuntime` 是唯一权威状态所有者；移动端和远程传输通过共享契约访问它。
+Vibex 是 Rust workspace 驱动的原生应用。`DesktopRuntime` 是唯一的权威状态所有者；桌面工作台、无头服务端、移动端和远程传输都通过共享契约访问它。
 
 <Columns>
   <Card title="架构边界" icon="sitemap" href="/developer/architecture">
-    了解核心 crate、桌面端、移动端和 Relay 的职责。
+    了解 crate 划分、权威运行时、客户端和 Relay 的职责。
   </Card>
   <Card title="本地设置" icon="terminal" href="/developer/setup">
     准备 Rust、Node、pnpm 和图形构建环境。
@@ -15,13 +15,24 @@ Vibex 是 Rust workspace 驱动的原生应用。桌面端 `DesktopRuntime` 是�
   <Card title="构建与测试" icon="flask" href="/developer/build-and-test">
     运行日常检查、smoke test 和发布构建门禁。
   </Card>
+  <Card title="平台支持" icon="devices" href="/developer/platforms">
+    各平台的产物格式、构建方式和验证要求。
+  </Card>
+  <Card title="Remote v2 与 Relay" icon="network" href="/developer/remote-protocol">
+    配对、握手、同步和自托管传输的协议边界。
+  </Card>
+  <Card title="贡献代码" icon="git-pull-request" href="/developer/contributing">
+    提交变更时的架构、测试和隐私要求。
+  </Card>
 </Columns>
 
 ## 开发时必须保持的约束
 
-- 桌面端负责 Agent、会话、时间线、文件、Git、PTY、Provider、权限和持久化。
-- 移动端只消费共享的远程投影并发送类型化操作，不复制业务状态。
-- Remote v2 的 DTO、错误、能力和序列号契约位于共享 core 层。
+- `DesktopRuntime` 负责 Agent、会话、时间线、文件、Git、PTY、供应商、权限和持久化。
+- **同一个内核有两种前端**：`apps/desktop` 加 GPUI 窗口，`apps/server` 加守护进程生命周期。新增能力要同时适用于两者。
+- 客户端只消费共享的远程投影并发送类型化操作，不复制业务状态。
+- 新能力应经 `BackendFacade` 触达权威端，而不是只走本地运行时路径。
+- Remote v2 的 DTO、错误、能力和序列号契约位于共享 `crates/core` 层。
 - Relay 只转发加密帧，不拥有业务授权、文件或会话数据库。
 - 跨层行为变更必须补充确定性检查或证据，并运行与风险匹配的最小测试集。
 
@@ -33,3 +44,20 @@ Vibex 是 Rust workspace 驱动的原生应用。桌面端 `DesktopRuntime` 是�
 4. [平台支持](/developer/platforms)
 5. [Remote v2 与 Relay](/developer/remote-protocol)
 6. [贡献代码](/developer/contributing)
+
+## 仓库内的设计文档
+
+公开文档站只覆盖使用者需要的内容。更细的设计与运维资料在仓库 `docs/` 下：
+
+| 路径 | 内容 |
+| --- | --- |
+| `docs/architecture/ui-boundary.md` | UI 与权威端的所有权边界。 |
+| `docs/remote/protocol-v2.md` | Remote v2 线协议完整定义。 |
+| `docs/platform/support-matrix.md` | 各平台能力的证据要求。 |
+| `docs/operations/release.md` | 发布 runbook。 |
+| `docs/operations/release-packaging-matrix.md` | 产物与构建命令矩阵。 |
+| `docs/operations/recovery-matrix.md` | 崩溃恢复：哪些状态是持久的。 |
+| `docs/smoke/relay-nat.md` | Relay 跨 NAT 的运维检查清单。 |
+| `docs/licenses/` | 第三方许可证与 SBOM。 |
+| `deploy/server/README.md` | 无头运行时部署。 |
+| `deploy/relay/README.md` | Relay 部署。 |

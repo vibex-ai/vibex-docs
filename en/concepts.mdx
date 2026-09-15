@@ -1,0 +1,78 @@
+---
+title: "Core concepts"
+description: "How projects, workspaces, sessions, the authoritative runtime, and provider profiles relate to each other."
+---
+
+This page explains a handful of words that come up again and again in Vibex. Once you have read it, the other pages will be much easier to follow.
+
+## The authoritative runtime
+
+The **authoritative runtime** is the only thing that holds real state: Agent processes, session timelines, workspace files, Git repositories, terminals, provider credentials, and the local database. Every client is just a projection of it.
+
+Vibex has two forms of authoritative runtime. They share one core and have identical capabilities:
+
+| Form | Description |
+| --- | --- |
+| **Runtime embedded in the desktop** | The default. Starts with the desktop app and keeps data on your machine. |
+| **Headless runtime `vibex-server`** | A standalone daemon that runs on your own server or an always-on machine. |
+
+The desktop workbench and the mobile apps are both **clients**. The desktop uses its own embedded runtime by default; you can also switch it to connect to a remote runtime, at which point it is a client just like your phone. That switch is the **Runtime** button in the title bar.
+
+## Project
+
+A **project** is a folder you register in Vibex: it has a name, an icon, and a permanent place in the sidebar. That is the **Projects** list in the sidebar, and its context menu offers rename, custom icon, delete, and more.
+
+A project can hold **several workspaces**.
+
+## Workspace
+
+A **workspace** is "using this project in a particular way". Two modes exist today:
+
+| Mode | UI label | Behavior |
+| --- | --- | --- |
+| `CurrentCheckout` | **Local** / current checkout | Work directly on the main checkout directory. |
+| `VibexWorktree` | **Worktree** | Vibex creates a managed Git worktree and isolates changes in a separate directory. |
+
+One project can have a `Local` workspace and one or more `Worktree` workspaces at the same time. That is how you can keep working on the main branch while an Agent tries another approach in an isolated directory.
+
+A session always belongs to one specific workspace. Switching workspaces does not carry uncommitted changes across.
+
+See [Workspaces](/en/workspaces).
+
+## Session
+
+A **session** is the complete record of one development task: your input, the Agent's output, tool calls, approvals, and errors, stored in order as a **timeline**. A session belongs to the workspace it was created in.
+
+**New chat** in the sidebar creates a session. You can rename, pin, fork, and bulk-delete sessions, or import them from another Agent's history.
+
+See [Agent sessions](/en/sessions).
+
+## Agents and provider profiles
+
+These are two separate concepts:
+
+- An **Agent** is the program that does the work, such as Claude Code, Codex, ZCode, OpenCode, or any ACP-compatible executable. The Agent decides **who does the work**.
+- A **provider profile** (called **Model provider configuration** in the UI) is the connection information an Agent needs in order to call a model service: endpoint, credentials, available models, and thinking depth. It decides **which model runs and over which route**.
+
+One Agent can have several provider profiles, and you can switch between them before sending a message. The switch only affects later runs; timeline entries already written keep their original run identity.
+
+See [Agents and provider profiles](/en/agents-and-providers).
+
+## Scope
+
+Some resources accept a scope. The available values are usually **global**, **user**, **project**, or **workspace**; the narrower the scope, the less likely you are to disturb other projects. MCP servers currently offer only **User** and **Workspace**.
+
+## Channel
+
+The release channel determines the product identity and the data directory: **Preview**, **RC**, **Stable**. All three can be installed side by side, each with its own database, so they never interfere. The channel is baked into the installer and cannot be switched inside the app.
+
+## Pairing
+
+**Pairing** grants a device access to a particular authoritative runtime. There are two common paths:
+
+- **Desktop → phone**: the desktop generates a QR code, and the phone scans it and verifies the checksum.
+- **Server → desktop / phone**: `vibex-server` prints a one-time pairing code and connection string that the client enters.
+
+The **permission level** you pick while pairing determines what that device may do: `read_only`, `approve_only`, `full_control`. The level is set by the initiating side, and a client cannot elevate itself.
+
+See [Remote access and mobile](/en/remote-mobile).

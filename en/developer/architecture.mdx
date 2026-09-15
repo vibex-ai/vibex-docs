@@ -1,49 +1,91 @@
 ---
-title: "Architecture boundaries"
-description: "Understand the desktop runtime, shared model, mobile client, and Relay responsibilities."
+title: "Architecture and ownership boundaries"
+description: "Understand the responsibilities of the Vibex authoritative runtime, shared model, clients, and Relay."
 ---
 
-Vibex keeps native clients consistent with one authoritative runtime and typed projections. Do not create a second business state owner in mobile, Relay, or UI code.
+Vibex keeps multiple native clients consistent through an **authoritative runtime plus typed projections**. Do not create a second copy of authoritative business state in a client, Relay, or UI layer.
 
-## Runtime relationship
+## Runtime relationships
 
 ```mermaid
 flowchart LR
-  D[DesktopRuntime] --> A[ACP Agent sessions]
+  subgraph Authority[Authoritative runtime]
+    D[DesktopRuntime core]
+  end
+  D --> A[ACP Agent sessions]
   D --> W[Workspace files and Git]
-  D --> T[PTY and previews]
+  D --> T[PTY, editor, previews]
+  D --> P[Provider profiles and credentials]
   D --> R[RemoteGateway v2]
-  R -->|Direct or Tailnet| M[Mobile GPUI client]
+  R -->|Direct / Tailnet / Local network| M[Native clients]
   R -->|encrypted frames| X[Self-hosted Relay]
   X --> M
+  DE[apps/desktop<br/>GPUI window] --- D
+  SV[apps/server<br/>daemon lifecycle] --- D
+  M --- MB[apps/mobile<br/>iOS / Android]
+  M --- DKT[apps/desktop in<br/>remote-client mode]
 ```
 
-## Main crates
+The key point is that **one `DesktopRuntime` core has two frontends**: `apps/desktop` gives it a GPUI window, and `apps/server` gives it a daemon lifecycle. Both expose exactly the same Remote v2 gateway.
+
+## Main crates and apps
 
 | Layer | Responsibility |
 | --- | --- |
-| `crates/core` | Serializable ids, DTOs, errors, capabilities, and remote contracts. |
+| `crates/core` | Serializable ids, DTOs, errors, capabilities, and remote protocol contracts. |
+| `crates/db` | SQLite persistence, migrations, and queries. |
 | `crates/desktop-model` | Framework-independent session and timeline projections and reducers. |
+| `crates/desktop-runtime` | Assembles the authoritative runtime: home layout, channel identity, and the capability facade. |
 | `crates/vibex-backend` | Provider-neutral capability facade shared by native and remote adapters. |
 | `crates/vibex-ui` | Semantic tokens, portable component models, and workflow controllers. |
-| `crates/vibex-remote-client` | Pairing, reconnect, sync, and Direct/Tailnet/Relay routing. |
-| `apps/desktop` | Native workbench and `DesktopRuntime`. |
-| `apps/mobile` | Native Android/iOS composition of shared remote projections. |
-| `apps/relay-server` | Forwarding opaque encrypted WebSocket frames. |
+| `crates/vibex-remote-client` | Pairing, reconnect, sync, and transport route selection. |
+| `crates/agent` | Agent session management and local history import. |
+| `crates/agent-acp` | ACP adapters, catalogs, and runtime probing. |
+| `crates/agent-claude` / `crates/agent-codex` | Dedicated adaptation for the two built-in Agents. |
+| `crates/fs` / `crates/git` / `crates/terminal` / `crates/content` | File, Git, PTY, and content preview services. |
+| `crates/remote` / `crates/relay` | The Remote v2 gateway and Relay contracts. |
+| `crates/config-switch` | Configuration import and export, native config rewriting, and secret storage. |
+| `crates/backup` / `crates/diagnostics` | Backup and restore, plus redacted diagnostics. |
+| `crates/app-update` | Signed automatic updates. |
+| `crates/vibex-markdown` / `crates/vibex-terminal-ui` | Markdown rendering and terminal emulation. |
+| `apps/desktop` | The native workbench; embeds the runtime. |
+| `apps/server` | The headless authoritative runtime `vibex-server`. |
+| `apps/mobile` | Composes shared remote projections into native Android / iOS interfaces. |
+| `apps/relay-server` | Forwards opaque encrypted WebSocket frames. |
 
 ## Data flow rules
 
-Events carry authoritative sequence and version information. A generation or cursor gap must return `resync_required` and fetch authoritative state again. File writes use revision/CAS checks.
+Events carry an authoritative sequence number and version. When a client detects a generation or cursor gap, it **must** return `resync_required` and then re-fetch from the authoritative runtime. File writes additionally follow content revision and compare-and-swap (CAS) checks.
 
-Remote attachments re-authenticate and authorize before a stream opens. Terminal input carries workspace scope and generation checks and is audited; do not retain raw terminal bytes.
+Remote attachments re-authenticate and re-authorize before a stream is established. Terminal input carries workspace scope, generation checks, and auditing; never store raw terminal bytes.
+
+## Project and workspace model
+
+```text
+ProjectRecord   { id, name, root_path }
+  └── WorkspaceRecord { id, project_id, root_path, mode }   mode ∈ { CurrentCheckout, VibexWorktree }
+        └── Session
+```
+
+A project maps to multiple workspaces. A `VibexWorktree` workspace is not "another mode" — it is another workspace under the same project.
 
 ## Persistence and recovery
 
-SQLite stores projects, workspaces, sessions, timelines, providers, terminal metadata, and remote devices. `running` is not proof of a live process; a lost terminal becomes stale.
+SQLite stores projects, workspaces, sessions, timelines, provider profiles, terminal metadata, and remote devices.
 
-## Review checklist
+**In memory only, lost on restart:** Agent processes, terminal session contents, and active connections. A `running` row in the database only reflects the last observed state; re-probe after a restart, and mark lost terminals as `stale`.
 
-- Is the desktop still the only source of truth?
-- Are shared DTOs, errors, and capabilities used instead of copied structures?
-- Are reconnect, sequence gaps, revocation, and recovery defined?
+## Change review checklist
+
+- Does the authoritative runtime still own the single source of truth?
+- Does the new capability support both the local and the paired runtime (through `BackendFacade`), instead of only the local path?
+- Does it use shared DTOs, errors, and capabilities instead of copying structures?
+- Does it define behavior for reconnect, sequence gaps, revocation, and recovery?
 - Are logs, diagnostics, and test evidence redacted?
+
+## Further reading
+
+- `docs/architecture/ui-boundary.md`
+- `docs/remote/protocol-v2.md`
+- `docs/platform/support-matrix.md`
+- `docs/operations/recovery-matrix.md`

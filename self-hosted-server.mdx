@@ -1,0 +1,160 @@
+---
+title: "自托管无头运行时"
+description: "在自己的服务器上运行 vibex-server，让桌面端和移动端共享同一个权威运行时。"
+---
+
+`vibex-server` 是 Vibex 的**无头权威运行时**。它和桌面端内嵌的运行时是同一套 `DesktopRuntime` 内核，只是换成守护进程的形态：桌面端多一个 GPUI 窗口，服务端多一套守护进程生命周期。两者对外暴露**完全相同**的 Remote v2 网关，所以配对后的移动端分辨不出自己连的是哪一种。
+
+<Note>
+  `vibex-server` 是**单用户**运行时：它拥有一个 Vibex home、一个数据库和一个网关，不是多租户服务。主机管理员就是使用者。
+</Note>
+
+## 什么时候用它
+
+- 想让会话和 Agent 常驻在一台服务器上，笔记本关机也不中断。
+- 想在桌面端和手机之间共享同一批会话、工作区和凭据。
+- 团队里有一台常开的开发机，希望从任意设备接入。
+
+只需要转发流量、不需要托管运行时的话，用 [Relay](/relay) 就够了。
+
+## 快速开始
+
+容器镜像是多架构的（`linux/amd64`、`linux/arm64`），每个发布都会更新：
+
+```bash
+export VIBEX_SERVER_IMAGE=ghcr.io/vibex-ai/vibex-server:rc
+docker compose -f deploy/server/docker-compose.yml pull vibex-server
+docker compose -f deploy/server/docker-compose.yml up -d --no-build vibex-server
+docker logs vibex-server | grep -E 'pairing_(code|link)|tls_fingerprint'
+curl -fsS http://127.0.0.1:8765/api/v2/info
+```
+
+镜像 tag 规则：`rc` 跟随最新的候选版本，`latest` 只指向稳定版，`edge` 和 `sha-<commit>` 跟随默认分支。
+
+启动日志会打印 `server_id`、`endpoint`、一次性 `pairing_code`（形如 `NNN-NNN-NNN`）、`pairing_link`、`tls_fingerprint`，以及一段二维码。把它们交给客户端去配对，见[远程访问与移动端](/remote-mobile)。
+
+需要新的配对码时随时重新生成：
+
+```bash
+docker exec vibex-server vibex-server pairing-code
+docker exec vibex-server vibex-server pairing-code --permission read-only --ttl-ms 600000
+```
+
+## 命令
+
+```text
+Usage: vibex-server [serve|status|pairing-code|revoke|config-check]
+
+  serve [--no-pairing]                    运行权威无头运行时
+  pairing-code [--permission <level>] [--ttl-ms N]
+                                          生成一次性配对码及其连接串
+  revoke DEVICE_ID [--reason TEXT]        撤销已配对设备
+  config-check                            校验 VIBEX_* 部署配置
+```
+
+不带参数等同于 `serve`。`--permission` 接受 `read-only`、`approve-only`、`full-control`（默认 `full-control`）。
+
+## 部署形态
+
+### 只监听本机（默认）
+
+默认绑定 `127.0.0.1:8765`，不对外发布任何端口。适合先用 SSH 隧道或反向代理把流量引进来。
+
+### 局域网：自签证书 + 指纹固定
+
+没有域名和 CA 的场景（家用或办公室局域网），运行时提供**自己签发的证书**，客户端从连接串里学到这张证书并固定它——信任来自连接串本身，而不是网络。
+
+```bash
+VIBEX_BIND_ADDR=0.0.0.0:8765 \
+VIBEX_DEPLOYMENT_MODE=lan \
+VIBEX_TLS_MODE=pinned_certificate \
+VIBEX_PUBLIC_HOST=192.168.1.10:8765 \
+VIBEX_HEALTHCHECK_URL=https://127.0.0.1:8765/api/v2/info \
+  docker compose -f deploy/server/docker-compose.yml up --build -d vibex-server
+```
+
+- `VIBEX_PUBLIC_HOST` 必须是客户端实际拨号的地址，**含端口**，并且是数值型局域网地址（`192.168.x.x`、`10.x.x.x`、`172.16–31.x.x`，或链路本地 / 唯一本地 IPv6）。
+- 证书在整个运行时身份生命周期内保持不变，重启容器**不需要**重新配对。删除 `/data` 才会失效。
+- `pinned_certificate` 真的在网关上终止 TLS，监听口从来不是明文。没有指纹的客户端根本连不上。
+
+### 公网 HTTPS
+
+公网暴露需要 `VIBEX_DEPLOYMENT_MODE=public`，并选择一种 TLS 策略：
+
+**反向代理终止 TLS：**
+
+```bash
+VIBEX_PUBLIC_HOST=vibex.example.com \
+VIBEX_DEPLOYMENT_MODE=public \
+VIBEX_TLS_MODE=trusted_https_proxy \
+VIBEX_TRUST_FORWARDED_HEADERS=true \
+VIBEX_ALLOWED_HOSTS=vibex.example.com \
+VIBEX_ALLOWED_ORIGINS=https://vibex.example.com \
+  docker compose -f deploy/server/docker-compose.yml --profile caddy up -d
+```
+
+只有在 `trusted_https_proxy` 模式下才能开启 `VIBEX_TRUST_FORWARDED_HEADERS`，其它模式会拒绝转发头。
+
+**网关自己终止 TLS：** 设置 `VIBEX_TLS_MODE=server_certificate`，并把 `VIBEX_TLS_CERT_FILE` / `VIBEX_TLS_KEY_FILE`（PEM）挂进容器。
+
+<Warning>
+  网关会在启动时校验配置组合：Public 监听缺少可信 TLS、`VIBEX_ALLOWED_HOSTS` 里出现 loopback、或在非可信代理模式下信任转发头，都会**拒绝启动**。这是有意设计的，避免配置错误悄悄退化成未认证的公网服务。
+</Warning>
+
+### systemd（不用 Docker）
+
+仓库提供了一份加固过的 unit 文件，直接以宿主机进程运行，环境变量契约相同：
+
+```bash
+systemctl status vibex-server
+journalctl -u vibex-server -o cat | grep -E 'pairing_(code|link)|tls_fingerprint'
+```
+
+状态目录默认为 `/var/lib/vibex-server`，详见仓库 `deploy/server/systemd.md`。
+
+## 环境变量
+
+完整清单与默认值见[环境变量参考](/reference/environment-variables)。最常用的几个：
+
+| 变量 | 默认值 | 说明 |
+| --- | --- | --- |
+| `VIBEX_HOME` | `/data` | 运行时 home：数据库、Agent 安装、身份密钥。 |
+| `VIBEX_DB_PATH` | `$VIBEX_HOME/vibex.db` | 权威 SQLite 路径。 |
+| `VIBEX_WORKSPACE_ROOTS` | `$VIBEX_HOME` | 逗号分隔的绝对路径，限制客户端可选的项目目录。 |
+| `VIBEX_BIND_ADDR` | `127.0.0.1:8765` | 网关监听地址。 |
+| `VIBEX_DEPLOYMENT_MODE` | `loopback` | `loopback` / `lan` / `public`。 |
+| `VIBEX_TLS_MODE` | 见上文 | 四种取值之一。 |
+| `VIBEX_PUBLIC_HOST` | 未设置 | 向配对客户端通告的地址，也用于生成连接串。 |
+
+<Note>
+  `VIBEX_WORKSPACE_ROOTS` 的每一项都必须是绝对路径；挂载点暂时不存在时它只是匹配不到东西，不会报错。
+</Note>
+
+## 凭据存储
+
+提供商 API Key 存在**服务器主机上**，绝不进数据库，也绝不返回给客户端。
+
+桌面端会把密钥写入操作系统钥匙串。无头服务器通常没有可用的钥匙串（默认容器 seccomp 配置会拒绝 Linux 钥匙串后端所需的 keyutils 系统调用），因此它改为写入运行时 home 里的 `provider-secrets.json`，权限为仅属主可读（`0600`）。这是自托管的明确取舍：主机管理员就是使用者。
+
+```bash
+VIBEX_PROVIDER_SECRET_STORE=keychain   # 强制使用系统钥匙串
+VIBEX_PROVIDER_SECRET_STORE=file       # 强制使用主机密钥文件
+```
+
+网关不记录密钥、配对码或认证令牌；凭据值写入后**只写不读**，不会再返回给任何客户端。
+
+## 安全建议
+
+1. **保持 loopback 默认值**，再用 Tailscale Serve 或受控反向代理发布。
+2. 公网部署必须配置 `VIBEX_ALLOWED_HOSTS`（精确主机名，否则返回 `421`）和 `VIBEX_ALLOWED_ORIGINS`（否则返回 `403`）。原生客户端不发送 `Origin`，不受影响。
+3. 用 `vibex-server status` 定期检查已配对设备，用 `revoke` 及时清理。
+4. `VIBEX_WORKSPACE_ROOTS` 只列真正需要的目录。
+5. 网关只暴露协议与健康检查端点，不提供浏览器 UI，也不提供业务 API。
+
+## 健康检查
+
+```bash
+curl -fsS http://127.0.0.1:8765/api/v2/info
+```
+
+`/health` 和 `/api/info` 属于 [Relay](/relay)；无头运行时的信息端点是 `/api/v2/info`。

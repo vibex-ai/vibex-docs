@@ -1,0 +1,88 @@
+---
+title: "Build from source"
+description: "Build Vibex for contributors and for platforms without ready-made artifacts."
+---
+
+Build from source if you want to modify Vibex, review the implementation, or your platform has no ready-made installer. End users should use the release artifacts on the [Install](/en/install) page instead.
+
+## Prerequisites
+
+| Tool | Version or notes |
+| --- | --- |
+| Git | Submodule support required |
+| Node.js | 22 |
+| pnpm | `11.3.0`, as pinned by the `packageManager` field in `package.json` |
+| Rust | `1.97.0`, pinned by the repository's `rust-toolchain.toml` |
+| Graphics environment | A native graphical session on Linux, macOS, or Windows; Linux needs a working Vulkan driver |
+
+## Get and run the desktop
+
+```bash
+git clone https://github.com/vibex-ai/vibex.git
+cd vibex
+git submodule update --init --recursive
+pnpm install --frozen-lockfile
+pnpm dev:desktop
+```
+
+`pnpm dev:desktop` prepares the development icons, then compiles and runs `vibex-desktop` in debug mode. The first compile takes a while.
+
+To check only the Rust side, skip the frontend:
+
+```bash
+cargo check -p vibex-desktop --locked
+cargo test -p vibex-desktop --locked
+pnpm smoke:first-frame
+```
+
+## Package the desktop
+
+On Linux, use cargo-packager with the PDFium runtime reviewed alongside the repository:
+
+```bash
+cargo install cargo-packager --version 0.11.8 --locked
+pnpm prepare:pdfium
+pnpm package:preview   # or package:rc / package:stable
+```
+
+The three channel commands map to the Preview / RC / Stable product identities. The generated packages and runtime binaries are build outputs and are not committed to the repository. Before publishing an RC or Stable build, read `docs/operations/release.md` in the repository.
+
+## Build for Android
+
+You need the Android SDK/NDK, `cargo-ndk`, and the Rust target for each target ABI. Debug builds `arm64-v8a` and `x86_64` by default; Release builds only `arm64-v8a`.
+
+```bash
+pnpm build:mobile:android
+pnpm package:mobile:android
+```
+
+Use `VIBEX_MOBILE_ANDROID_TARGETS` (space-separated) to override the Debug ABI list. A local `pnpm package:mobile:android` produces an **unsigned** Release APK, which you must align and sign yourself before distributing. A tagged GitHub Release is signed automatically by the release pipeline.
+
+## Build for iOS
+
+You need macOS, Xcode, XcodeGen, and the `aarch64-apple-ios` and `aarch64-apple-ios-sim` Rust targets.
+
+```bash
+pnpm build:mobile:ios
+```
+
+The script builds `VibexFFI.xcframework` and generates an Xcode project. Code signing, device or simulator selection, and distribution credentials are all managed by your local environment. Never commit certificates or provisioning profiles.
+
+## Run Relay and the server locally
+
+```bash
+docker compose -f deploy/relay/docker-compose.yml up --build -d relay-server
+docker compose -f deploy/server/docker-compose.yml up --build -d vibex-server
+```
+
+For detailed configuration, see [Self-hosted Relay](/en/relay) and [Self-hosted headless runtime](/en/self-hosted-server).
+
+## Checks before you commit
+
+```bash
+pnpm check
+pnpm release:build-smoke
+pnpm check:mobile-native
+```
+
+`pnpm check` bundles the Rust quality checks, frontend type and lint checks, license checks, and UI layering and visual baseline checks. `pnpm release:build-smoke` validates the build graph for the desktop, mobile, and Relay. For the complete command list, see [Build and test](/en/developer/build-and-test).

@@ -1,0 +1,102 @@
+---
+title: "环境变量"
+description: "自托管运行时、Relay 和桌面端的配置项参考。"
+---
+
+## 桌面端
+
+| 变量 | 说明 |
+| --- | --- |
+| `VIBEX_HOME` | 覆盖运行时 home 的基目录。通道专属目录（`desktop-preview` / `desktop-rc` / `desktop-stable`）建在它下面。 |
+| `VIBEX_PROVIDER_SECRET_STORE` | `keychain`（默认）或 `file`。没有可用钥匙串的主机需要设为 `file`。 |
+| `VIBEX_DISABLE_REMOTE_CLIENT` | 设为 `1` 时强制使用本地权威运行时，忽略已保存的远程凭据。 |
+| `VIBEX_CHANNEL` | 构建期变量，不能在运行时覆盖。试图像运行时切换通道会返回 `release_channel_override_rejected`。 |
+
+## 无头运行时 `vibex-server`
+
+### 路径与身份
+
+| 变量 | 默认值 | 说明 |
+| --- | --- | --- |
+| `VIBEX_HOME` | `/data` | 运行时 home：数据库、Agent 安装、身份密钥。 |
+| `VIBEX_DB_PATH` | `$VIBEX_HOME/vibex.db` | 权威 SQLite 路径。 |
+| `VIBEX_WORKSPACE_ROOTS` | `$VIBEX_HOME` | 逗号分隔的绝对路径，限定客户端可选的项目目录。 |
+| `VIBEX_APPLICATION_ID` | `dev.vibex.server` | home 锁使用的应用身份。 |
+| `VIBEX_ACQUIRE_HOME_LOCK` | `true` | 已有运行时占用该 home 时立即失败。 |
+
+### 网络与 TLS
+
+| 变量 | 默认值 | 说明 |
+| --- | --- | --- |
+| `VIBEX_BIND_ADDR` | `127.0.0.1:8765` | 网关监听地址。 |
+| `VIBEX_DEPLOYMENT_MODE` | `loopback` | `loopback` / `lan` / `public`。 |
+| `VIBEX_TLS_MODE` | loopback 时为 `loopback_http`，否则 `trusted_https_proxy` | 另可设为 `pinned_certificate` 或 `server_certificate`。 |
+| `VIBEX_TLS_CERT_FILE` / `VIBEX_TLS_KEY_FILE` | 未设置 | `server_certificate` 模式下必填。 |
+| `VIBEX_PUBLIC_HOST` | 未设置 | 向配对客户端通告的地址，也用于生成连接串。局域网直连时要带端口。 |
+| `VIBEX_ALLOWED_HOSTS` | `localhost,127.0.0.1,::1` | 接受的 `Host` 值，不匹配返回 `421`。 |
+| `VIBEX_ALLOWED_ORIGINS` | loopback HTTP origin | 接受的浏览器 origin，不匹配返回 `403`。 |
+| `VIBEX_TRUST_FORWARDED_HEADERS` | `false` | 只在 `trusted_https_proxy` 模式下可开启。 |
+| `VIBEX_GATEWAY_ENABLED` | `true` | Remote v2 监听总开关。 |
+
+### 运行时行为
+
+| 变量 | 默认值 | 说明 |
+| --- | --- | --- |
+| `VIBEX_PROVIDER_SECRET_STORE` | `file` | 无头主机默认写 `provider-secrets.json`（`0600`）。可设为 `keychain`。 |
+| `VIBEX_INSTALL_MANAGED_ADAPTERS` | `true` | 启动时安装受管 Agent 运行时。 |
+| `VIBEX_EVENT_CAPACITY` | `512` | 运行时广播事件积压上限。 |
+| `VIBEX_DELEGATION_SIDECAR_COMMAND` | 服务端二进制自身 | 提供委派 MCP sidecar 的可执行文件。 |
+| `VIBEX_HEALTHCHECK_URL` | `http://127.0.0.1:8765/api/v2/info` | 容器健康检查地址。 |
+
+### 连接与限流
+
+| 变量 | 说明 |
+| --- | --- |
+| `VIBEX_MAX_CONNECTIONS` | 并发 WebSocket 连接数。 |
+| `VIBEX_MAX_IN_FLIGHT_RPCS` | 单连接并发 RPC 上限。 |
+| `VIBEX_OUTBOUND_QUEUE_CAPACITY` | 单连接事件队列上限。 |
+| `VIBEX_UNAUTHENTICATED_REQUESTS_PER_WINDOW` | 未认证路由（info、claim、ws-ticket）的每对端限流。 |
+| `VIBEX_AUTH_FAILURES_PER_WINDOW` | 触发临时封禁前的认证失败预算。 |
+| `VIBEX_RATE_LIMIT_WINDOW_MS` | 限流窗口长度。 |
+| `VIBEX_MAX_TRACKED_PEERS` | 对端跟踪表容量上限。 |
+
+## Relay
+
+| 变量 | 默认值 | 说明 |
+| --- | --- | --- |
+| `VIBEX_RELAY_BIND_ADDR` | `127.0.0.1:9700` | 监听地址。 |
+| `VIBEX_RELAY_HOST_BIND` | — | 显式使用宿主机网络时覆盖绑定。 |
+| `VIBEX_RELAY_SITE_ADDRESS` | — | Caddy profile 使用的公网域名。 |
+| `VIBEX_RELAY_ROOM_TTL_MS` | `3600000` | 房间存活时间。 |
+| `VIBEX_RELAY_BRIDGE_TIMEOUT_MS` | `30000` | 兼容桥接超时。 |
+| `VIBEX_RELAY_HEARTBEAT_TIMEOUT_MS` | `45000` | 心跳超时。 |
+| `VIBEX_RELAY_MAX_ROOMS` | `1024` | 最大房间数。 |
+| `VIBEX_RELAY_MAX_TOTAL_CONNECTIONS` | `4096` | 最大总连接数。 |
+| `VIBEX_RELAY_MAX_CONNECTIONS_PER_ROOM` | `1` | 每房间 PC 连接数，**固定为 1**。 |
+| `VIBEX_RELAY_MAX_DEVICES_PER_ROOM` | `8` | 每房间设备数。 |
+| `VIBEX_RELAY_MAX_BODY_BYTES` | `1048576` | 请求体上限。 |
+| `VIBEX_RELAY_MAX_REQUESTS_PER_WINDOW_PER_ROOM` | `120` | 每房间每窗口请求数。 |
+| `VIBEX_RELAY_MAX_QUEUE_BYTES_PER_CONNECTION` | `4194304` | 每连接队列上限。 |
+| `VIBEX_RELAY_MAX_BANDWIDTH_BYTES_PER_WINDOW` | `16777216` | 每窗口带宽上限。 |
+| `VIBEX_RELAY_PUSH_PROVIDER` | 未设置 | 可选推送提供方。 |
+| `VIBEX_RELAY_PUSH_AUTH_TOKEN` | 未设置 | 推送认证令牌。 |
+| `VIBEX_RELAY_PUSH_ADAPTER_URL` | 未设置 | 推送适配器地址。 |
+| `VIBEX_RELAY_PUSH_ADAPTER_AUTH_TOKEN` | 未设置 | 推送适配器令牌。 |
+
+## 构建期变量
+
+这些只在从源码构建或打包时生效：
+
+| 变量 | 说明 |
+| --- | --- |
+| `VIBEX_CHANNEL` | `preview` / `rc` / `stable`，决定产品身份和数据目录。 |
+| `VIBEX_MOBILE_ANDROID_TARGETS` | 空格分隔的 ABI 列表，覆盖 Debug 默认值。 |
+| `VIBEX_ANDROID_KEYSTORE_BASE64` | 发布签名用的 keystore。 |
+| `VIBEX_ANDROID_KEYSTORE_PASSWORD` | keystore 密码。 |
+| `VIBEX_ANDROID_KEY_PASSWORD` | 密钥密码（可选）。 |
+| `VIBEX_ANDROID_KEY_ALIAS` | 密钥别名，默认为 `vibex`。 |
+| `VIBEX_UPDATE_PUBLIC_KEY` | 更新清单验签公钥。 |
+
+<Warning>
+  密钥类环境变量不要写入版本库、诊断资料或公开 Issue。
+</Warning>

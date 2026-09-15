@@ -1,74 +1,113 @@
 ---
 title: "程式碼工作台"
-description: "瀏覽、搜尋、編輯與預覽工作區檔案。"
+description: "瀏覽、搜尋、編輯和預覽工作區檔案。"
 ---
 
-程式碼工作台把檔案樹、搜尋、編輯器、Git 差異與內容預覽放在同一個視窗。所有檔案操作以目前工作區為邊界。
+程式碼工作台把檔案樹、搜尋、編輯器、Git 差異和內容預覽放在同一個視窗。所有檔案操作都以目前工作區為邊界。
 
-## 檔案樹與搜尋
+## 檔案樹和搜尋
 
-1. 開啟側欄的檔案樹並展開工作區目錄。
-2. 用檔名搜尋定位路徑。
-3. 用內容搜尋查找文字；結果會顯示路徑與匹配位置。
-4. 點擊檔案，在預覽分頁開啟。多個分頁可並列或分欄顯示。
+從右側欄的 **Files** 圖示開啟檔案樹：
 
-大型檔案、無法解碼的內容和工作區外路徑可能被檔案服務拒絕。
+1. 展開工作區目錄，或用檔名直接輸入定位（type-ahead）。
+2. 使用 **Search workspace files** 依內容搜尋，可以切換 **Match case**、**Match whole word** 和正規表示式模式。
+3. 點擊檔案在預覽分頁中開啟；多個分頁可以並列或分割顯示。
 
-## 編輯與儲存
+檔案樹的右鍵選單提供 **New File**、**New Folder**、**Cut**、**Copy**、**Paste**、**Copy Relative Path**、**Copy Absolute Path**、**Copy File Name**、**Rename**、**Delete**，以及 **Open In** 子選單（**Editor** / **Default App** / **Terminal** / **Native Terminal** / **File Manager**）。檔案也支援拖放移動。
 
-- 在編輯器直接修改文字。
-- 使用 **Save** 儲存檔案；快捷鍵為 `cmd-s`（Windows/Linux 通常為 `ctrl-s`）。
-- 新建、重新命名或刪除檔案前確認目標路徑。
-- 編輯器會保存軟換行和顯示空白字元偏好，可在工具列切換。
-- 編輯器頂部顯示檔名、相對目錄和狀態；底部顯示游標行列、總行數、語言、編碼、行尾格式和檔案大小。
-- **Save** 會攜帶已讀取的內容 revision。若檔案已被外部程序修改，儲存會暫停並要求重新載入或比較差異，不會靜默覆蓋。
-- 若外部程序刪除檔案，編輯器會標記為缺失；未儲存內容會保留在恢復緩衝區，供你另存或放棄。
+搜尋不會自動修改檔案。大型檔案、無法解碼的內容和工作區外路徑會被檔案服務拒絕。
 
-<Warning>
-  刪除檔案會改變工作區內容。刪除前查看 Git 狀態，必要時先建立提交或備份。
-</Warning>
+## 編輯和儲存
+
+- 在編輯器中直接修改文字。
+- 用 **Save file** 儲存目前檔案（`cmd-s`）。
+- 工具列可以切換 **soft wrap** 和 **whitespace** 顯示。
+- 狀態列顯示 `Ln N, Col N`、總行數、語言、編碼（`UTF-8` / `UTF-8 BOM` / `Binary`）、行尾（`LF` / `CRLF` / `Mixed EOL`）和檔案大小。
+- 標題列狀態顯示 **Modified**（有未儲存變更）、**Saving** 或 **Saved**。
+
+<Note>
+  編輯器**沒有** Save As：儲存一律寫回原路徑。也沒有檔案內尋找列——`cmd-f` 開啟的是會話搜尋。
+</Note>
+
+### 大型檔案與唯讀
+
+以下情況檔案會以唯讀方式開啟，並在標題列標記 **Large file - read only** 或 **Binary - read only**：
+
+- 大於 8 MiB
+- 超過 5 萬行
+- 內容被截斷
+- 被辨識為二進位
 
 ## 編輯器保護與恢復
 
-每個編輯緩衝區同時記錄已儲存內容、外部 revision 和本機 revision。只有三者仍然匹配時才會接受儲存；並發修改會回傳衝突狀態，要求你重新讀取後決定如何合併。切換工作區或關閉分頁前，桌面端會檢查 dirty、儲存中、外部衝突和檔案缺失狀態，必要時阻止操作。
+每個編輯緩衝區同時記錄已儲存內容、外部 revision 和本機 revision。儲存請求使用樂觀並行控制：如果磁碟上的內容已經變更，儲存會失敗並傳回 `file_external_revision_changed`，而不是無聲覆蓋。
 
-重啟或重新載入工作區時，桌面端會恢復受限的未儲存緩衝區。恢復內容仍需你主動儲存，不會靜默覆蓋磁碟檔案。
+有未儲存變更的分頁在關閉時會提示 **Save or discard the dirty editor before closing it**；切換工作區時同樣會攔截。
+
+權威執行環境重新啟動後，Vibex 會恢復未儲存的緩衝區（標記為 **恢復緩衝區**）。恢復內容仍需你主動儲存，不會自動覆蓋磁碟檔案。
+
+<Warning>
+  刪除檔案會改變工作區內容。刪除前查看 Git 狀態，必要時先複製內容或建立提交。
+</Warning>
 
 ## 內容預覽
 
-| 類型 | 能做什麼 |
-| --- | --- |
-| Markdown | 在編輯與渲染視圖切換，查看程式碼、表格、公式與圖表。 |
-| 圖片 | 查看圖片並進入圖片編輯器，支援復原與重做。 |
-| PDF | 使用原生 PDF 預覽逐頁查看。 |
-| Office 文件 | 預覽受支援的 Office 內容。 |
-| 其他文字 | 以編輯器開啟並保留編碼與換行。 |
+| 類型 | 副檔名 | 能做什麼 |
+| --- | --- | --- |
+| Markdown | `md` `mdx` `markdown` | 渲染檢視，支援程式碼區塊、表格、工作清單、註腳、公式和圖表（Mermaid / PlantUML）。 |
+| 圖片 | `png` `jpg` `jpeg` `gif` `webp` `svg` | 預覽圖片。 |
+| PDF | `pdf` | 原生 PDF 預覽，支援 **Fit width**、50%–200% 縮放和頁碼跳轉。 |
+| Office | `docx` `xlsx` `ods` `pptx` | 唯讀內容預覽。 |
+| 音訊與影片 | `mp4` `mp3` `wav` 等 | **不在應用程式內播放**，交給系統預設應用程式。 |
+| 其他 | 其餘文字格式 | 以編輯器開啟。 |
 
-二進位檔案和超過編輯器限制的大檔案保持唯讀。Markdown 資源會遵守工作區路徑、大小與資源數量限制；無法解碼的內容不會強制當作文字開啟。
+Markdown 預覽提供 **Contents** 大綱、**Copy document text**、逐區塊 **Copy code** / **Copy diff**、圖表原始碼檢視和全螢幕。工作區相對連結在預覽內開啟，外部連結交給系統瀏覽器。
+
+Office 預覽是**唯讀的擷取檢視**，不是版面還原：
+
+- `docx` —— 標題與段落。
+- `xlsx` / `ods` —— **僅第一個工作表**，最多 80 列 × 20 欄。
+- `pptx` —— 投影片文字，最多 200 頁。
+
+PDF 預覽同樣唯讀，不支援搜尋、註解和表單。
+
+### 無法預覽的格式
+
+| 格式 | 現象 |
+| --- | --- |
+| `.bmp` | 顯示 **Unsupported file**。 |
+| `doc` `xls` `ppt` | 回報 `office_legacy_format_unsupported`，請先轉換為新格式。 |
+| `odt` `odp` | 沒有處理程式。 |
+| `.html` | 以帶高亮的原始文字開啟，**不會渲染頁面**。 |
+| `.json` `.yaml` `.csv` | 以原始文字開啟，不做格式化或表格化。 |
+| `.ipynb` | 當作 JSON 文字開啟，不是 Notebook。 |
+
+<Info>
+  語法高亮涵蓋 Rust、TypeScript/TSX、JavaScript、JSON、Markdown、TOML、YAML、Python、Go、Java、CSS、HTML 和 Shell。其他語言以純文字顯示。
+</Info>
 
 ## 圖片編輯
 
-圖片編輯器提供 macOS 的 `cmd-z`/`cmd-shift-z` 和 Windows/Linux 的 `ctrl-z`/`ctrl-shift-z` 復原/重做。儲存前確認輸出路徑與格式。
+圖片編輯器用於**在傳送前標註附件圖片**，不是工作區圖片檔案的通用編輯器。在 Composer 的附件區點擊 **Edit image** 進入。
 
-## 預覽分頁和分欄
+可用工具：**Crop**、**Brush**、**Text**、**Rectangle**、**Circle**、**Arrow**、**Mosaic**，以及 **Undo edit** / **Redo edit**。支援 25%–400% 縮放和拖曳平移。
 
-拖動分頁或使用分欄入口，可以同時查看程式碼、差異、終端機與文件。關閉分頁不會刪除檔案或終端機，只會關閉目前視圖。
+- macOS：`cmd-z` 復原，`cmd-shift-z` 重做。
+- Windows/Linux：`ctrl-z` 復原，`ctrl-shift-z` 重做。
+
+儲存時會重新編碼為 **PNG**，不支援選擇其他格式，也沒有旋轉、縮放、翻轉或圖層。
+
+## 預覽分頁和分割
+
+拖曳分頁或使用分頁選單中的 **Split right** / **Split down** 把檢視分割，分割邊界可以拖曳調整。程式碼、差異、終端機和文件都可以放在同一個視窗裡。
+
+關閉分頁不會刪除檔案或終端機，只關閉目前檢視。
 
 ## 分頁操作
 
-- 將滑鼠停留在檔案或差異分頁上，可查看完整路徑。
-- 使用分頁的內容選單可以關閉目前、其他或全部分頁，也可以固定分頁；分頁列的 **標籤操作** 選單提供關閉其他或全部分頁。
-- 固定分頁必須先取消固定才能關閉。關閉其他或全部分頁時，固定分頁和未儲存的編輯器分頁會保留；未儲存內容仍需先儲存或放棄。
-- 對非終端機預覽分頁，`cmd-w`（Windows/Linux 為 `ctrl-w`）關閉目前分頁；`cmd-tab`/`cmd-shift-tab` 和 `cmd-pageup`/`cmd-pagedown`（Windows/Linux 使用 `ctrl`）循環切換分頁。聚焦分頁後也可以使用左右方向鍵。
+- 將游標懸停在檔案或差異分頁上可查看完整路徑。
+- 分頁右鍵選單：**Close tab**、**Close other tabs**、**Close tabs to the left**、**Close tabs to the right**、**Close all tabs**、**Split right**、**Split down**、**Pin tab** / **Unpin tab**、**Reveal in Files**、**Open In**。
+- 釘選的分頁必須先取消釘選才能關閉。關閉其他分頁時，釘選分頁和未儲存的分頁會保留。
+- `cmd-w` 關閉目前預覽分頁；`cmd-tab` / `cmd-shift-tab` 和 `cmd-pageup` / `cmd-pagedown` 循環切換分頁。終端機分頁不使用這些快速鍵。
 
-## 常用快捷鍵
-
-| 操作 | macOS | Windows/Linux |
-| --- | --- | --- |
-| 儲存檔案 | `cmd-s` | `ctrl-s` |
-| 開啟預覽 | `cmd-shift-p` | `ctrl-shift-p` |
-| 側欄 | `cmd-b` | `ctrl-b` |
-| 關閉目前預覽分頁 | `cmd-w` | `ctrl-w` |
-| 切換預覽分頁 | `cmd-tab` / `cmd-shift-tab` | `ctrl-tab` / `ctrl-shift-tab` |
-| 切換上一個/下一個分頁 | `cmd-pageup` / `cmd-pagedown` | `ctrl-pageup` / `ctrl-pagedown` |
-| 前進/後退 | `alt-left` / `alt-right` | `alt-left` / `alt-right` |
+完整快速鍵清單見[快速鍵參考](/zh-TW/reference/shortcuts)。

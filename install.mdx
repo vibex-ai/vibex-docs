@@ -1,71 +1,105 @@
 ---
-title: "安装与平台"
-description: "准备 Vibex 桌面端、移动端和可选 Relay 的运行环境。"
+title: "安装"
+description: "下载并安装 Vibex 桌面端，准备移动端和自托管运行时。"
 ---
 
-Vibex 当前仓库提供源码构建流程。桌面端支持 Linux、macOS 和 Windows；移动端使用原生 Android 与 iOS 工程；Relay 是可选的自托管组件。
+Vibex 为桌面端、Android 和自托管服务端提供现成的发布产物。**普通使用者不需要安装 Rust、Node.js 或 pnpm**：桌面端安装包是自包含的。
+
+所有产物都在同一个页面：
+
+<Card title="下载最新版本" icon="download" href="https://github.com/vibex-ai/vibex/releases/latest">
+  打开 GitHub Releases 的 latest 页面，选择与你平台匹配的产物。
+</Card>
+
+<Tip>
+  Vibex 仍在候选阶段：除稳定版外，也可能发布形如 `-rc.N` 或 `-preview.N` 的预发布版本。**latest 页面会解析到当前最新的一个**；需要指定版本时改用 [全部发布列表](https://github.com/vibex-ai/vibex/releases)。
+</Tip>
 
 ## 桌面端
 
-| 项目 | 要求 |
-| --- | --- |
-| Node.js | 22。Node 26 不受当前 Mintlify 和部分构建脚本支持。 |
-| pnpm | 11.3.0，以 `package.json` 中的 `packageManager` 为准。 |
-| Rust | 1.97.0，使用仓库提供的 toolchain 文件。 |
-| 图形环境 | Linux、macOS 或 Windows 的可用原生图形会话；Linux 需要 Vulkan。 |
-| Git | 支持子模块，并能访问要打开的仓库。 |
+| 平台 | 产物 | 说明 |
+| --- | --- | --- |
+| Linux x86_64 | `.deb` / `.AppImage` | 需要可用的 Vulkan 驱动 |
+| Linux aarch64 | `.deb` | 该架构不提供 AppImage |
+| macOS（Apple 芯片 / Intel） | `.dmg` | 需要较新的 macOS 与原生图形会话 |
+| Windows x86_64 / ARM64 | `.exe`（NSIS） | 按当前用户安装，无需管理员权限 |
 
-```bash
-git clone https://github.com/vibex-ai/vibex.git
-cd vibex
-git submodule update --init --recursive
-pnpm install --frozen-lockfile
-pnpm dev:desktop
-```
+Linux 的 `.deb` 依赖 `libvulkan1`、`libxcb1`、`libxcb-xkb1`、`libxkbcommon0`、`libxkbcommon-x11-0`、`libdbus-1-3`、`libfontconfig1`，以及一个 appindicator 库（`libayatana-appindicator3-1` 或 `libappindicator3-1`）。发行版包管理器通常会自动解决这些依赖。
 
-<Note>
-  上面的命令启动开发版。正式安装包由项目发布流程生成，版本、签名和下载渠道可能随发布变化，请查看仓库 Release 页面。
-</Note>
+<Warning>
+  **macOS 与 Windows 的安装包目前没有代码签名。**
+  - macOS 首次打开会被 Gatekeeper 拦截：在 **访达** 里按住 Control 点击应用图标，选择**打开**，再确认一次；或执行 `xattr -d com.apple.quarantine /Applications/Vibex*.app`。
+  - Windows 会弹出 SmartScreen 提示：选择**更多信息** → **仍要运行**。
+
+  这些提示来自缺少签名证书，不代表安装包有问题。每个产物旁边都提供了 `.sha256` 校验文件，`SHA256SUMS` 汇总了全部校验值。
+</Warning>
+
+### 发布通道
+
+桌面端安装包带有**编译期确定的通道标识**，通道之间可以并存安装，互不干扰：
+
+| 通道 | 产品名 | 数据目录 |
+| --- | --- | --- |
+| Preview | Vibex Preview | `desktop-preview` |
+| RC | Vibex RC | `desktop-rc` |
+| Stable | Vibex | `desktop-stable` |
+
+每个通道有**独立的 SQLite 数据库和配置**。切换通道不会迁移数据；如果你在 RC 里配置好了 Agent 和供应商，装 Stable 之后需要重新配置一次。通道由安装包决定，不能在应用内切换。
+
+### 升级
+
+桌面端内置签名自动更新。在 **Settings → About → Software update** 中：
+
+- 应用启动约 30 秒后自动检查一次，之后 RC / Preview 通道每 2 小时、Stable 通道每 6 小时检查一次。
+- 更新清单经过 Ed25519 签名校验，产物再做 SHA-256 校验，校验失败不会安装。
+- 安装方式取决于包格式：**AppImage 会原地自我替换**；`.deb`、macOS `.app` 和 NSIS 会**拉起系统安装器**，完成后需要重启应用。
+
+只有同通道的版本会被接受：RC 安装包只看 `-rc.*` 版本。如果自动更新不可用，手动下载新安装包覆盖安装即可。
 
 ## Android
 
-Android 构建需要 Android SDK/NDK、`cargo-ndk` 和目标 ABI 对应的 Rust targets。Debug 默认构建 `arm64-v8a` 与 `x86_64`，Release 默认构建 `arm64-v8a`。
+Android 客户端从 GitHub Releases 侧载安装：
 
-```bash
-pnpm build:mobile:android
-pnpm package:mobile:android
-```
+1. 下载 `vibex-<版本>-android-arm64.apk`。
+2. 在系统设置中允许来自该来源的安装。
+3. 打开 APK 完成安装（应用 ID 为 `ai.vibex.mobile`）。
 
-可以用 `VIBEX_MOBILE_ANDROID_TARGETS`（空格分隔）覆盖 Debug ABI。本地 `pnpm package:mobile:android` 生成的 Release APK 默认未签名，分发前必须使用发布密钥完成对齐和签名。打 tag 的 GitHub Release 会在上传前自动对齐并签名 APK/AAB；RC 和 Preview 在未配置仓库密钥时使用临时 CI key，Stable 则必须配置发布密钥。
+<Warning>
+  候选版本之间**不能覆盖升级**。未配置发布密钥时，每次 RC 发布使用一次性的 CI 签名密钥，因此不同 RC 的签名不同。跨版本升级需要先卸载旧版，再安装新版；卸载会清除本地保存的配对凭据，需要重新配对。
+</Warning>
 
 ## iOS
 
-iOS 构建需要 macOS、Xcode、XcodeGen，以及 `aarch64-apple-ios` 和 `aarch64-apple-ios-sim` Rust targets。
+<Warning>
+  **iOS 目前没有可分发给最终用户的构建。** 发布产物只有未签名的**模拟器**应用包（`ios-simulator.app.zip`）和 `VibexFFI.xcframework`，两者都需要 macOS 与 Xcode 才能运行或集成。真机安装、TestFlight 和 App Store 分发尚未提供。
+</Warning>
+
+如果你要在模拟器里试用，需要 macOS、Xcode、XcodeGen，以及 `aarch64-apple-ios` 和 `aarch64-apple-ios-sim` 两个 Rust target，然后从源码构建：
 
 ```bash
 pnpm build:mobile:ios
 ```
 
-脚本会构建 `VibexFFI.xcframework` 并生成 Xcode 项目。代码签名、真机或模拟器选择以及分发凭据由本机环境管理。
+## 自托管
 
-## 自托管 Relay
+跨网络使用、或不想把会话数据留在某台常开的个人电脑上时，可以自建服务端：
 
-Relay 只在你需要跨网络连接，且不想把传输交给第三方时使用。它转发加密帧，不存储或解密工作区、会话、Git、终端或供应商数据。
+- **[自托管无头运行时](/self-hosted-server)** —— `vibex-server` 是与你桌面端能力相同的权威运行时，适合放在服务器或家用常开机器上。
+- **[自托管 Relay](/relay)** —— 只转发端到端加密帧的中继，不做业务授权，也不保存业务数据。
 
-```bash
-docker compose -f deploy/relay/docker-compose.yml up --build -d relay-server
-curl -fsS http://127.0.0.1:9700/health
-docker compose -f deploy/relay/docker-compose.yml down
-```
+两者都发布了多架构容器镜像（`linux/amd64`、`linux/arm64`）。
 
-生产部署应使用受控 HTTPS/WSS 入口，例如 Caddy 或私有 Tailnet。详细配置见 [Remote v2 与 Relay](/developer/remote-protocol)。
+## 从源码构建
 
-## 验证安装
+需要改代码、或你的平台没有现成产物时，见[从源码构建](/from-source)。
 
-```bash
-pnpm check
-pnpm release:build-smoke
-pnpm check:mobile-native
-```
+## 卸载
 
-这些命令分别覆盖常规 Rust/前端/许可证检查、桌面/移动端/Relay 构建图，以及移动端 crate 和原生项目契约。它们不替代真实设备上的网络和签名验证。
+| 平台 | 方式 |
+| --- | --- |
+| Linux（deb） | `sudo apt remove vibex-rc`（按通道替换包名） |
+| Linux（AppImage） | 删除 AppImage 文件 |
+| macOS | 把应用拖到废纸篓 |
+| Windows | 使用"应用和功能"卸载 |
+
+卸载程序**不会**删除数据目录。要彻底清除，请先阅读[隐私与恢复](/privacy-and-recovery)，再手动删除对应通道的数据目录。

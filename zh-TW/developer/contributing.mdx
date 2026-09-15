@@ -5,17 +5,18 @@ description: "依 Vibex 的架構、測試和隱私要求提交變更。"
 
 ## 開始前
 
-1. 閱讀根目錄 `README.md` 與相關 `docs/` 設計/檢查說明。
-2. 搜尋既有 facade、DTO、reducer 和平台適配器，再決定是否需要新抽象。
-3. 保留工作樹中已有的未提交變更，不覆蓋其他人的檔案。
+1. 閱讀根目錄 `README.md` 和相關 `docs/` 設計/檢查說明。
+2. 搜尋現有 facade、DTO、reducer 和平台適配器，再決定是否需要新抽象。
+3. 保留工作樹中已有的未提交改動，不要覆寫其他人的檔案。
 
 ## 實作原則
 
 - 保持 `DesktopRuntime` 為唯一權威狀態所有者。
-- 讓行動端透過共享後端與 Remote v2 契約存取能力。
+- 新能力經由 `BackendFacade` 暴露，讓它同時適用於內嵌執行環境和配對的遠端執行環境。
+- 客戶端透過共享後端和 Remote v2 契約存取能力，不複製業務狀態。
 - 使用結構化錯誤、能力和序號，不依賴 UI 文案判斷成功。
-- 對檔案、Git、終端機、Provider 和裝置操作執行權限校驗與審計。
-- 日誌、測試證據與診斷資料脫敏，不寫入 secret、Prompt、檔案內容或終端機位元組。
+- 對檔案、Git、終端機、供應商和裝置操作進行權限檢查與審計。
+- 日誌、測試證據和診斷資料脫敏，不寫入金鑰、提示詞、檔案內容或終端機位元組。
 
 ## 提交前檢查
 
@@ -25,12 +26,38 @@ pnpm release:build-smoke
 pnpm check:mobile-native
 ```
 
-依改動範圍補充 `check:acp`、`check:code-workbench`、`check:terminal`、`smoke:relay:local` 或 Cargo 測試。跨層變更應覆蓋斷線、重啟、權限不足、序號間隙和恢復路徑。
+依改動範圍補充對應腳本：
 
-## 文件與證據
+| 改動範圍 | 建議命令 |
+| --- | --- |
+| ACP / Agent | `pnpm smoke:agents` |
+| 檔案服務 | `pnpm smoke:files` |
+| Git | `pnpm smoke:git` |
+| 終端機 | `pnpm smoke:pty` |
+| 資料庫 | `pnpm smoke:db` |
+| 備份恢復 | `pnpm smoke:backup` |
+| 診斷 | `pnpm smoke:diagnostics` |
+| Relay / 遠端 | `pnpm smoke:relay:local` |
+| 跨層回歸 | `pnpm e2e:regression` |
 
-使用者可見行為要同步更新簡體中文、繁體中文和英文頁面。未確認細節用 `TODO` 標記，不把測試 spike 當成穩定功能。使用文字步驟、狀態表、協議欄位和脫敏診斷記錄說明行為；不要要求視覺擷取，也不要提交工作區內容作為證據。
+<Note>
+  `pnpm check:acp`、`pnpm check:code-workbench`、`pnpm check:terminal`、`pnpm check:all` 都不存在——請使用上表中的真實腳本。完整清單見[建置與測試](/zh-TW/developer/build-and-test)。
+</Note>
+
+跨層改動應涵蓋斷線、重新啟動、權限不足、序號間隙和恢復路徑。
+
+## 文件和證據
+
+使用者可見行為必須同步更新簡體中文、繁體中文和英文頁面。無法確認的實作細節用 `TODO` 標註，**不要把只存在於程式碼路徑裡、但使用者無法到達的功能寫成可用功能**——如果某個介面入口尚未開放，就不要在文件裡提及它。
+
+用文字步驟、狀態表、協議欄位和脫敏診斷記錄說明行為；不要要求視覺擷取，也不要提交工作區內容作為證據。
+
+### 文件站維護須知
+
+- 版本號集中在 `snippets/release.mdx`，**不要在頁面裡硬編碼版本**。發版時只改這一個檔案。
+- 下載與發佈連結統一指向 GitHub Releases 的 `latest` 頁面，它會自動解析到最新版本。
+- 使用者介面文案以 `apps/desktop/src/locale.rs` 為準；文件用詞要跟它一致。
 
 ## Pull Request
 
-PR 說明行為變更、所有權邊界、測試命令、相容性、遷移、回滾策略和已知限制。入口見 [GitHub](https://github.com/vibex-ai/vibex)。
+描述行為變化、所有權邊界、測試命令和已知限制。若變更協議或持久化格式，說明相容性、遷移和回滾策略。Issue 和 Pull Request 入口見 [GitHub](https://github.com/vibex-ai/vibex)。

@@ -7,11 +7,11 @@ description: "安装 Vibex 的 Rust、Node、pnpm 和平台依赖。"
 
 | 工具 | 版本或说明 |
 | --- | --- |
-| Node.js | 22。 |
-| pnpm | 11.3.0。仓库通过 `packageManager` 声明。 |
-| Rust | 1.97.0，由 `rust-toolchain.toml` 固定。 |
-| Git | 需要子模块支持。 |
-| Linux 图形 | 可用 Vulkan 驱动和图形会话。 |
+| Node.js | 22 |
+| pnpm | 11.3.0，由 `package.json` 的 `packageManager` 字段声明 |
+| Rust | 1.97.0，由 `rust-toolchain.toml` 固定 |
+| Git | 需要子模块支持 |
+| Linux 图形 | 可用的 Vulkan 驱动和图形会话 |
 
 ```bash
 git clone https://github.com/vibex-ai/vibex.git
@@ -26,29 +26,46 @@ pnpm install --frozen-lockfile
 pnpm dev:desktop
 ```
 
-脚本会准备开发图标并运行 `vibex-desktop`。需要单独检查 Rust 时使用：
+脚本会准备开发图标并运行 `vibex-desktop`。单独检查 Rust 时：
 
 ```bash
 cargo check -p vibex-desktop --locked
 cargo test -p vibex-desktop --locked
+pnpm smoke:first-frame
 ```
 
-## 可选移动端环境
+## 可选：移动端环境
 
-Android 需要 SDK/NDK、`cargo-ndk` 和目标 ABI 的 Rust targets。iOS 需要 macOS、Xcode、XcodeGen、`aarch64-apple-ios` 与 `aarch64-apple-ios-sim` targets。
+- **Android** —— Android SDK/NDK、`cargo-ndk`，以及目标 ABI 的 Rust targets。
+- **iOS** —— macOS、Xcode、XcodeGen，以及 `aarch64-apple-ios` 和 `aarch64-apple-ios-sim` targets。
 
-## 可选 Relay 环境
+## 可选：自托管环境
 
-Relay 本地开发需要 Docker 或可运行的 Rust 二进制。保持默认 loopback 绑定：
+本地开发需要一个可运行的 Rust 二进制或 Docker：
 
 ```bash
 docker compose -f deploy/relay/docker-compose.yml up --build -d relay-server
+docker compose -f deploy/server/docker-compose.yml up --build -d vibex-server
 curl -fsS http://127.0.0.1:9700/health
-docker compose -f deploy/relay/docker-compose.yml down
+curl -fsS http://127.0.0.1:8765/api/v2/info
 ```
 
-生产网络、HTTPS、Tailnet 和环境变量请参阅 [Remote v2 与 Relay](/developer/remote-protocol)。
+注意两个服务的信息端点不同。网络、HTTPS、Tailnet 和环境变量见[自托管无头运行时](/self-hosted-server)与[自托管 Relay](/relay)，协议细节见 [Remote v2 与 Relay](/developer/remote-protocol)。
 
-## 工作区约定
+## 桌面端调试开关
 
-在仓库根目录执行脚本。不要提交 `target`、签名包、PDFium 运行时或本机凭据。变更产品仓库时，先确认工作树中的其他未提交改动并保留它们。
+```bash
+VIBEX_DISABLE_REMOTE_CLIENT=1 pnpm dev:desktop   # 忽略已保存的远程凭据，强制使用本地运行时
+VIBEX_HOME=/tmp/vibex-dev pnpm dev:desktop       # 使用独立的运行时 home
+VIBEX_PROVIDER_SECRET_STORE=file pnpm dev:desktop # 没有钥匙串时改用主机密钥文件
+```
+
+`vibex-desktop` 还提供若干探针入口（`--probe`、`--spike-*`、`--native-content-*`）。这些是开发者工具，不是用户功能，不要在文档里把它们当作产品能力。
+
+## 仓库约定
+
+在仓库根目录执行脚本。
+
+- 不要提交 `target`、签名包、PDFium 运行时或本机凭据。
+- 改动产品仓库前，先确认工作树中已有的未提交改动并保留它们。
+- 用户可见行为的改动需要同步更新三语文档，见[贡献代码](/developer/contributing)。

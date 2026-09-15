@@ -1,68 +1,108 @@
 ---
 title: "Agent 會話"
-description: "建立、觀察、暫停、分支與恢復 Vibex Agent 會話。"
+description: "建立、觀察、暫停、分叉和恢復 Vibex Agent 會話。"
 ---
 
-會話把一次開發任務的輸入、Agent 輸出與工具操作保存為結構化時間線。桌面端保存權威時間線，行動端只顯示遠端投影。
+會話把一次開發任務的輸入、Agent 輸出和工具操作儲存為結構化時間線。**權威執行環境**儲存權威時間線，其他客戶端只顯示它的投影。
 
 ## 建立會話
 
-1. 選擇目標工作區。
-2. 在 Composer 頂端選擇 Agent、供應商設定、模型、推理深度與 conversation mode。
-3. 輸入任務。用 `/` 選 Prompt、`@` 引用檔案、`$` 插入 Skill，也可以加入附件。
-4. 傳送前確認工作區和權限範圍。Agent 可能需要讀取檔案、執行終端機命令或請求授權。
+1. 選擇目標專案和位置（**Local** 或新增 **Worktree**，見[專案與工作區](/zh-TW/workspaces)）。
+2. 在 Composer 頂端選擇 Agent、供應商設定、模型、**思考深度**和**對話模式**。
+3. 輸入任務。用 `/` 選命令，用 `@` 引用工作區檔案，用 `$` 插入 Skill，也可以加入附件。
+4. 傳送前確認工作區和權限範圍。Agent 可能需要讀取檔案、執行終端機命令或請求額外授權。
 
-切換 Agent 或模型只影響後續執行。時間線中的訊息會保留產生它的執行身份。
+切換 Agent 或模型只影響後續執行。已寫入時間線的訊息會保留其原始執行身份。
 
 ## 閱讀時間線
 
 | 項目 | 你會看到什麼 |
 | --- | --- |
-| 使用者與 Agent 訊息 | Markdown 文字與附件。 |
-| reasoning | Agent 的推理摘要，是否顯示取決於 Agent 與設定。 |
-| plan | 待辦步驟與進度。 |
-| tool/process details | 工具名稱、參數摘要、程序與退出結果。 |
-| permission approval | 等待你核准或拒絕的操作。 |
-| elicitation | Agent 要求你填寫的結構化表單。 |
-| delegation | 子 Agent 或委派任務的狀態和結果。 |
-| 狀態事件 | 執行、排隊、等待、完成、失敗、停止與重連。 |
+| 使用者與 Agent 訊息 | Markdown 文字和附件。 |
+| Reasoning | Agent 的推理摘要，可用 **Expand reasoning** / **Collapse reasoning** 展開或收合。 |
+| Plan | 待辦步驟及其進度。 |
+| 工具與程序詳情 | 工具名稱、參數摘要、程序和結束結果，以及 **{n} process events** 計數。 |
+| 權限請求 | 等待你核准或拒絕的操作。 |
+| 詢問表單 | Agent 需要你填寫的型別化表單。 |
+| 委派 | 子 Agent 或委派任務的狀態和結果。 |
+| 狀態事件 | 執行、排隊、等待、完成、失敗、停止和重連。 |
 
-工具參數、終端機輸出和檔案差異可能含有敏感內容。分享診斷前先脫敏。
+回合上方會顯示 **Worked for** 的耗時。產生過程中會顯示 **Thinking...** 或 **Waiting for confirmation...**。
+
+工具參數、終端機輸出和檔案差異可能包含敏感內容。分享診斷資料前先檢查並去識別化。
 
 ## 控制執行
 
-- **Stop**：停止目前執行；已寫入的檔案或已執行的命令不會自動回復。
-- **Continue**：在同一會話繼續傳送任務。
-- **Retry**：依 Agent 支援的重試語義重新執行失敗回合；不確定外部操作是否已執行時，先核對結果。
-- **Fork**：從目前時間線建立分支會話。
-- **Rename**：修改會話標題，不改變 Agent 上下文。
-- **Edit message**：編輯尚未作為新執行依據的訊息；已完成的時間線事件不會被改寫。
-- **Resume**：從持久化歷史恢復會話。
+| 操作 | 說明 |
+| --- | --- |
+| **Stop current response** | 停止目前執行。已寫入的檔案或已執行的命令**不會**自動復原。 |
+| **Continue** | 在同一會話中繼續傳送任務。 |
+| **Retry** | 依 Agent 支援的重試語義重新執行失敗回合；不確定是否已執行的外部操作應先檢查結果。 |
+| **Fork** | 從目前時間線建立分支會話，適合比較兩種實作。 |
+| **Rename** | 修改會話標題，不會改變 Agent 上下文。 |
+| **Edit message** | 改寫最後一則使用者訊息；已完成的時間線事件不會被改寫。 |
 
 <Warning>
-  停止 Agent 只停止執行，不會撤銷檔案、Git 或外部服務變更。請分別檢查 Git diff 與終端機。
+  停止 Agent 只停止執行過程，不會撤銷檔案、Git 或外部服務變更。請在 Git diff 和終端機中分別檢查結果。
 </Warning>
 
-## 佇列、自動繼續和委派
+## 訊息佇列與自動繼續
 
-執行期間傳送的後續訊息可以進入佇列。桌面端會顯示排隊順序，並在目前回合結束後按順序提交；取消或刪除佇列項目不會回復已完成的操作。
+執行期間傳送的後續訊息會進入佇列。Composer 上的佇列區域提供：
 
-啟用自動繼續時，只有符合會話設定和 Agent 能力的回合會自動推進。權限請求、elicitation、失敗或需要使用者選擇時會暫停等待。**Delegation** 會為子 Agent 建立獨立狀態，並把進度和最終結果關聯回父會話。
+- **Auto send** / **Manual send** —— 切換自動或手動提交佇列。
+- **Send queued message**、**Edit queued message**、**Delete queued message** —— 逐項操作。
+- **Resume queued messages** / **Clear queued messages** —— 整體恢復或清空。
 
-## 權限與詢問表單
+取消或刪除佇列項目不會撤銷已經完成的操作。
 
-Agent 請求終端機、檔案寫入或其他受保護能力時，時間線會顯示原因與範圍。選擇 **Approve** 或 **Deny**，結果會記錄在時間線。取消 elicitation 表單會傳回取消結果，不會隱式核准。
+啟用 **Auto-continue** 後，只有符合會話設定和 Agent 能力的回合會自動推進。遇到權限請求、詢問表單、失敗或需要使用者選擇時會停下來等待。
+
+## 權限請求與詢問表單
+
+當 Agent 請求終端機、檔案寫入或其他受保護能力時，時間線會顯示請求原因和範圍，通常包含工作目錄、參數和環境變數。可選操作為 **Approve**、**Deny** 和 **Always allow for session**。
+
+詢問表單需要填寫結構化內容。提交前確認值和作用範圍；取消表單會讓 Agent 收到取消結果，而不是隱含核准。
+
+## 搜尋會話
+
+Vibex 提供兩種搜尋：
+
+| 方式 | 範圍 | 入口 |
+| --- | --- | --- |
+| **Find in conversation** | 目前會話的時間線 | `cmd-f` |
+| **Search sessions** | 全部會話的標題和訊息本文 | 側欄會話清單頂端的搜尋圖示 |
+
+**Search sessions** 會開啟一個全螢幕浮層，顯示 **Recent sessions**（查詢為空時）或 **Search results**，符合的片段會以高亮顯示。選擇結果會跳到對應會話，並定位到符合的那則訊息。
+
+<Note>
+  跨會話搜尋是**按需索引**：開啟搜尋時才建立索引，關閉後釋放。索引期間會顯示 **Indexing session messages...**。已封存的會話不參與搜尋。
+</Note>
 
 ## 匯入本機歷史
 
-使用 **Local history import** 掃描本機歷史，再選擇要匯入的會話和目標工作區。目前支援 Claude Code、Codex、OpenCode、Gemini CLI、Cline、Hermes、CodeBuddy Code、Kimi Code、Pi、Grok、Cursor、DeepSeek Harness、ZCode 和 Google Antigravity。
+透過側欄 **More** 選單或專案右鍵選單中的 **Import sessions** 匯入其他 Agent 的歷史。
 
-掃描器只保存標題、時間、工作區提示、訊息數量和來源路徑等受限中繼資料。確認選擇後才重新讀取並一次性寫入時間線；已匯入、已刪除或找不到的來源會分別標記，不會重複匯入。憑證、私鑰和完整 Agent home 設定不會匯入。
+支援 14 個來源：**Claude Code**、**Codex**、**OpenCode**、**Gemini CLI**、**Cline**、**Hermes**、**CodeBuddy Code**、**Kimi Code**、**Pi**、**Grok**、**Cursor**、**DeepSeek Harness**、**ZCode**、**Google Antigravity**。
 
-## 搜尋和通知
+流程：
 
-使用 `cmd-f`（Windows/Linux 通常為 `ctrl-f`）搜尋時間線。桌面端可在完成、失敗或等待輸入時發送通知；通知文字有長度限制，不含完整訊息或終端機輸出。
+1. Vibex 掃描本機歷史，顯示 **Scanning local Agent sessions...**。
+2. 在預覽清單中依專案分組勾選要匯入的會話，可以依 Agent 篩選或重新掃描。
+3. 點擊 **Import {n} sessions**，等待 **Import complete**。
 
-## 行動端操作
+結果會分成 **Imported**、**Already imported**、**Not found**、**Failed** 四類。
 
-配對後，行動端可以查看同一時間線、傳送後續訊息、回答問題與處理允許的核准。它不在本機啟動 Agent，也不持有工作區檔案；斷線後會重新驗證並先 catch-up，再接收即時事件。出現 `resync_required` 時，以桌面端重新同步的時間線為準。
+<Note>
+  掃描器只讀取中繼資料：標題、時間、工作區路徑、訊息數量和來源路徑。匯入時才會重新讀取內容並一次性寫入時間線。憑證、金鑰和完整 Agent home 設定**不會**匯入。已匯入過的會話不會重複匯入，也不會被重新整理覆蓋。
+</Note>
+
+## 通知與未讀
+
+會話完成、失敗或等待輸入時，權威執行環境可以傳送桌面通知。三類通知可以在 **Settings → General** 中分別開關。
+
+有未讀完成項目的會話在側欄顯示圓點提示；開啟會話後提示消失，以權威時間線為準。系統匣選單也提供 **New chat**、**Config Center** 和 **Settings** 的快捷入口。
+
+## 子 Agent 時間線
+
+當會話使用了委派（delegation）時，右側欄會出現 **Child Agent timelines** 入口，可以查看子 Agent 的獨立時間線，並從父會話跳轉過去。

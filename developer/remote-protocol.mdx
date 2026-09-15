@@ -3,31 +3,111 @@ title: "Remote v2 与 Relay"
 description: "实现配对、认证、同步和自托管加密传输时遵循的协议边界。"
 ---
 
-Remote v2 是桌面端与移动端之间的类型化协议。它把业务授权留在桌面端，把传输路线（Direct、Tailnet、Relay）作为可替换基础设施。
+Remote v2 是权威运行时与客户端之间的类型化协议。它把业务授权留在权威端，把传输路线（Direct、Tailnet、Relay、局域网）当作可替换的基础设施。
 
-## 配对和身份
+线协议的完整定义在仓库 `docs/remote/protocol-v2.md`，`crates/core/src/remote_v2.rs` 是 wire 层面的唯一事实源。本页只覆盖实现时必须遵守的边界。
 
-- 桌面端身份在运行时 home 中生成并以 Unix `0600` 权限保存。
-- 配对 offer 只存活约 60–120 秒，可取消且只能使用一次。
-- QR/deep link 使用 `vibex://open/<transport>#/pair/<base64url-offer>`。
-- offer 包含候选路线、桌面公钥、权限摘要、过期时间和一次性 challenge，不包含长期 grant、secret 或工作区数据。
-- 设备 grant 撤销后，所有活动连接立即收到 `device_revoked`。
+## 两种配对路径
+
+Vibex 有两条形式不同的配对路径，不要混用：
+
+| 路径 | 链接形式 | 有效期 | 由谁生成 |
+| --- | --- | --- | --- |
+| 桌面端 SAS offer | `vibex://open/<transport>#/pair/<base64url-offer>` | 60–120 秒 | 桌面端（配对手机） |
+| 无头运行时配对码 | `vibex://pair#/code/<base64url-payload>` | 默认 5 分钟，最长 30 分钟 | `vibex-server` |
+
+`<transport>` 取值 `direct`、`tailnet` 或 `self_hosted_relay`。
+
+### offer 路径
+
+- 桌面端身份在运行时 home 中生成，Unix 下以 `0600` 权限保存。
+- offer 可取消、只能使用一次，其消费与设备授权的创建在**同一个 SQLite 事务**中完成。
+- offer 包含候选路线、桌面公钥、权限摘要、过期时间和一次性 challenge，**不包含**长期授权、密钥或工作区数据。
+- 移动端在本地解析链接，异步处理前先剥离 fragment。
+
+### 配对码路径
+
+- 九位数字，按 `NNN-NNN-NNN` 分组，由 UUIDv4 派生，**只持久化它的 SHA-256 哈希**。
+- 客户端在 `POST /api/v2/pairing/code/claim` 声明配对码；配对码**只出现在请求体里，从不放进 URL**，因此不会进入代理和访问日志。
+- 该端点与其他未认证路由共享每对端限流和认证失败预算。
+- 声明是一次性的：重复使用、格式错误或已过期会返回 `remote_pairing_code_invalid` / `remote_pairing_code_expired`，并写入 `pairing_code_rejected` 审计记录。
+- 成功声明返回**恰好一个**设备授权，权限级别在创建配对码时确定。
+
+### 连接串与证书固定
+
+`vibex://pair#/code/<payload>` 的 payload 是一个 JSON 对象：
+
+```json
+{
+  "schemaVersion": "vibex-pairing-code.v1",
+  "serverUrl": "https://192.168.1.10:8765",
+  "pairingCode": "123-456-789",
+  "tlsCertificateDer": "<base64 DER>"
+}
+```
+
+`tlsCertificateDer` 是可选的。**证书随连接串带外传递**（来自服务器控制台，而不是网络），客户端在发出第一个 TLS 请求之前就固定它，因此局域网自签场景不需要公共 CA。指纹格式为 `sha256:<base64url(sha256(DER))>`。
+
+固定型链接必须是 `https` 且指向数值型局域网地址（loopback、RFC1918 或链路本地 / 唯一本地 IPv6），否则返回 `remote_pairing_link_invalid`。这是有意限制：配对不能变成绕过公网 CA 体系的手段。
+
+服务器身份密钥与 TLS 证书**分开**固定，前者从 `/api/v2/info` 的 `serverIdentityPublicKey` 取得。
 
 ## 握手和密钥
 
-实现使用 X25519、HKDF-SHA256、HMAC-SHA256 和 ChaCha20-Poly1305 等成熟原语。WebSocket ticket 为 30 秒、单次使用，并通过受控 subprotocol 交换，不放在 URL 中。
+实现使用 X25519、HKDF-SHA256、HMAC-SHA256 和 ChaCha20-Poly1305 等成熟原语。
 
-hello proof 绑定 ticket challenge、完整 hello transcript、服务器身份、session epoch、设备身份和客户端临时密钥。`server_info` 返回服务器临时密钥和会话密钥确认。
+- 连接以 `control/hello` 开始，收到 `control/server_info` 结束握手；协议使用范围协商，当前选择 `2.0`。
+- WebSocket ticket 有效期 30 秒、单次使用，通过受控 subprotocol 交换，**不放在 URL 中**。
+- hello proof 绑定 ticket challenge、完整 hello transcript、服务器身份、session epoch、设备身份和客户端临时密钥。
+- `server_info` 返回服务器临时密钥和会话密钥确认。
+
+## 帧类型
+
+| 类型 | 用途 |
+| --- | --- |
+| JSON `control` | hello、ping/pong、subscribe、attach/detach、resync、close。 |
+| JSON `rpc_request` / `rpc_response` | 带请求与关联 id。RPC 超时只结束该请求，不断开 socket；每条连接有有界 in-flight 上限。 |
+| JSON `event` | 携带 domain generation 与单调序号。 |
+| 二进制帧 | 以 `VBX2` 开头，接大端 JSON 头长度、类型化头和原始负载。终端字节**从不**转成 UTF-8。 |
+
+未知的 client、control、JSON message、attachment、binary frame、timeout、close 和 transport 枚举值一律解码为 `unknown`；未知的活动消息以结构化协议原因关闭，而不是 panic。旧版 `0.4` HTTP 与 `/ws` 路由是兼容端点，新客户端使用 `/ws/v2`。
 
 ## RPC、事件和同步
 
-所有业务操作都经过设备认证、权限和工作区授权。变更使用有界幂等键；文件操作额外使用内容修订/CAS。客户端发现序列号或 cursor 缺口时返回 `resync_required`，并从权威资源重新获取。
+所有业务操作都经过设备认证、权限和工作区授权。变更使用有界幂等键；文件操作额外使用内容修订 / CAS。
 
-附件流在开始前重新认证。Terminal attachment 带工作区作用域；终端输入需 generation 检查、授权和审计，不能保留原始字节。
+客户端发现序号或游标缺口时返回 `resync_required`，并指向一个权威操作重新获取。附件流在开始前重新认证并授权其 domain；终端附件带工作区作用域，终端输入需 generation 检查、授权和审计，**不保留原始字节**。
+
+设备授权撤销后，该设备的所有活动连接立即收到 `device_revoked`。运行时关闭时发送 `server_shutdown`，排空监听并释放 socket。
+
+## 权限模型
+
+`RemoteDevicePermissionLevel` 有三个取值，序列化为 `read_only` / `approve_only` / `full_control`：
+
+| 级别 | 允许的操作类 |
+| --- | --- |
+| `read_only` | `ReadProject`、`ReadAgentSession`、`ReadProviderSettings`；其余一律拒绝并审计为 `permission_denied`。 |
+| `approve_only` | 上述读取，加 `ResolvePermission`、`ResolveElicitation`。 |
+| `full_control` | 全部 13 类，包含 `MutateAgentSession`、`MutateAgentAuthentication`、`MutateFile`、`MutateGit`、`MutateTerminal`、`MutateProviderSettings`、`ReadDeviceManagement`、`MutateDeviceManagement`。 |
+
+级别在权威端创建 offer / 配对码时确定，客户端无法自行提权。
+
+## 网关端点
+
+| 端点 | 说明 |
+| --- | --- |
+| `/api/v2/info` | 能力、`serverIdentityPublicKey`、`pairingCodeClaimPath`。 |
+| `/api/v2/pairing/claim` | offer 声明。 |
+| `/api/v2/pairing/code/claim` | 配对码声明。 |
+| `/api/v2/pairing/lan`、`/request`、`/status` | 局域网配对。 |
+| `/api/v2/ws-ticket` | 换取 WebSocket ticket。 |
+| `/ws/v2` | Remote v2 主通道。 |
 
 ## Relay 约束
 
-Relay 只转发不透明加密帧，并可以暴露 `/health`、`/api/info` 和 WebSocket bridge 所需的路由元数据。它不执行业务授权、不读写工作区、不保存 Provider 或时间线。
+Relay 是一个**零知识房间路由器**：它只转发不透明加密帧，可以暴露 `/health`、`/api/info` 和 WebSocket bridge 所需的路由元数据，但**不**执行业务授权、不读写工作区、不保存供应商配置或时间线。
+
+Relay 上的端点是 `/health`、`/api/info`、`/ws`、`/api/rooms/{room_id}/pair|command` 和两个 `/api/push/*`。**Relay 上没有 `/api/v2/info`**——那是权威运行时的端点。
 
 本地检查：
 
@@ -36,17 +116,21 @@ pnpm smoke:relay:local
 cargo test -p vibex-remote-client --test relay_smoke --locked -- --nocapture
 ```
 
-不要在 Relay 日志和测试证据中记录 token、pairing code、私钥、提示词、文件路径、终端内容、Git diff、Provider 设置、原始密文或 nonce。
-
 ## 连接策略
 
-Remote client 可以在 Direct、Tailnet 和 Relay 之间探测和回退。路线恢复后应重新探测并切换，不需要重复配对；如果设备被撤销，任何路线都必须失败。
+客户端可以在 Direct、Tailnet、Relay 和局域网之间探测和回退。路线恢复后应重新探测并切换，**不需要重复配对**；如果设备已被撤销，任何路线都必须失败。
 
-## 部署示例
+## 部署
 
 ```bash
 docker compose -f deploy/relay/docker-compose.yml up --build -d relay-server
 curl -fsS http://127.0.0.1:9700/health
 ```
 
-发布到公网前配置 HTTPS/WSS、Host/Origin 校验、连接和房间上限，并阅读仓库中的 `docs/smoke/relay-nat.md`。
+发布到公网前请配置 HTTPS/WSS、Host/Origin 校验、连接与房间上限，并阅读仓库中的 `docs/smoke/relay-nat.md` 与 `docs/smoke/remote-lan.md`。
+
+## 日志与证据要求
+
+不要在 Relay 日志和测试证据中记录：token、配对码、私钥、提示词、文件路径、终端内容、Git diff、供应商设置、原始密文或 nonce。
+
+Relay 日志应只包含路由、计数和时序元数据。

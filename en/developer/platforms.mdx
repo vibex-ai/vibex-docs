@@ -1,38 +1,73 @@
 ---
 title: "Platform support"
-description: "Understand build boundaries for Linux, macOS, Windows, Android, and iOS."
+description: "Artifact formats, build methods, and verification requirements for each platform."
 ---
 
 ## Support matrix
 
-| Platform | Product form | Key dependency | Note |
-| --- | --- | --- | --- |
-| Linux | Native desktop | Vulkan graphical session | Supports development and preview smoke tests. |
-| macOS | Native desktop | Xcode toolchain as needed | Also supports iOS builds. |
-| Windows | Native desktop | Native Rust/Node environment | Use the platform shell. |
-| Android | Native mobile | Android SDK/NDK, `cargo-ndk` | Debug defaults to arm64-v8a/x86_64. |
-| iOS | Native mobile | macOS, Xcode, XcodeGen | Produces `VibexFFI.xcframework`. |
-| Self-hosted Linux/container | Relay | Rust/Axum or Docker | Forwards encrypted frames only. |
+| Platform | Artifacts | Key dependencies |
+| --- | --- | --- |
+| Linux x86_64 | `.deb`, `.AppImage` | A Vulkan graphical session |
+| Linux aarch64 | `.deb` | Vulkan; no AppImage (linuxdeploy cannot cross-build one) |
+| macOS aarch64 / x86_64 | `.dmg` | A recent macOS; **unsigned and not notarized** |
+| Windows x86_64 / aarch64 | NSIS `.exe` | **Unsigned**; installs for the current user |
+| Android arm64 | `.apk`, `.aab` | Android SDK/NDK, `cargo-ndk` |
+| iOS | `ios-simulator.app.zip`, `xcframework.zip` | macOS, Xcode, XcodeGen; **simulator only, unsigned** |
+| Self-hosted Linux / container | `ghcr.io/vibex-ai/vibex-server`, `ghcr.io/vibex-ai/vibex-relay-server` | Docker or the Rust binary, multi-architecture amd64/arm64 |
+
+<Warning>
+  **Signing status is a known current limitation:** macOS and Windows installers are not code-signed, so users must allow them manually the first time they open them; iOS ships unsigned simulator builds only. When no repository key is configured, Android uses a throwaway CI key generated for each release, so **candidate versions cannot upgrade in place over one another**. Before a release, confirm whether any of this has changed.
+</Warning>
 
 ## Desktop platform boundaries
 
-The desktop owns Agents, files, Git, PTY, providers, permissions, and persistence. Keep platform differences in `apps/desktop/src/platform` or a shared facade. Do not duplicate business branches in UI code.
+The authoritative runtime owns Agents, files, Git, PTY, providers, permissions, and persistence. Keep platform differences in `apps/desktop/src/platform` or a shared facade; do not duplicate business branches in the UI.
+
+## Release channels
+
+A channel is a **compile-time identity**, not a runtime switch:
+
+| Channel | Product name | App ID | Data directory |
+| --- | --- | --- | --- |
+| Preview | Vibex Preview | `dev.vibex.desktop.preview` | `desktop-preview` |
+| RC | Vibex RC | `dev.vibex.desktop.rc` | `desktop-rc` |
+| Stable | Vibex | `dev.vibex.desktop` | `desktop-stable` |
+
+The channel is derived from the tag (`*-preview.*` / `*-rc.*` / plain semver). The release process asserts that the versions in the tag, `Cargo.toml`, `package.json`, and `Packager.<channel>.toml` match exactly. Overriding the channel at runtime is rejected (`release_channel_override_rejected`).
+
+## Release workflow
+
+`.github/workflows/release.yml` runs fully automatically on `v*` tags, and the desktop matrix covers six platform / architecture combinations:
+
+| Platform | Runner | Artifact format |
+| --- | --- | --- |
+| Linux x86_64 | ubuntu-24.04 | `deb,appimage` |
+| Linux aarch64 | ubuntu-24.04 (cross) | `deb` |
+| macOS aarch64 | macos-14 | `dmg` |
+| macOS x86_64 | macos-14 (cross) | `dmg` |
+| Windows x86_64 | windows-2022 | `nsis` |
+| Windows aarch64 | windows-2022 (cross) | `nsis` |
+
+Mobile builds in the same workflow: an Android APK + AAB, and the iOS XCFramework + unsigned simulator app. The release job requires **all** prerequisite jobs to succeed before it creates a release, so a partial matrix never produces a broken release.
+
+<Note>
+  The workflow currently has **no** macOS notarization or Windows Authenticode step. Until those two steps are added, installers keep carrying the platform warnings.
+</Note>
 
 ## Android builds
 
 ```bash
-pnpm build:mobile:android
+pnpm build:mobile:android      # Debug
+pnpm package:mobile:android    # Release (unsigned)
 ```
 
-Package a Release APK with:
+Set `VIBEX_MOBILE_ANDROID_TARGETS` (space-separated) to override the Debug ABIs; Release builds `arm64-v8a` only by default.
 
-```bash
-pnpm package:mobile:android
-```
+The release workflow calls `apps/mobile/scripts/sign-android-release.sh`: APKs use `zipalign` + `apksigner`, and AABs use `jarsigner`. RC / Preview generate a throwaway `vibex-ci` key when no repository key is configured; Stable releases must configure `VIBEX_ANDROID_KEYSTORE_BASE64` and `VIBEX_ANDROID_KEYSTORE_PASSWORD`, plus the optional `VIBEX_ANDROID_KEY_PASSWORD` and the repository variable `VIBEX_ANDROID_KEY_ALIAS` (default `vibex`).
 
-Set `VIBEX_MOBILE_ANDROID_TARGETS` to override Debug ABIs. Release APKs are unsigned and need alignment and signing before distribution.
-
-A local `pnpm package:mobile:android` build produces only an unsigned Release APK. A tagged GitHub Release runs the signing script: `zipalign` and `apksigner` sign the APK, and `jarsigner` signs the AAB. RC and Preview use an ephemeral CI key when no repository key is configured. Stable releases require `VIBEX_ANDROID_KEYSTORE_BASE64` and `VIBEX_ANDROID_KEYSTORE_PASSWORD`; `VIBEX_ANDROID_KEY_PASSWORD` and the `VIBEX_ANDROID_KEY_ALIAS` repository variable are optional (`vibex` is the default alias).
+<Warning>
+  Using a throwaway key means **every RC release has a different APK signature**, so users cannot upgrade in place and must uninstall before installing again. This is a known tradeoff of the current RC phase.
+</Warning>
 
 ## iOS builds
 
@@ -40,12 +75,35 @@ A local `pnpm package:mobile:android` build produces only an unsigned Release AP
 pnpm build:mobile:ios
 ```
 
-Xcode controls signing, bundle identifiers, and device or simulator selection. Do not commit certificates or provisioning profiles.
+Builds `VibexFFI.xcframework` and generates the Xcode project. Signing, the bundle identifier, device / simulator selection, and distribution credentials are all decided by your local Xcode process; do not commit certificates or provisioning profiles to the repository.
+
+## Desktop packaging
+
+```bash
+cargo install cargo-packager --version 0.11.8 --locked
+pnpm prepare:pdfium
+pnpm package:preview    # Or package:rc / package:stable
+```
+
+Linux packages with cargo-packager, and the PDFium runtime ships with the package on **linux-x86_64** only. Wayland-related libraries are **not** bundled (the host ABI boundary); the host provides them.
+
+## Automatic updates
+
+`crates/app-update` implements signed updates:
+
+- It discovers candidate releases from the GitHub Releases Atom feed and filters them by channel.
+- It verifies the Ed25519 signature of `vibex-update.json` and the SHA-256 of the artifact, with a URL allowlist limited to release download paths.
+- It checks 30 seconds after launch, then every 2 hours on RC / Preview and every 6 hours on Stable, with jitter and backoff.
+- AppImage replaces itself in place (with `.vibex-backup` and `pending-install.json` crash recovery); deb, the macOS app, and NSIS launch the system installer and require a restart.
+
+Only builds with the public key compiled in check for updates automatically.
 
 ## Mobile lifecycle
 
-Mobile must handle backgrounding, network changes, disconnects, and reconnects. On resume, fetch authoritative sessions and timelines through Remote v2 before subscribing to live events. Do not let an old local projection overwrite desktop state.
+Mobile must handle backgrounding, network switches, disconnects, and reconnects. On recovery, first fetch authoritative sessions and timelines through Remote v2, then subscribe to live events; do not overwrite authoritative state with a stale projection.
 
-## Relay deployment
+## Self-hosted deployment
 
-Bind Relay to loopback and publish it through controlled HTTPS or Tailnet Serve. Validate Host and Origin independently; never use `*` for CORS. Relay must not serve a mobile Web UI or business API.
+Bind the services to loopback, then publish them through a controlled HTTPS reverse proxy or Tailnet Serve. Host and Origin must be validated independently, and CORS must not use `*`. The gateway exposes only protocol and health check endpoints; it serves no browser UI and no business API.
+
+See [Self-hosted headless runtime](/en/self-hosted-server) and [Self-hosted Relay](/en/relay) for details.

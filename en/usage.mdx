@@ -1,51 +1,81 @@
 ---
 title: "Usage statistics"
-description: "Inspect local Agent usage by time, Agent, provider, model, project, and session."
+description: "Inspect local usage by time, Agent, project, provider, and model."
 ---
 
-**Usage Statistics** reports Agent usage recorded by Vibex. It is an observability view for local data, not a billing page. Prices, quotas, and invoices remain the provider's responsibility.
+**Usage Statistics** shows the Agent usage Vibex has recorded. It is an observability tool, **not a billing page** — actual prices, quotas, and invoices are still decided by the provider. Vibex records no cost and has no price field.
 
-When the page is open, **Usage Statistics** and **Refresh** are in the desktop title bar. Use the title-bar **Refresh** control to request current data; the page keeps the previous result and shows a loading state while it refreshes.
+Entry points: the **Usage Statistics** button in the sidebar, or the token ring in Composer (**Open usage statistics**).
 
-## Choose a range
+## Choose a time range
 
-The toolbar supports:
+The toolbar offers four ranges and picks the bucket size from the range you choose:
 
-| Range | Meaning |
-| --- | --- |
-| **Today** | Records for today in the system time zone. |
-| **7 days** | The last seven days. |
-| **30 days** | The last thirty days. |
-| **All** | All records retained locally. |
+| Range | Meaning | Bucket |
+| --- | --- | --- |
+| **Today** | Today in the system time zone. | Hour |
+| **7 days** | The last seven days. | Day |
+| **30 days** | The last thirty days. | Day |
+| **All** | Every record retained locally. | Month |
 
-The result includes its effective start and end time and bucket kind. An empty range or no matching records produces an empty state; unknown values are not treated as zero.
+When no records are available the page shows an empty state; it never treats an unknown value as zero.
 
-## Filter and group
+## Filters and grouping
 
-Combine **Agent**, **Model provider**, **Model**, **Project**, and **Session** filters. Group the result by time, Agent, project, provider, or model. Long session names are truncated in the filter menu but remain available in the hover label.
+You can combine five filters: **Agent**, **Model provider**, **Model**, **Project**, **Session**.
+
+Results can be grouped along five dimensions, which are the tabs above the table: **Time**, **Agent**, **Project**, **Model provider**, **Model**.
+
+<Note>
+  The **Project** dimension maps to projects in the sidebar, and one project may contain several workspaces. **Session is a filter only** and cannot be used as a grouping dimension.
+</Note>
 
 ## Read the metrics
 
-Summary and dimension rows can include:
+The summary area shows six metrics:
 
-- **Requests**: observed requests or session runs. When an adapter has no per-request signal, Vibex counts at the finest confirmed run granularity.
-- **Total tokens**: the available input, output, and cached token totals.
-- **Input / Output / Cached tokens**: each token category separately.
-- **Cache hit rate**: cached read tokens divided by the eligible denominator.
-- **Coverage**: whether a value is complete, derived, partial, or unknown.
+| Metric | Meaning |
+| --- | --- |
+| **Total tokens** | The combined total of every token category. |
+| **API requests** | The number of observed API requests; when an adapter provides no per-request data, this becomes **Turns**. |
+| **Input** / **Output** | Input and output tokens. |
+| **Cached read** | Cached read tokens. |
+| **Cache hit rate** | Cached reads as a share of the computable denominator. |
 
-When a provider does not report a field, Vibex preserves an unknown state. Do not read `unknown` or `partial` as zero or use this page to infer a provider invoice.
+The grouped table has these columns: the dimension name, **Requests**, **Total**, **Input**, **Output**, **Cache**, **Hit rate**, **Last activity**, **Coverage**.
 
-## Explore trends
+### What Coverage means
 
-The trend area has three views:
+**Coverage** tells you how much to trust the numbers in that row:
 
-- **Bars** compares totals, input, output, cached tokens, or requests by time bucket.
-- **Heatmap** shows daily activity density for the annual projection. It reports unavailable when no annual data exists.
-- **Models** compares models by requests or total tokens; models beyond the main list are grouped as other.
+| Display | Meaning |
+| --- | --- |
+| **Reported** | The adapter reported everything. |
+| **Derived from input + output** | The total is derived from input plus output rather than reported directly. |
+| **Partial** | Only part of the data was reported. |
+| **Not reported** | There is no data. |
 
-Changing a metric does not alter stored usage. During refresh, Vibex keeps the previous result and marks it stale. If loading fails, the previous authoritative result remains visible.
+Hovering reveals a finer breakdown (complete / partial / baseline only / unreported / unsupported).
 
-## Data boundary
+<Warning>
+  **Never read `Not reported` or `Partial` as zero**, and do not use either to estimate a provider invoice. When a provider field is missing, Vibex keeps it unknown instead of filling in a guess.
+</Warning>
 
-Usage comes from desktop Agent executions and adapter reports. The desktop is authoritative; mobile receives only permission-filtered projections. Usage Statistics does not read complete Prompts, file contents, terminal output, or provider secrets. Follow [Privacy and recovery](/en/privacy-and-recovery) when exporting diagnostics.
+## Trend views
+
+| View | Description |
+| --- | --- |
+| **Trend** | A stacked bar chart you can switch between **Total** / **Input** / **Output** / **Cache**; click the legend to filter. |
+| **Heatmap** | A 365-day calendar heatmap showing daily activity density; shown as unavailable when there is no annual data. |
+| **Models** | A per-day share of each model (100% stacked) for the top 10 models, with the rest grouped into **Other** and **Unknown**. Switch between **Turns** and **Total tokens**. |
+
+While refreshing, the page keeps the previous result and marks it stale. If loading fails, it prefers the previous authoritative result and shows **Refresh failed; showing previous data**.
+
+## Data boundaries
+
+- Usage comes from Agent executions recorded by the authoritative runtime and from adapter reports. **The authoritative runtime is the authoritative source of these statistics.**
+- Usage Statistics does **not** read full prompts, file contents, terminal output, or provider keys.
+- **Mobile does not show usage detail** — the mobile usage page only shows session counts and says "Usage details are available on the desktop host."
+- A single query has a row limit (100000 rows); exceeding it returns `agent_usage_query_too_large`.
+
+When you export diagnostics, follow the redaction requirements in [Privacy and recovery](/en/privacy-and-recovery).

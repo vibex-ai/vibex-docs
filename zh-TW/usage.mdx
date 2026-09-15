@@ -1,51 +1,81 @@
 ---
 title: "用量統計"
-description: "依時間、Agent、供應商、模型、專案和工作階段查看本機用量。"
+description: "依時間、Agent、專案、供應商和模型查看本機用量。"
 ---
 
-**Usage Statistics** 用來查看 Vibex 已記錄的 Agent 用量。它是本機觀測工具，不是帳單頁面；實際價格、額度和發票仍由供應商決定。
+**Usage Statistics** 用來查看 Vibex 已記錄的 Agent 用量。它是觀測工具，**不是帳單頁面**——實際價格、額度和發票仍由供應商決定。Vibex 不記錄費用，也沒有價格欄位。
 
-開啟頁面後，**Usage Statistics** 標題和 **Refresh** 按鈕位於桌面標題列。需要取得最新資料時使用標題列中的 **Refresh**；載入期間頁面會保留上一份結果並顯示載入狀態。
+入口：側欄的 **Usage Statistics** 按鈕，或 Composer 上的 token 圓環（**Open usage statistics**）。
 
 ## 選擇時間範圍
 
-工具列支援以下範圍：
+工具列提供四個範圍，並據此自動決定分桶粒度：
 
-| 範圍 | 意義 |
-| --- | --- |
-| **Today** | 依系統時區查看今天的記錄。 |
-| **7 days** | 查看最近七天。 |
-| **30 days** | 查看最近三十天。 |
-| **All** | 查看本機保留的全部記錄。 |
+| 範圍 | 涵義 | 分桶 |
+| --- | --- | --- |
+| **Today** | 依系統時區查看今天。 | 小時 |
+| **7 days** | 最近七天。 | 天 |
+| **30 days** | 最近三十天。 | 天 |
+| **All** | 本機保留的全部記錄。 | 月 |
 
-統計結果會顯示有效起止時間和分桶方式。範圍為空或沒有可用記錄時，頁面會顯示空狀態，不會把未知值當成零。
+沒有可用記錄時頁面顯示空狀態，不會把未知值當成零。
 
 ## 篩選和分組
 
-你可以組合 **Agent**、**Model provider**、**Model**、**Project** 和 **Session** 篩選器。結果也可依時間、Agent、專案、供應商或模型分組。長工作階段名稱會在篩選選單中截斷顯示，但懸停仍可查看完整名稱。
+可以組合五個篩選器：**Agent**、**Model provider**、**Model**、**Project**、**Session**。
+
+結果可以依五個維度分組，也就是表格上方的分頁：**Time**、**Agent**、**Project**、**Model provider**、**Model**。
+
+<Note>
+  **Project** 維度對應側欄裡的專案，一個專案下可能包含多個工作區。**Session 只作為篩選器**，不能作為分組維度。
+</Note>
 
 ## 讀取指標
 
-摘要和分組表會盡量顯示以下指標：
+彙總區顯示六個指標：
 
-- **Requests**：已觀測的請求或工作階段執行次數。適配器不提供逐請求資料時，頁面會按可確認的執行粒度統計。
-- **Total tokens**：輸入、輸出和快取等可用 Token 的合計。
-- **Input / Output / Cached tokens**：分別顯示輸入、輸出和快取 Token。
-- **Cache hit rate**：快取讀取 Token 相對於可計算分母的比例。
-- **Coverage**：標記指標是完整回報、推導、部分回報還是未知。
+| 指標 | 涵義 |
+| --- | --- |
+| **Total tokens** | 各類 Token 的合計。 |
+| **API requests** | 已觀測的 API 請求數；適配器不提供逐請求資料時改為顯示 **Turns**。 |
+| **Input** / **Output** | 輸入與輸出 Token。 |
+| **Cached read** | 快取讀取 Token。 |
+| **Cache hit rate** | 快取讀取相對於可計算分母的比例。 |
 
-缺少供應商欄位時，Vibex 會保留未知狀態。不要把 `unknown` 或 `partial` 解讀為零，也不要用它推算供應商帳單。
+分組表的欄位為：維度名稱、**Requests**、**Total**、**Input**、**Output**、**Cache**、**Hit rate**、**Last activity**、**Coverage**。
 
-## 查看趨勢
+### Coverage 的涵義
 
-趨勢區域提供三種檢視：
+**Coverage** 說明這一行的資料可信到什麼程度：
 
-- **Bars**：按時間桶比較總量、輸入、輸出、快取或請求數。
-- **Heatmap**：按日期查看全年活動密度；沒有年度資料時會顯示不可用狀態。
-- **Models**：按模型比較請求數或總 Token，超出主要模型數量的項目會歸入其他模型。
+| 顯示 | 涵義 |
+| --- | --- |
+| **Reported** | 適配器完整回報。 |
+| **Derived from input + output** | 總量由輸入加輸出推導，而非直接回報。 |
+| **Partial** | 只回報了一部分。 |
+| **Not reported** | 沒有資料。 |
 
-切換指標不會修改已保存的用量記錄。重新整理期間頁面會保留上一份結果並標記為過期，載入失敗時優先使用上一份權威結果。
+滑鼠懸停還可以看到更細的分佈（complete / partial / baseline only / unreported / unsupported）。
+
+<Warning>
+  **不要把 `Not reported` 或 `Partial` 解讀為零**，也不要用它推算供應商帳單。缺少供應商欄位時 Vibex 會保留未知狀態，而不是填入猜測值。
+</Warning>
+
+## 趨勢檢視
+
+| 檢視 | 說明 |
+| --- | --- |
+| **Trend** | 堆疊長條圖，可在 **Total** / **Input** / **Output** / **Cache** 之間切換，圖例可點擊篩選。 |
+| **Heatmap** | 365 天日曆熱圖，展示每日活動密度；沒有年度資料時顯示為不可用。 |
+| **Models** | 依天展示各模型佔比（100% 堆疊），取前 10 個模型，其餘歸入 **Other** 和 **Unknown**。可在 **Turns** 和 **Total tokens** 之間切換。 |
+
+重新整理期間頁面保留上一份結果並標記為過期；載入失敗時優先使用上一份權威結果，並提示 **Refresh failed; showing previous data**。
 
 ## 資料邊界
 
-用量來自桌面端記錄的 Agent 執行和適配器回報。桌面端是統計的權威來源；行動端只接收經過權限過濾的投影。Usage Statistics 不讀取完整 Prompt、檔案內容、終端機輸出或供應商密鑰。匯出診斷時仍應遵守[隱私與恢復](/zh-TW/privacy-and-recovery)中的脫敏要求。
+- 用量來自權威執行環境記錄的 Agent 執行和適配器回報。**權威執行環境是統計的權威來源。**
+- Usage Statistics **不讀取**完整提示詞、檔案內容、終端機輸出或供應商金鑰。
+- **行動端不顯示用量明細**——行動端的用量頁只顯示會話數量，並提示 "Usage details are available on the desktop host."
+- 單次查詢有資料列數上限（100000 列），超出會傳回 `agent_usage_query_too_large`。
+
+匯出診斷資料時請遵守[隱私與恢復](/zh-TW/privacy-and-recovery)中的去識別化要求。

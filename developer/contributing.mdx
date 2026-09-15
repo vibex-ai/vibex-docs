@@ -12,10 +12,11 @@ description: "按 Vibex 的架构、测试和隐私要求提交变更。"
 ## 实现原则
 
 - 保持 `DesktopRuntime` 为唯一权威状态所有者。
-- 让移动端通过共享后端和 Remote v2 契约访问能力。
+- 新能力经 `BackendFacade` 暴露，让它同时适用于内嵌运行时和配对的远程运行时。
+- 客户端通过共享后端和 Remote v2 契约访问能力，不复制业务状态。
 - 使用结构化错误、能力和序号，不依赖 UI 文案判断成功。
-- 对文件、Git、终端、Provider 和设备操作进行权限校验与审计。
-- 日志、测试证据和诊断资料脱敏，不写入 secret、Prompt、文件内容或终端字节。
+- 对文件、Git、终端、供应商和设备操作进行权限校验与审计。
+- 日志、测试证据和诊断资料脱敏，不写入密钥、提示词、文件内容或终端字节。
 
 ## 提交前检查
 
@@ -25,11 +26,37 @@ pnpm release:build-smoke
 pnpm check:mobile-native
 ```
 
-根据改动范围补充 `check:acp`、`check:code-workbench`、`check:terminal`、`smoke:relay:local` 或对应 Cargo 测试。跨层改动应覆盖断线、重启、权限不足、序号间隙和恢复路径。
+根据改动范围补充对应脚本：
+
+| 改动范围 | 建议命令 |
+| --- | --- |
+| ACP / Agent | `pnpm smoke:agents` |
+| 文件服务 | `pnpm smoke:files` |
+| Git | `pnpm smoke:git` |
+| 终端 | `pnpm smoke:pty` |
+| 数据库 | `pnpm smoke:db` |
+| 备份恢复 | `pnpm smoke:backup` |
+| 诊断 | `pnpm smoke:diagnostics` |
+| Relay / 远程 | `pnpm smoke:relay:local` |
+| 跨层回归 | `pnpm e2e:regression` |
+
+<Note>
+  `pnpm check:acp`、`pnpm check:code-workbench`、`pnpm check:terminal`、`pnpm check:all` 都不存在——请使用上表中的真实脚本。完整清单见[构建与测试](/developer/build-and-test)。
+</Note>
+
+跨层改动应覆盖断线、重启、权限不足、序号间隙和恢复路径。
 
 ## 文档和证据
 
-用户可见行为必须同步更新简体中文、繁体中文和英文页面。无法确认的实现细节用 `TODO` 标注，不把测试 spike 当作稳定功能。用文字步骤、状态表、协议字段和脱敏诊断记录说明行为；不要要求视觉捕获，也不要提交工作区内容作为证据。
+用户可见行为必须同步更新简体中文、繁体中文和英文页面。无法确认的实现细节用 `TODO` 标注，**不要把只存在于代码路径里、但用户无法到达的功能写成可用功能**——如果某个界面入口尚未开放，就不要在文档里提及它。
+
+用文字步骤、状态表、协议字段和脱敏诊断记录说明行为；不要要求视觉捕获，也不要提交工作区内容作为证据。
+
+### 文档站维护须知
+
+- 版本号集中在 `snippets/release.mdx`，**不要在页面里硬编码版本**。发版时只改这一个文件。
+- 下载与发布链接统一指向 GitHub Releases 的 `latest` 页面，它会自动解析到最新版本。
+- 用户界面文案以 `apps/desktop/src/locale.rs` 为准；文档用词要跟它一致。
 
 ## Pull Request
 

@@ -1,0 +1,103 @@
+---
+title: "自托管 Relay"
+description: "部署只转发端到端加密帧的中继服务。"
+---
+
+Relay 是一个**零知识房间路由器**。当 PC 和配对设备无法直连时，它们各自与 Relay 建立全双工 WebSocket（`/ws`），Remote v2 的控制、RPC、事件和二进制帧在设备与 PC 之间端到端加密传输。
+
+Relay **不**解密、授权、存储或记录任何业务负载，也不提供移动端 Web UI 或业务 API。
+
+<Note>
+  Relay 只负责转发。想在一台服务器上真正托管会话和 Agent，请用[自托管无头运行时](/self-hosted-server)。
+</Note>
+
+## 快速开始
+
+容器镜像是多架构的（`linux/amd64`、`linux/arm64`），每个发布都会更新：
+
+```bash
+export VIBEX_RELAY_IMAGE=ghcr.io/vibex-ai/vibex-relay-server:rc
+docker compose -f deploy/relay/docker-compose.yml pull relay-server
+docker compose -f deploy/relay/docker-compose.yml up -d --no-build relay-server
+curl -fsS http://127.0.0.1:9700/health
+curl -fsS http://127.0.0.1:9700/api/info
+```
+
+Compose 默认只发布 `127.0.0.1:9700`。保持这个默认值，让 Caddy 或 Tailscale Serve 与它同机运行。
+
+镜像 tag 规则与无头运行时一致：`rc` 跟随最新候选版本，`latest` 只指向稳定版。
+
+## 端点
+
+| 端点 | 用途 |
+| --- | --- |
+| `GET /health` | 状态、运行时长、活动房间数、活动连接数。 |
+| `GET /api/info` | 能力标志与各项限制。 |
+| `GET /ws` | PC 与设备的全双工 WebSocket。 |
+| `POST /api/rooms/{room_id}/pair` | 兼容性桥接。 |
+| `POST /api/rooms/{room_id}/command` | 兼容性桥接。 |
+| `POST /api/push/registrations` | 可选推送适配器。 |
+| `POST /api/push/dispatch` | 可选推送适配器。 |
+
+`/api/rooms/*` 是**保留的兼容桥接**，不是原生移动端的主要传输通道。
+
+<Warning>
+  Relay 上**没有** `/api/v2/info`——那是权威运行时网关的端点。混用这两个地址是常见的排错误区。
+</Warning>
+
+## 公网 HTTPS（Caddy）
+
+把 DNS 记录指向主机，然后启动 Caddy profile：
+
+```bash
+VIBEX_RELAY_SITE_ADDRESS=relay.example.com \
+  docker compose -f deploy/relay/docker-compose.yml --profile caddy up --build -d
+```
+
+Caddy 在同一个 HTTPS origin 上代理 `/ws`、`/health` 和 `/api/*`；根路径和静态资源路径返回 404。客户端会据此推导出 `wss://relay.example.com/ws`。
+
+## 私有 Tailnet（Tailscale Serve）
+
+```bash
+docker compose -f deploy/relay/docker-compose.yml up --build -d relay-server
+tailscale serve --bg http://127.0.0.1:9700
+tailscale serve status
+```
+
+用 `tailscale serve status` 显示的 HTTPS 地址作为 Relay origin。Serve 会终止 tailnet HTTPS 并代理 WebSocket 升级，两端仍然走 `/ws`。
+
+## 主要限制
+
+Relay 的所有上限都是有界的，默认值如下：
+
+| 配置 | 默认值 |
+| --- | --- |
+| 监听地址 | `127.0.0.1:9700` |
+| 房间 TTL | 3600000 ms |
+| 最大房间数 | 1024 |
+| 最大总连接数 | 4096 |
+| 每房间连接数 | 1（不可调高） |
+| 每房间设备数 | 8 |
+| 请求体上限 | 1 MiB |
+| 每房间每窗口请求数 | 120（窗口 1000 ms） |
+| 每连接队列 | 4 MiB |
+| 每窗口带宽 | 16 MiB |
+
+## 零知识验证
+
+部署后应当能确认 Relay 确实看不到业务数据：
+
+1. 让两端经 Relay 建立连接并完成一次业务操作（例如读取一个会话）。
+2. 检查 Relay 日志，应只包含路由、计数和时序元数据。
+3. 确认日志中不出现 token、配对码、私钥、提示词、文件路径、终端内容、Git diff、供应商设置、原始密文或 nonce。
+
+## 可选推送
+
+Relay 可以配置一个运营方自有的推送适配器，默认关闭。相关环境变量为 `VIBEX_RELAY_PUSH_PROVIDER`、`VIBEX_RELAY_PUSH_AUTH_TOKEN`、`VIBEX_RELAY_PUSH_ADAPTER_URL` 和 `VIBEX_RELAY_PUSH_ADAPTER_AUTH_TOKEN`。
+
+## 安全建议
+
+- 保持 loopback 绑定，用受控 HTTPS/WSS 入口或 Tailnet 发布。
+- 不要向公网暴露明文 HTTP。
+- Host 和 Origin 必须独立校验，CORS 不得使用 `*`。
+- 不要把 room id 当作权限凭据。

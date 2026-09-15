@@ -1,0 +1,88 @@
+---
+title: "从源码构建"
+description: "为贡献者和无现成产物的平台构建 Vibex。"
+---
+
+如果你要修改 Vibex、审查实现，或你的平台没有现成安装包，可以从源码构建。普通使用者请改用[安装](/install)页面的发布产物。
+
+## 前置条件
+
+| 工具 | 版本或说明 |
+| --- | --- |
+| Git | 需要子模块支持 |
+| Node.js | 22 |
+| pnpm | `11.3.0`，以 `package.json` 中的 `packageManager` 字段为准 |
+| Rust | `1.97.0`，由仓库的 `rust-toolchain.toml` 固定 |
+| 图形环境 | Linux、macOS 或 Windows 的原生图形会话；Linux 需要可用的 Vulkan 驱动 |
+
+## 获取并运行桌面端
+
+```bash
+git clone https://github.com/vibex-ai/vibex.git
+cd vibex
+git submodule update --init --recursive
+pnpm install --frozen-lockfile
+pnpm dev:desktop
+```
+
+`pnpm dev:desktop` 会准备开发用图标，然后以调试模式编译并运行 `vibex-desktop`。首次编译需要较长时间。
+
+只做 Rust 侧检查时可以跳过前端：
+
+```bash
+cargo check -p vibex-desktop --locked
+cargo test -p vibex-desktop --locked
+pnpm smoke:first-frame
+```
+
+## 打包桌面端
+
+Linux 使用 cargo-packager 和随仓库审查的 PDFium 运行时：
+
+```bash
+cargo install cargo-packager --version 0.11.8 --locked
+pnpm prepare:pdfium
+pnpm package:preview   # 或 package:rc / package:stable
+```
+
+三个通道命令分别对应 Preview / RC / Stable 三种产品身份，生成的包与运行时二进制属于构建产物，不进入版本库。发布 RC 或 Stable 之前请先阅读仓库中的 `docs/operations/release.md`。
+
+## 构建 Android
+
+需要 Android SDK/NDK、`cargo-ndk`，以及目标 ABI 对应的 Rust target。Debug 默认构建 `arm64-v8a` 与 `x86_64`，Release 默认只构建 `arm64-v8a`。
+
+```bash
+pnpm build:mobile:android
+pnpm package:mobile:android
+```
+
+用 `VIBEX_MOBILE_ANDROID_TARGETS`（空格分隔）可以覆盖 Debug 的 ABI 列表。本地 `pnpm package:mobile:android` 生成的是**未签名**的 Release APK，分发前必须自行对齐并签名；打 tag 的 GitHub Release 会由发布流程自动完成签名。
+
+## 构建 iOS
+
+需要 macOS、Xcode、XcodeGen，以及 `aarch64-apple-ios` 和 `aarch64-apple-ios-sim` 两个 Rust target。
+
+```bash
+pnpm build:mobile:ios
+```
+
+脚本会构建 `VibexFFI.xcframework` 并生成 Xcode 工程。代码签名、真机或模拟器选择以及分发凭据都由本机环境管理，不要提交证书或 provisioning profile。
+
+## 本地运行 Relay 与服务端
+
+```bash
+docker compose -f deploy/relay/docker-compose.yml up --build -d relay-server
+docker compose -f deploy/server/docker-compose.yml up --build -d vibex-server
+```
+
+详细配置见[自托管 Relay](/relay)与[自托管无头运行时](/self-hosted-server)。
+
+## 提交前检查
+
+```bash
+pnpm check
+pnpm release:build-smoke
+pnpm check:mobile-native
+```
+
+`pnpm check` 汇总 Rust 质量、前端类型与 lint、许可证、UI 分层与视觉基线检查。`pnpm release:build-smoke` 校验桌面端、移动端和 Relay 的构建图。完整命令清单见[构建与测试](/developer/build-and-test)。

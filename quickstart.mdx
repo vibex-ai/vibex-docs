@@ -1,49 +1,49 @@
 ---
 title: "快速开始"
-description: "安装并完成你的第一个 Vibex Agent 会话。"
+description: "安装 Vibex，连上一个 Agent，完成第一次会话。"
 ---
 
-这篇指南带你从源码启动桌面端，打开一个工作区，配置供应商，然后让 Agent 完成一个可检查的小任务。首次运行建议使用可丢弃的 Git 仓库。
+这篇指南带你安装桌面端、添加一个 Agent、打开项目目录，然后让 Agent 完成一个可检查的小任务。首次尝试建议使用一个可丢弃的 Git 仓库。
 
-## 前置条件
+## 1. 安装桌面端
 
-- Git，并能初始化或克隆带子模块的仓库。
-- Node.js 22 和 pnpm 11.3.0。
-- Rust 1.97.0。仓库中的 `rust-toolchain.toml` 会固定工具链版本。
-- Linux、macOS 或 Windows 图形会话；Linux 需要可用的 Vulkan 驱动。
-- 至少一个可用的 Agent 运行时和供应商凭据。凭据只在本机配置，不要写入文档或日志。
+从 [GitHub Releases](https://github.com/vibex-ai/vibex/releases/latest) 下载与你平台匹配的安装包并安装。完整说明和各平台注意事项见[安装](/install)。
 
-## 启动桌面端
+<Note>
+  macOS 和 Windows 的安装包目前没有代码签名，首次打开会被 Gatekeeper 或 SmartScreen 拦一下。放行方法见[安装](/install)。
+</Note>
 
-<Steps>
-  <Step title="获取仓库">
-    ```bash
-    git clone https://github.com/vibex-ai/vibex.git
-    cd vibex
-    git submodule update --init --recursive
-    ```
-  </Step>
-  <Step title="安装依赖">
-    ```bash
-    pnpm install --frozen-lockfile
-    ```
-  </Step>
-  <Step title="运行桌面工作台">
-    ```bash
-    pnpm dev:desktop
-    ```
+## 2. 添加一个 Agent
 
-    首次编译可能需要较长时间。桌面端启动后，所有会话、文件、Git 和终端操作都由这个进程负责。
-  </Step>
-</Steps>
+第一次启动时，Vibex 会显示 **Start something new** 页面。没有可用 Agent 时会提示 **No Agent has been added. Open Config Center to add one.**，点击 **Add Agent** 进入 Config Center。
 
-## 完成第一次会话
+1. 在 **Agent** 标签页的列表中找到你想用的 Agent。内置预设包括 **Claude Code**、**Codex**、**ZCode** 和 **OpenCode**，另有十多个 ACP 集成。
+2. 点击条目右侧的 **+** 把它加入。加入后条目会显示启用开关。
+3. 如果该 Agent 由 Vibex 托管且尚未安装，安装卡片会显示 **Install**。点击后 Vibex 会下载并校验运行时；安装过程中不能取消，装好后按钮变为 **Check for updates**。
+4. 如果条目显示 **Managed by user**，说明它不在托管目录里，Vibex 会直接使用你 `PATH` 上的同名命令行程序——你需要先自己装好它。
 
-1. 在 **Config Center** 的 **Agents** 或 **Model Providers** 中添加一个可用配置。若 Agent 已安装但列表中不可用，先运行健康检查，确认命令和凭据。
-2. 打开一个 Git 仓库作为工作区。首次操作使用测试分支或临时仓库。
-3. 在 Composer 中输入一个范围明确的任务，例如“在 `README.md` 中补充安装步骤，并先展示计划”。
-4. 查看时间线中的计划和工具调用。需要文件、终端或权限时，Vibex 会显示具体请求。
-5. Agent 完成后打开 **Git diff**，检查每一处改动，再决定是否保存、提交或继续追问。
+接着展开详情页里的 **Native credentials** 卡片完成登录（`Sign in` / `Open sign-in terminal`），再在 **Model provider configuration** 卡片里配置模型供应商和凭据。
+
+## 3. 打开一个项目目录
+
+1. 在侧栏点击 **New project**，或使用 **New chat** 页面上的 **Project directory**。
+2. 在弹出的目录浏览器里选择仓库根目录，确认。
+3. 首次尝试请使用测试分支或临时仓库——Agent 会真实修改磁盘上的文件。
+
+## 4. 完成第一次会话
+
+1. 在 Composer 顶部选择 Agent、供应商配置、模型和**思考深度**。
+2. 输入一个范围明确的任务，例如"在 `README.md` 中补充安装步骤，并先展示计划"。
+3. 查看时间线中的计划和工具调用。需要文件、终端或权限时，Vibex 会显示具体请求，你可以 **Approve** 或 **Deny**。
+4. Agent 完成后打开 **Git** 面板检查 **Changes**，逐处确认改动，再决定是否提交或继续追问。
+
+<Tip>
+  第一次任务先要求 Agent 给出计划，再允许它修改文件。这样你能在时间线里确认范围和风险。
+</Tip>
+
+<Warning>
+  **Stop** 只停止运行，不会回滚已经写入的文件或已经执行的命令。停止后请在 Git diff 和终端里分别确认结果。
+</Warning>
 
 ## 了解 Composer 输入
 
@@ -52,18 +52,15 @@ description: "安装并完成你的第一个 Vibex Agent 会话。"
 | 写法 | 作用 |
 | --- | --- |
 | `/` | 选择可用的 Prompt 或 slash command。 |
-| `@` | 从当前工作区引用文件或目录。 |
+| `@` | 从当前项目引用文件或目录。 |
 | `$` | 插入已启用的 Skill。 |
 | 附件按钮 | 添加图片等会话附件。 |
 
-发送前可以选择 Agent、供应商配置、模型、推理深度和 conversation mode。不同 Agent 支持的选项可能不同，界面会根据能力探测结果显示可用项。
-
-<Tip>
-  第一次任务先要求 Agent 给出计划，再允许它修改文件。这样你可以在时间线中确认范围和风险。
-</Tip>
+发送前可以选择 Agent、供应商配置、模型、思考深度和对话模式。不同 Agent 支持的选项不同，界面会根据运行时探测结果显示可用项。
 
 ## 下一步
 
-- 需要安装包或移动端构建条件时，阅读 [安装与平台](/install)。
-- 需要理解文件和 Git 作用范围时，阅读 [工作区](/workspaces)。
-- 需要处理模型、MCP 或自动化时，阅读 [Config Center](/config-center)。
+- [核心概念](/concepts) —— 项目、工作区、会话和权威运行时之间的关系。
+- [工作区](/workspaces) —— 文件与 Git 的作用边界。
+- [Config Center](/config-center) —— Agent、MCP 和 Skills 配置。
+- [配对移动端](/remote-mobile) —— 在手机上继续这些会话。

@@ -1,0 +1,70 @@
+---
+title: "错误码"
+description: "Vibex 返回的结构化错误码及其处理方式。"
+---
+
+Vibex 的失败以**结构化错误码**返回，界面会显示为 `错误码: 说明`。提交 Issue 时请附上完整的错误码字符串——它比日志正文更有用。
+
+## 远程与配对
+
+| 错误码 | 含义 | 处理 |
+| --- | --- | --- |
+| `remote_pairing_code_invalid` | 配对码错误、已被使用或不存在。 | 在权威端重新生成。 |
+| `remote_pairing_code_expired` | 配对码已过期（默认 5 分钟，最长 30 分钟）。 | 重新生成并尽快使用。 |
+| `remote_pairing_link_invalid` | 连接串格式错误，或其中地址不是允许的局域网地址。 | 使用权威端打印的完整连接串。 |
+| `device_revoked` | 设备已被撤销。 | 重新配对。 |
+| `resync_required` | 检测到序号或游标缺口。 | 等待权威端重新同步。 |
+| `server_shutdown` | 权威运行时正在关闭。 | 重启后重连。 |
+| `permission_denied` | 当前设备权限级别不足。 | 用更高权限级别重新配对。 |
+
+## 会话与工作区
+
+| 错误码 | 含义 | 处理 |
+| --- | --- | --- |
+| `remote_agent_workspace_root_missing` | 会话请求的工作区目录在权威端不存在。 | 确认目录已挂载且位于 `VIBEX_WORKSPACE_ROOTS` 内。 |
+| `remote_agent_workspace_mode_mismatch` | 请求的工作区模式与权威端记录不一致。 | 在权威端重新选择工作区。 |
+
+## 文件与内容
+
+| 错误码 | 含义 | 处理 |
+| --- | --- | --- |
+| `file_external_revision_changed` | 保存时文件已被外部进程修改。 | 重新加载后再决定如何合并。 |
+| `office_legacy_format_unsupported` | `doc` / `xls` / `ppt` 无法渲染。 | 用系统默认应用打开，或转换为新格式。 |
+
+## 配置与导入
+
+| 错误码 | 含义 | 处理 |
+| --- | --- | --- |
+| `provider_native_import_source_missing` | 找不到要导入的原生配置来源。 | 确认对应 Agent 的配置文件存在。 |
+
+## 用量统计
+
+| 错误码 | 含义 | 处理 |
+| --- | --- | --- |
+| `agent_usage_query_too_large` | 查询超过 100000 行上限。 | 缩小时间范围或增加筛选条件。 |
+
+## 发布与更新
+
+| 错误码 | 含义 | 处理 |
+| --- | --- | --- |
+| `release_channel_override_rejected` | 试图在运行时切换发布通道。 | 安装对应通道的版本。 |
+| `stable_channel_requires_release_build` | Stable 通道需要正式发布构建。 | 使用正式发布的安装包。 |
+
+## 状态值
+
+这些不是错误，但经常被误读：
+
+| 值 | 出现在 | 含义 |
+| --- | --- | --- |
+| `stale` | 终端、运行状态 | 上次观察到的状态已失效，不代表进程仍存活。 |
+| `revoked` | 设备 | 授权已被撤销。 |
+| `running` | 会话 | **只是上次观察到的状态**，重启后需要重新探测。 |
+| `Not reported` / `Partial` | 用量 Coverage | 数据缺失或不全，**不要当作零**。 |
+
+## 通用排查顺序
+
+1. 确认权威运行时正在运行，以及当前连的是哪一个（本地内嵌，还是远程服务器）。
+2. 确认当前项目和工作区正确——`Local` 和 `Worktree` 是不同目录。
+3. 确认设备权限级别足够（写操作需要 `full_control`）。
+4. 查看时间线最近一条事件，确认是否在等待你处理审批或询问表单。
+5. 仍无法解决时，按[故障排查](/troubleshooting)提交脱敏信息。

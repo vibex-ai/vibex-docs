@@ -1,32 +1,75 @@
 ---
 title: "Git workflow"
-description: "Inspect, isolate, commit, and deliver code changes from Vibex."
+description: "Inspect, isolate, commit, and deliver code changes in Vibex."
 ---
 
-Vibex provides a native Git review surface. Stopping an Agent does not roll back the workspace, and Vibex does not decide when you should commit.
+Vibex offers a Git-native review interface. It does not decide when you should commit, and it does not roll the workspace back when you stop an Agent.
+
+Open the Git panel from the **Git** icon in the right sidebar. At the top of the panel are two sub-tabs, **Changes** and **Commits**.
 
 ## Review changes
 
-The Git panel provides **Status** (untracked, modified, staged, and conflicted files), **Diff**, **History**, and **Blame**. Confirm the path, workspace, and diff before acting. Mobile write operations require the matching permission.
+The **Changes** tab shows workspace status and diffs:
 
-## Branches and staging
+- Files are grouped by status and marked with a single-letter code: `M` modified, `A` added, `D` deleted, `R` renamed, `C` copied, `U` untracked, `!` conflicted.
+- Selecting a file shows a **unified diff** on the right and states whether it is `staged` or `unstaged`.
+- An empty state shows **No Git status**, and no differences shows **No diff**.
 
-1. Create or check out a branch.
-2. Stage or unstage files and individual hunks.
-3. Review the content before using **Revert**.
-4. Enter a message for **Commit** or use **Amend** when appropriate.
-5. Use **Fetch** to update remote references and **Push** to publish commits.
+The **Commits** tab shows commit history and supports:
 
-<Warning>**Revert**, branch switches, **Amend**, and **Push** can change history or remote state. Confirm the branch, remote, and pending diff first.</Warning>
+- **Search commits** to search by commit message.
+- **Branch** and author filters (the author picker defaults to **All Users**).
+- Filtering by author date range.
+- Clicking a commit to open the **Commit detail** drawer with the full diff.
 
-## VibexWorktree
+<Note>
+  The diff view is unified only, with no side-by-side view. There is also **no hunk-level staging** — staging works on whole files. There is no stash or tag interface; use the terminal when you need those.
+</Note>
 
-In **VibexWorktree**, create an isolated worktree and branch, run the Agent there, inspect the diff, and merge or rebase into the target branch. Resolve conflicts file by file and re-check status. Discard only after confirming the result; discard removes the isolated directory and uncommitted changes.
+## Branches and commits
 
-<Info>**CurrentCheckout** edits the checked-out directory. **VibexWorktree** gives parallel tasks separate directories. Both use the desktop Git state as authority.</Info>
+The Git panel toolbar offers **Fetch**, **Push**, **Refresh Git**, branch creation and switching, and a menu of further actions.
 
-## Recommended flow
+A typical flow:
+
+1. Create or switch a branch.
+2. Read the file diffs.
+3. Run **Stage** or **Unstage** on a file (whole file).
+4. Type a message into the **Commit message** field and commit.
+5. Use **Amend commit** when you need to append to the previous commit.
+6. **Fetch** updates remote references, and **Push** publishes local commits.
+
+<Warning>
+  **Revert**, **Checkout branch**, **Amend commit**, **Push**, **Merge worktree**, and **Discard worktree** all show a confirmation dialog, because they can change existing history or remote state. Confirm the branch, remote, and pending diff first, and create a backup branch when your team's policy requires it.
+</Warning>
+
+## Worktree
+
+A worktree is a separate workspace under the same project — see [Projects and workspaces](/en/workspaces). The Git panel covers the whole lifecycle:
+
+| Action | Description |
+| --- | --- |
+| **Create worktree** | Create the isolated directory and its associated branch. |
+| **Review changes** / **Mark ready** | Move it toward a mergeable state. |
+| **Merge** / **Rebase** | Merge back into the target branch (mapped to `NoFfMerge` and `RebaseAndMerge`). |
+| **Mark resolved** | Mark a file as handled after resolving its conflicts one by one. |
+| **Abort merge** | Give up the merge in progress. |
+| **Rename Worktree** / **Delete Worktree** | Rename or delete. Deleting also removes uncommitted content. |
+
+Conflicts are handled file by file, and for each file you can keep either the target side or the source side.
+
+<Info>
+  A **Local** workspace modifies the main checkout directory directly; a **Worktree** gives parallel tasks their own directory. Either way, the authoritative runtime's Git state is what counts.
+</Info>
+
+## Common flow
 
 ```text
-status -> diff -> tests -> stage -> commit -> fetch -> rebase/merge -> push
+review status -> read diff -> run tests -> stage -> commit -> fetch -> rebase/merge -> push
 ```
+
+Do not switch branches while tests or an Agent are still running. Before committing, check whether sensitive files, build outputs, or credentials were added by accident.
+
+## Mobile
+
+Mobile can read Git status and diffs, and can stage / unstage / revert / commit / fetch / push and create worktrees — provided the device permission level is `full_control`.

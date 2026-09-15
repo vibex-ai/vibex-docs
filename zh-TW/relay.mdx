@@ -1,0 +1,103 @@
+---
+title: "自託管 Relay"
+description: "部署只轉送端對端加密訊框的中繼服務。"
+---
+
+Relay 是一個**零知識房間路由器**。當 PC 和配對裝置無法直連時，它們各自與 Relay 建立全雙工 WebSocket（`/ws`），Remote v2 的控制、RPC、事件和二進位訊框在裝置與 PC 之間以端對端加密傳輸。
+
+Relay **不**解密、授權、儲存或記錄任何業務資料，也不提供行動端 Web UI 或業務 API。
+
+<Note>
+  Relay 只負責轉送。想在一台伺服器上真正託管會話和 Agent，請使用[自託管無頭執行環境](/zh-TW/self-hosted-server)。
+</Note>
+
+## 快速開始
+
+容器映像檔是多架構的（`linux/amd64`、`linux/arm64`），每次發行都會更新：
+
+```bash
+export VIBEX_RELAY_IMAGE=ghcr.io/vibex-ai/vibex-relay-server:rc
+docker compose -f deploy/relay/docker-compose.yml pull relay-server
+docker compose -f deploy/relay/docker-compose.yml up -d --no-build relay-server
+curl -fsS http://127.0.0.1:9700/health
+curl -fsS http://127.0.0.1:9700/api/info
+```
+
+Compose 預設只發佈 `127.0.0.1:9700`。請保持這個預設值，讓 Caddy 或 Tailscale Serve 與它同機執行。
+
+映像 tag 規則與無頭執行環境一致：`rc` 跟隨最新候選版本，`latest` 只指向穩定版。
+
+## 端點
+
+| 端點 | 用途 |
+| --- | --- |
+| `GET /health` | 狀態、執行時間、活動房間數、活動連線數。 |
+| `GET /api/info` | 功能旗標與各項限制。 |
+| `GET /ws` | PC 與裝置的全雙工 WebSocket。 |
+| `POST /api/rooms/{room_id}/pair` | 相容性橋接。 |
+| `POST /api/rooms/{room_id}/command` | 相容性橋接。 |
+| `POST /api/push/registrations` | 選用的推播配接器。 |
+| `POST /api/push/dispatch` | 選用的推播配接器。 |
+
+`/api/rooms/*` 是**保留的相容性橋接**，不是原生行動端的主要傳輸通道。
+
+<Warning>
+  Relay 上**沒有** `/api/v2/info`——那是權威執行環境閘道的端點。混用這兩個位址是常見的疑難排解誤區。
+</Warning>
+
+## 公用網路 HTTPS（Caddy）
+
+將 DNS 記錄指向主機，然後啟動 Caddy profile：
+
+```bash
+VIBEX_RELAY_SITE_ADDRESS=relay.example.com \
+  docker compose -f deploy/relay/docker-compose.yml --profile caddy up --build -d
+```
+
+Caddy 在同一個 HTTPS origin 上代理 `/ws`、`/health` 和 `/api/*`；根路徑和靜態資源路徑會傳回 404。用戶端會據此推導出 `wss://relay.example.com/ws`。
+
+## 私有 Tailnet（Tailscale Serve）
+
+```bash
+docker compose -f deploy/relay/docker-compose.yml up --build -d relay-server
+tailscale serve --bg http://127.0.0.1:9700
+tailscale serve status
+```
+
+使用 `tailscale serve status` 顯示的 HTTPS 位址作為 Relay origin。Serve 會終止 tailnet HTTPS 並代理 WebSocket 升級，兩端仍然使用 `/ws`。
+
+## 主要限制
+
+Relay 的所有上限都有界限，預設值如下：
+
+| 設定 | 預設值 |
+| --- | --- |
+| 監聽位址 | `127.0.0.1:9700` |
+| 房間 TTL | 3600000 ms |
+| 最大房間數 | 1024 |
+| 最大總連線數 | 4096 |
+| 每房間連線數 | 1（無法調高） |
+| 每房間裝置數 | 8 |
+| 要求主體上限 | 1 MiB |
+| 每房間每視窗要求數 | 120（視窗 1000 ms） |
+| 每連線佇列 | 4 MiB |
+| 每視窗頻寬 | 16 MiB |
+
+## 零知識驗證
+
+部署後應該能確認 Relay 確實看不到業務資料：
+
+1. 讓兩端經由 Relay 建立連線並完成一次業務操作（例如讀取一個會話）。
+2. 檢查 Relay 日誌，應只包含路由、計數和時序中繼資料。
+3. 確認日誌中不出現 token、配對碼、私鑰、提示詞、檔案路徑、終端機內容、Git diff、供應商設定、原始密文或 nonce。
+
+## 選用推播
+
+Relay 可以設定一個營運方自有的推播配接器，預設為關閉。相關環境變數為 `VIBEX_RELAY_PUSH_PROVIDER`、`VIBEX_RELAY_PUSH_AUTH_TOKEN`、`VIBEX_RELAY_PUSH_ADAPTER_URL` 和 `VIBEX_RELAY_PUSH_ADAPTER_AUTH_TOKEN`。
+
+## 安全性建議
+
+- 保持 loopback 繫結，並透過受控的 HTTPS/WSS 入口或 Tailnet 發佈。
+- 不要向公用網路暴露明文 HTTP。
+- Host 和 Origin 必須獨立驗證，CORS 不得使用 `*`。
+- 不要把 room id 當作權限憑據。

@@ -1,0 +1,73 @@
+---
+title: "Error codes"
+description: "The structured error codes Vibex returns and how to handle them."
+---
+
+Vibex reports failures as **structured error codes**, shown in the UI as `error code: description`. When you file an issue, include the complete error code string—it is more useful than the log body.
+
+## Remote and pairing
+
+| Error code | Meaning | What to do |
+| --- | --- | --- |
+| `remote_pairing_code_invalid` | The pairing code is wrong, already used, or does not exist. | Generate a new one on the authority. |
+| `remote_pairing_code_expired` | The pairing code has expired (5 minutes by default, at most 30 minutes). | Generate a new one and use it promptly. |
+| `remote_pairing_link_invalid` | The connection string is malformed, or the address in it is not an allowed local network address. | Use the complete connection string printed by the authority. |
+| `device_revoked` | The device has been revoked. | Pair again. |
+| `resync_required` | A sequence or cursor gap was detected. | Wait for the authority to resynchronize. |
+| `server_shutdown` | The authoritative runtime is shutting down. | Restart it and reconnect. |
+| `permission_denied` | The current device permission level is insufficient. | Re-pair with a higher permission level. |
+
+## Sessions and workspaces
+
+| Error code | Meaning | What to do |
+| --- | --- | --- |
+| `remote_agent_workspace_root_missing` | The workspace directory requested by the session does not exist on the authority. | Confirm the directory is mounted and inside `VIBEX_WORKSPACE_ROOTS`. |
+| `remote_agent_workspace_mode_mismatch` | The requested workspace mode does not match the authority's record. | Select the workspace again on the authority. |
+
+## Files and content
+
+| Error code | Meaning | What to do |
+| --- | --- | --- |
+| `file_external_revision_changed` | The file was modified by an external process when you saved it. | Reload it, then decide how to merge. |
+| `office_legacy_format_unsupported` | `doc` / `xls` / `ppt` cannot be rendered. | Open it in the system default application, or convert it to a newer format. |
+
+## Configuration and imports
+
+| Error code | Meaning | What to do |
+| --- | --- | --- |
+| `provider_native_import_source_missing` | The native configuration source to import from cannot be found. | Confirm the corresponding Agent's configuration file exists. |
+| `automation_graph_version_conflict` | The automation graph was modified by another session. | Reload it, then submit again. |
+| `automation_graph_cycle_unsupported` | The automation graph contains a cycle. | Remove the edges that form the cycle. |
+| `automation_edge_expression_unsupported` | The edge condition expression is not supported. | Use a built-in condition instead. |
+
+## Usage statistics
+
+| Error code | Meaning | What to do |
+| --- | --- | --- |
+| `agent_usage_query_too_large` | The query exceeds the 100000-row limit. | Narrow the time range or add filters. |
+
+## Releases and updates
+
+| Error code | Meaning | What to do |
+| --- | --- | --- |
+| `release_channel_override_rejected` | An attempt was made to switch the release channel at runtime. | Install the build for that channel. |
+| `stable_channel_requires_release_build` | The Stable channel requires an official release build. | Use an officially released installer. |
+
+## Status values
+
+These are not errors, but they are often misread:
+
+| Value | Appears in | Meaning |
+| --- | --- | --- |
+| `stale` | Terminals, run state | The last observed state is no longer valid; it does not mean the process is still alive. |
+| `revoked` | Devices | The authorization has been revoked. |
+| `running` | Sessions | **Only the last observed state**; re-detect it after a restart. |
+| `Not reported` / `Partial` | Usage coverage | Data is missing or incomplete; **do not treat it as zero**. |
+
+## General troubleshooting order
+
+1. Confirm the authoritative runtime is running and which one you are connected to (local embedded, or a remote server).
+2. Confirm the current project and workspace are correct—`Local` and `Worktree` are different directories.
+3. Confirm the device permission level is sufficient (write operations require `full_control`).
+4. Check the latest timeline event to see whether it is waiting on an approval or an elicitation form from you.
+5. If the problem persists, submit redacted information as described in [Troubleshooting](/en/troubleshooting).
