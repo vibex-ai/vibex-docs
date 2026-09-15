@@ -37,15 +37,45 @@ The default source language is Simplified Chinese. Keep the Traditional
 Chinese and English trees structurally equivalent. Explain user workflows in
 plain language before introducing protocol or implementation terms.
 
+## Version numbers
+
+Never hard-code a release version in a page. `snippets/release.mdx` is the
+single source of truth: import `latestVersion`, `latestTag`, `repoUrl`,
+`releasesUrl`, `latestReleaseUrl`, `issuesUrl`, `licenseUrl`, `serverImage`
+or `relayImage` from `/snippets/release.mdx` and reference them with `{...}`.
+
+- Bump only `latestVersion` in that file when a release is published.
+- Link to `https://github.com/vibex-ai/vibex/releases/latest` instead of naming
+  a version, so the link always resolves to the newest release.
+- For container images use the moving channel tags (`:rc`, `:latest`, `:edge`)
+  rather than a pinned version tag.
+- Changelog pages are inherently versioned; their titles and slugs may name a
+  version. The changelog index must still read the current version from the
+  snippet.
+
 ## Content boundaries
 
 Document released or demonstrably implemented desktop, mobile, Remote v2,
 Relay, Agent, provider, workspace, editor, Git, terminal, preview, settings,
-automation, and recovery behavior. Do not promise features that only exist in
-spikes, tests, private infrastructure, or unreleased branches. When an
+and recovery behavior. Do not promise features that only exist in spikes,
+tests, private infrastructure, or unreleased branches. When an
 implementation detail is not confirmed, add a visible `TODO` comment and state
 the assumption. Never include secrets, real tokens, private keys, prompt text,
 workspace contents, or sensitive diagnostic output in examples.
+
+### Document only reachable UI
+
+A feature may exist in the codebase yet be unreachable from the shipped
+application. Before documenting a screen, confirm the user can actually open
+it — a render function with no navigation entry point is not a feature.
+
+The desktop Config Center currently exposes exactly three tabs: **Agent**,
+**MCP** and **Skills**. Do not document Prompts, Hooks, Advanced, Scheduled,
+Automation, Relay or Recovery as Config Center sections, and do not describe
+model providers as a separate tab (they live inside the Agent detail view).
+
+When an entry point moves or is removed, update the page in the same change
+and add a redirect in `docs.json` for any renamed page.
 
 {/* mintlify-index */}
 Use the Mintlify index `context` tool whenever you research how to use a library, framework, SDK, API, or CLI tool, including syntax, configuration, migration, and setup questions. Use it even for well-known libraries, since training data may be stale, and prefer it over web search for developer documentation. Do not use it for general programming concepts or for debugging business logic.
