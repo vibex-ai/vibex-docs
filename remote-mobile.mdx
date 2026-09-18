@@ -1,81 +1,235 @@
 ---
 title: "远程访问与移动端"
-description: "把移动端或另一台桌面端配对到权威运行时，安全地查看和操作会话。"
+description: "把 Vibex 部署到服务器，或让手机连上你自己的桌面端。"
 ---
 
-移动端是 Vibex 的原生远程伴侣。权威运行时（桌面端内嵌的本地运行时，或自托管的 `vibex-server`）负责 Agent、文件、Git、终端、供应商和权限；移动端通过 Remote v2 请求投影并发送类型化操作，**不在本地运行 Agent**。
+Vibex 有两种“人不在电脑前也能继续干活”的用法。先确认你要哪一种：
 
-## 先确认要连哪个权威运行时
+| 你想要的效果 | 这条路线的名字 | Agent 在哪台机器上跑 | 谁连进来 |
+| --- | --- | --- | --- |
+| 把开发环境放到服务器，公司电脑、家里笔记本、手机都接着用同一个环境 | 云端开发：部署**无头运行时** `vibex-server` | 服务器 | 桌面端和移动端都作为客户端连过去 |
+| 手机或平板连你自己开机的电脑 | 远程开发：桌面端 + 移动端 | 你自己的电脑 | 只有你配对过的移动设备 |
 
-| 你的情况 | 应该连接 |
-| --- | --- |
-| 手机和电脑在同一个网络，只想在手机上继续电脑上的会话 | 桌面端内嵌的本地运行时 |
-| 想让会话常驻在一台服务器上，电脑和手机都接进去 | 自托管的 `vibex-server`，见[自托管无头运行时](/self-hosted-server) |
+<Info>
+  **什么是无头运行时**：可以理解成“没有窗口的 Vibex”。Agent 会话、工作区、Git、终端和供应商配置都由它负责，能力和桌面端完全一样，只是它跑在服务器上，你需要通过桌面端或手机连过去操作。它的程序名是 `vibex-server`。
+</Info>
 
-如果你要连的是 `vibex-server`，**先按那篇文档把它跑起来并拿到配对码或连接串**，再回到这里配对客户端。
+两条路线都靠**一次性配对**建立信任：第一次必须在设备旁边拿到配对码或二维码；配对成功后长期凭据保存在两端，之后会自动重连，不需要反复配对。
 
-## 连接方式
+下面的步骤假设你已经装好桌面端。Android 客户端可以从 GitHub Releases 侧载安装，iOS 目前只有模拟器构建，详见[安装与平台](/install)。
 
-| 方式 | UI 名称 | 适用场景 |
-| --- | --- | --- |
-| Direct | **Direct HTTPS** | 客户端可以通过可达地址直连权威端。 |
-| Tailnet | **Tailscale Serve** | 你用 Tailscale 等私有网络，权威端不暴露公共端口。 |
-| Relay | **Self-hosted Relay** | 无法直连时，通过自托管 Relay 转发加密帧。 |
-| 局域网 | **Local network pairing** | 零配置局域网发现，主机名形如 `vibex-lan.local`。 |
+## 一、云端开发：把 Vibex 部署到服务器
 
-Relay 不保存、不解密业务数据，只处理房间、连接和加密帧等路由元数据。详见[自托管 Relay](/relay)。
+Agent 会在服务器上读写代码、执行命令，所以先把服务器准备好，再用客户端连过去。
 
-## 配对
+### 开始之前
 
-### 路径一：桌面端生成，手机扫码
+- 一台装了 Docker 的 Linux 服务器。只有你一个人用：1 核 2 GB 内存起步；同时跑多个 Agent：建议 2 核 4 GB 以上。
+- 代码要能在服务器上访问到：在服务器上 `git clone`，或者把宿主机的代码目录挂进容器（下面示例用的是挂载）。
+- Agent 的账号或 API Key 等客户端连上以后再配置：在桌面端的 **Config Center** 里添加（见 [Config Center](/config-center)），**不要**写进 compose 文件，也不要提交到仓库。
 
-适用于"手机连我的电脑"。
+### 第 1 步：启动运行时
 
-1. 在桌面端标题栏点击 **Pair mobile**，打开 **Connect a mobile device** 对话框。
-2. 选择连接方式并启用，等待状态变为 **Online**。
-3. 点击 **Generate pairing QR code**，得到一个短时效的二维码和链接。
-4. 在手机上打开 Vibex，选择 **Use QR Code** 扫码，或粘贴链接。
-5. 两端核对 **Verification code** 是否一致，在桌面端点击 **Code matches, allow**。
-6. 完成握手后，手机会收到初始投影和会话列表。
+把下面的内容保存成 `docker-compose.yml`，放在服务器上任意目录：
 
-这个链接的格式是 `vibex://open/<transport>#/pair/<offer>`，有效期 **60–120 秒**，只能使用一次。
-
-### 路径二：服务器打印，客户端填入
-
-适用于"桌面端和手机都连我的服务器"。
-
-`vibex-server` 启动时会打印一次性配对码和连接串：
-
-```text
-pairing_code=123-456-789
-pairing_link=vibex://pair#/code/<payload>
-tls_fingerprint=sha256:...
+```yaml
+services:
+  vibex-server:
+    # 用移动通道标签：rc 跟随最新候选版，latest 跟随最新稳定版；
+    # 需要固定版本时再改成具体的版本号
+    image: ghcr.io/vibex-ai/vibex-server:rc
+    container_name: vibex-server
+    # 服务器重启后自动拉起；配合下面的 healthcheck 使用
+    restart: unless-stopped
+    # 共享宿主机网络：容器里的回环地址就是宿主机的回环地址，
+    # 免去桥接网络下发布端口需要非回环绑定（回环模式会拒绝这种绑定）的麻烦
+    network_mode: host
+    environment:
+      # 运行时数据目录：数据库、服务器身份、Agent 安装都在这里
+      VIBEX_HOME: /data
+      VIBEX_DB_PATH: /data/vibex.db
+      # 只写 127.0.0.1 的话，手机和别的电脑连不进来
+      VIBEX_BIND_ADDR: 0.0.0.0:8765
+      # lan = 允许局域网访问；公网部署要改成 public 并配 HTTPS
+      VIBEX_DEPLOYMENT_MODE: lan
+      # 运行时自己签一张证书：客户端从配对连接串里拿到指纹，不用买证书
+      VIBEX_TLS_MODE: pinned_certificate
+      # 客户端拨号的地址，端口必须和 VIBEX_BIND_ADDR 一致
+      VIBEX_PUBLIC_HOST: 192.168.1.10:8765
+      # 允许客户端在哪些目录里挑项目，冒号分隔；下面第 4 步会用到
+      VIBEX_WORKSPACE_ROOTS: /data:/data/repos
+    volumes:
+      # 唯一需要备份的卷：数据库 + 服务器身份（丢了要重新配对所有设备）
+      - vibex-data:/data
+      # 你的代码目录：挂进来之后，路径还要写进 VIBEX_WORKSPACE_ROOTS
+      - /srv/repos:/data/repos        # 改成你想让 Vibex 打开的代码目录
+volumes:
+  vibex-data:
 ```
 
-连接串里同时携带**服务器地址、一次性配对码和服务器证书**。客户端填入它的好处是：自签证书的服务器不需要系统 CA，因为客户端在发出第一个请求前就固定了这张证书。
+第 1 步示例只用了最必要的几个变量；完整的变量清单（包括限流、事件容量、密钥存放位置等）见[环境变量参考](/reference/environment-variables)。
 
-- **桌面端**：打开标题栏的 **Runtime** 管理器，添加运行时，选择 **Connection string** 标签粘贴，或选择 **Pairing code** 标签填入地址和配对码。
-- **移动端**：选择 **Pair with a Cloud Server**，填入地址和配对码；或把连接串粘贴到 **Pair with Connection String**。
+<Note>
+  `image` 里的 `rc` 跟随最新候选版，`latest` 跟随最新稳定版；需要固定版本时再改成具体版本号。已经克隆了仓库时，也可以直接用仓库里的部署文件从源码构建：`docker compose -f deploy/server/docker-compose.yml up --build -d vibex-server`。
+</Note>
 
-配对码默认 **5 分钟**有效，最长 30 分钟，只能用一次，服务器端只保存它的 SHA-256 哈希。需要新的码时在服务器上执行 `vibex-server pairing-code`。
+启动并取得配对信息：
+
+```bash
+docker compose up -d
+docker logs vibex-server | grep -E 'pairing_(code|link)'
+```
+
+日志里会出现两样东西：
+
+- `pairing_code=123-456-789`：一次性配对码，默认 5 分钟后过期。
+- `pairing_link=vibex://pair#/code/...`：一条配对连接串，已经包含服务器地址、一次性配对码和服务器证书（DER）。复制整条即可；客户端会在发出第一个请求前固定这张证书，所以自签证书的服务器不需要系统 CA。
 
 <Warning>
-  二维码和连接串等同于一次性的登录凭据。不要把它发布到聊天、Issue 或任何公开渠道。
+  配对码和连接串等同于密码，只在配对时用一次。不要发到群里、Issue 或截图里。过期后可以随时在服务器上重新生成。
 </Warning>
 
-## 权限级别
+```bash
+docker exec vibex-server vibex-server pairing-code
+```
 
-配对时选择设备的权限级别，级别由**发起端**在创建配对时决定，客户端无法自行提权：
+### 如果服务器在公网
 
-| 级别 | UI 名称 | 允许的操作 |
-| --- | --- | --- |
-| `read_only` | **Read only** | 读取项目、会话、文件和供应商配置摘要。所有写操作被拒绝并记入审计。 |
-| `approve_only` | **Approve only** | 上面的读取权限，加上批准或拒绝权限请求和询问表单。 |
-| `full_control` | **Full control** | 全部操作：发送消息、读写文件、Git 写操作、终端输入、供应商配置修改和设备管理。 |
+公网部署只多一件事：**必须用 HTTPS**。让 Caddy 自动申请证书，运行时自己只监听本机回环地址：
 
-授予最小够用的权限。权威端可以随时撤销设备，撤销会立即断开该设备的活动连接。
+```yaml
+services:
+  vibex-server:
+    image: ghcr.io/vibex-ai/vibex-server:latest
+    container_name: vibex-server
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      # 只监听本机，公网流量一律走 Caddy；8765 不对公网开放
+      VIBEX_BIND_ADDR: 127.0.0.1:8765
+      # 公网部署：没有可信 HTTPS 会拒绝启动
+      VIBEX_DEPLOYMENT_MODE: public
+      VIBEX_TLS_MODE: trusted_https_proxy
+      # 让限流按真实客户端 IP 计算；只有反代终结 TLS 时才设 true
+      VIBEX_TRUST_FORWARDED_HEADERS: "true"
+      # 客户端实际访问的域名，配对连接串里用的也是它
+      VIBEX_PUBLIC_HOST: vibex.example.com
+      # 只接受这些域名/来源的请求，必须和上面一致
+      VIBEX_ALLOWED_HOSTS: vibex.example.com
+      VIBEX_ALLOWED_ORIGINS: https://vibex.example.com
+      # 允许客户端挑选项目的目录，冒号分隔
+      VIBEX_WORKSPACE_ROOTS: /data:/data/repos
+    volumes:
+      # 唯一需要备份的卷：数据库 + 服务器身份
+      - vibex-data:/data
+      - /srv/repos:/data/repos
 
-## 移动端能做什么
+  # 反向代理：自动申请并续期证书，把 443 的请求转到运行时的回环端口
+  caddy:
+    image: caddy:2-alpine
+    container_name: vibex-caddy
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
+volumes:
+  vibex-data:
+  caddy-data:
+  caddy-config:
+```
+
+同目录再放一个 `Caddyfile`：
+
+```text
+vibex.example.com {
+    reverse_proxy 127.0.0.1:8765
+}
+```
+
+```bash
+docker compose up -d
+docker logs vibex-server | grep -E 'pairing_(code|link)'
+```
+
+防火墙只需要放行 `80`、`443` 和 SSH；运行时的 `8765` 保持在回环地址上，不要暴露到公网。把域名和地址换成你自己的之后，`VIBEX_ALLOWED_HOSTS` 与 `VIBEX_ALLOWED_ORIGINS` 必须和实际访问用的域名一致，否则请求会被直接拒绝。
+
+<Tip>
+  不想把服务暴露在公网、又需要跨网络访问时，可以在服务器上装 Tailscale，用 `tailscale serve --bg http://127.0.0.1:8765` 把它发布到你的私有网络；然后把 `VIBEX_DEPLOYMENT_MODE` 设为 `public`、`VIBEX_TLS_MODE` 设为 `trusted_https_proxy`，并让 `VIBEX_PUBLIC_HOST` 与 `VIBEX_ALLOWED_HOSTS` 都填 Tailscale 给你的主机名。
+</Tip>
+
+### 第 2 步：桌面端连过去
+
+1. 点击标题栏的 **Runtime** 按钮，打开运行时管理器。
+2. 点 **Add runtime…**，选 **Connection string** 标签，把上面那条 `vibex://pair#/code/...` 整条粘贴进去，点 **Pair**。服务器用自签证书时也走这条，因为证书指纹就在连接串里。
+3. 也可以选 **Pairing code** 标签，手动填 **Server address** 和 **One-time pairing code**。
+4. 配对成功后，运行时的 **Certificate** 一栏会显示 `sha256:` 指纹，可以和服务器日志里的 `tls_fingerprint` 对一下。
+5. 在详情里点 **Switch to this runtime** 切过去；从这一刻起，桌面端里的会话、文件、Git、终端都来自服务器。想回到用本机开发，在列表里选中 **This device** 再点 **Switch to this runtime**。要移除这个运行时，在详情里点 **Remove**——它只删除本机保存的设备凭据，服务器上的设备授权仍然存在，需要在那台服务器上撤销。
+
+### 第 3 步：手机连过去
+
+1. 打开移动端，选 **Pair with a Cloud Server**。
+2. 填 **server address**（例如 `192.168.1.10:8765`）和 **pairing code**，点 **Pair with Code**。
+3. 服务器用自签证书时，改把 `vibex://pair#/code/...` 连接串粘进 **connection string** 输入框，它会同时带上证书。
+4. 确认配对信息即可；这台设备能做什么由服务器生成配对码时决定，默认是 **完全控制**。想给它更小的权限，就在服务器上用 `docker exec vibex-server vibex-server pairing-code --permission read-only` 重新生成一个配对码（可选 `read-only`、`approve-only`、`full-control`）。
+
+### 第 4 步：让 Agent 看到你的代码
+
+Agent 在服务器上运行，**它只能看到服务器（容器）里的目录**。所以代码必须放在服务器上：
+
+- 在服务器上 `git clone` 到 `/data/repos/你的项目`；或者
+- 在 compose 里把宿主目录挂进容器（示例中的 `- /srv/repos:/data/repos`）。
+
+然后确认容器内路径写在 `VIBEX_WORKSPACE_ROOTS` 里（示例中的 `/data:/data/repos`）。回到客户端：新建会话 → **项目目录** → **选择其他目录**，你会看到 `/data` 和 `/data/repos` 两个位置，进去选中项目即可。
+
+<Note>
+  只挂载、不加进 `VIBEX_WORKSPACE_ROOTS`，客户端浏览不到那个目录；只加进 `VIBEX_WORKSPACE_ROOTS`、不挂载，运行时里也没有这个路径。
+</Note>
+
+### 第 5 步：日常维护
+
+| 你要做的事 | 怎么做 |
+| --- | --- |
+| 升级到新版本 | 改 `image` 里的版本号，然后 `docker compose pull && docker compose up -d --no-build`。用 `rc`、`latest` 这类浮动标签时必须先 `pull`，否则容器会留在旧镜像上 |
+| 备份 | 备份 `/data` 卷。里面有数据库和服务器身份；身份丢了，所有设备都要重新配对 |
+| 撤销一台设备 | 在服务器上执行 `docker exec vibex-server vibex-server revoke DEVICE_ID`。在客户端里 **Remove** 一个运行时只会删除本机凭据，不会撤销服务器上的授权 |
+| 看运行状态 | `docker exec vibex-server vibex-server status`；改过环境变量后先跑 `docker exec vibex-server vibex-server config-check` 检查配置 |
+| 彻底删掉运行时 | `docker compose down`。**不要加 `-v`**，那会连 `/data` 一起删除 |
+
+## 二、远程开发：手机连你自己的桌面端
+
+这条路线的权威仍然是你的电脑：Agent、文件、Git、终端都在桌面端上跑，手机只是拿到一个可以查看和操作的窗口。适合“人在外面，想看一眼进度、回一句话、批一个权限”。
+
+### 开始之前
+
+- 桌面端正在运行，电脑保持开机（睡眠会导致连接断开）。
+- 手机和电脑网络可达：同一个 Wi-Fi 最简单；不在同一网络时用 Tailnet 或自建 Relay。
+
+### 第 1 步：在桌面端发布远程访问
+
+1. 点击顶部工具栏的 **Pair mobile** 图标。
+2. 选择连接方式：
+   - **Tailnet**（推荐）：通过 Tailscale 等私有网络访问，适合不在同一 Wi-Fi 的情况。
+   - **自管 Direct HTTPS**：你自己有一个能指向这台电脑的 HTTPS 地址。
+   - **自建 Relay**：手机和电脑无法直连时，通过你自建的 Relay 转发加密流量。
+3. 按界面提示填写地址（Direct 填 `https://你的地址`，Relay 填 `https://你的 Relay 地址`），选择这台手机能做什么（默认 **只读**，见下面的[权限级别](#权限级别)），然后点 **Publish**。
+4. 界面会出现二维码和配对链接：**扫码即可配对**，也可以 **复制链接** 发给手机。链接有效期很短，过期就点 **Regenerate**。
+
+<Warning>
+  配对链接和二维码等同于一次性密码，不要发到公开渠道。手机配对时桌面端会弹出确认，只有你确认才会成功。
+</Warning>
+
+### 第 2 步：在手机上完成配对
+
+- 和电脑在同一个 Wi-Fi：移动端会直接发现 **nearby desktops**，选中后确认即可。
+- 不在同一网络：用手机扫码，或者打开复制过来的 `vibex://` 链接。
+- 也可以手动连接：在移动端选 **Pair with Code**，填入桌面端显示的地址和配对码。
+
+权限级别在桌面端发布配对时就已经选定，手机发起配对后桌面端会要求你确认；完成后手机会显示桌面端的会话列表。
+
+### 第 3 步：在手机上能做什么
 
 | 能力 | 说明 |
 | --- | --- |
@@ -90,19 +244,80 @@ tls_fingerprint=sha256:...
 
 所有写操作的真实结果始终由权威运行时产生；移动端显示的是它的投影。
 
-## 断线与重连
+### 直连不通时：自建 Relay
 
-网络切换或应用恢复后，移动端会重新认证并请求 catch-up：先显示权威的会话和时间线状态，再恢复实时事件。
+手机和电脑都可能在公司网络或运营商 NAT 后面，互相连不上。这时用一台你能访问的服务器跑 Relay，它只转发加密帧，看不到内容：
+
+```yaml
+services:
+  relay-server:
+    image: ghcr.io/vibex-ai/vibex-relay-server:rc
+    container_name: vibex-relay-server
+    restart: unless-stopped
+    # 只把端口发布到宿主机的回环地址；公网入口交给 HTTPS 反代
+    ports:
+      - "127.0.0.1:9700:9700"
+    environment:
+      # 容器内监听所有网卡，否则宿主机的端口转发进不来
+      VIBEX_RELAY_BIND_ADDR: 0.0.0.0:9700
+      # 房间数、连接数、限流等上限都有默认值，需要时再按
+      # 「环境变量参考」里的 Relay 一节添加
+```
+
+```bash
+docker compose up -d
+curl -fsS http://127.0.0.1:9700/health
+```
+
+要让手机在公网用到它，需要给它一个 HTTPS/WSS 入口（例如用 Caddy 反向代理到 `127.0.0.1:9700`），然后在桌面端发布远程访问时选 **自建 Relay**，填入 `https://你的 Relay 域名`。
+
+Relay 是纯转发的：它不保存你的会话、文件或供应商配置，也不解密内容。它在内存里维护房间和连接，重启后房间会消失，设备重连时会自动重建。
+
+### 断线与重连
+
+网络切换、锁屏或应用回到前台后，客户端会重新认证并补齐缺失的历史：先显示权威的会话和时间线状态，再恢复实时更新。
 
 | 现象 | 处理 |
 | --- | --- |
-| `stale` | 等待权威刷新，不要根据旧快照重复执行命令。 |
+| `stale` | 等待权威刷新，不要根据旧快照重复执行有副作用的命令。 |
 | `revoked` | 设备已被撤销，必须重新配对。 |
 | `resync_required` | 客户端检测到序号或游标缺口，正在重新同步；以权威端的状态为准。 |
 
-## 安全检查
+## 权限级别
 
-- 权威端默认只监听 loopback。要跨网络使用，请通过 Tailnet、自签证书（局域网）或受控 HTTPS/WSS 反向代理发布。
-- 不要使用未认证的公网监听。
-- 不要把 room id 或配对码当作长期凭据。
-- 定期在设备列表中检查已配对设备，及时 **Revoke** 不再使用的设备。
+配对时给移动端选权限，按需要最小授权。级别由**发起端**在创建配对时决定，客户端无法自行提权：
+
+| 级别 | 能做什么 | 适合 |
+| --- | --- | --- |
+| **只读**（`read_only`） | 查看会话、文件摘要、Git 状态和差异、供应商摘要；所有写操作被拒绝并记入审计 | 只想看进度 |
+| **仅审批**（`approve_only`） | 在只读基础上，处理 Agent 的权限请求和询问表单 | 在外面帮忙点“允许” |
+| **完全控制**（`full_control`） | 发送消息、写文件、输入终端命令、执行 Git 写操作（仍受桌面端能力限制） | 真的要在手机上干活 |
+
+撤销设备在权威端完成：无头运行时上执行 `docker exec vibex-server vibex-server revoke DEVICE_ID`（或直接在服务器上运行 `vibex-server revoke DEVICE_ID`）。撤销会立刻断开该设备的活动连接，之后必须重新配对。在客户端里 **Remove** 一个运行时只删除本机保存的凭据，服务器上的设备授权仍然存在。
+
+## 安全清单
+
+- 运行时的 `8765` 端口只在本机或内网开放；公网访问必须走 HTTPS。权威端默认只监听 loopback，不要使用未认证的公网监听。
+- 权限给最小的一档，只在需要时才用 **完全控制**。
+- 配对码、二维码和连接串不要发到公开渠道；它们用过一次就失效，也不要当作长期凭据。
+- 定期撤销不用的设备。
+- Relay 只转发加密流量，不要把它当成权限边界，也不要在它的日志里放业务数据。
+
+## 遇到问题先看这里
+
+| 现象 | 常见原因 | 怎么办 |
+| --- | --- | --- |
+| 手机扫码提示配对过期 | 二维码有效期很短 | 在桌面端点 **重新生成**，重新扫 |
+| 手机连不上桌面端 | 不在同一网络，或路由器/NAT 拦截 | 改用 Tailnet，或部署自建 Relay |
+| 桌面端连不上服务器 | 地址或端口写错，防火墙没放行 | 在服务器上访问一次配对连接串里的地址；确认 `VIBEX_BIND_ADDR` 不是回环地址 |
+| 客户端提示证书或主机被拒绝 | `VIBEX_PUBLIC_HOST`、`VIBEX_ALLOWED_HOSTS` 和实际访问地址不一致 | 改成实际访问用的域名/地址后重启容器 |
+| 看不到想打开的项目目录 | 代码不在服务器上，或没写进 `VIBEX_WORKSPACE_ROOTS` | 按上面第 4 步挂载并加入白名单 |
+| 会话列表不更新 | 网络切换后还在补齐历史 | 等它同步完，或手动刷新；持续不更新时检查桌面端/服务器是否还在运行 |
+| 手机提示设备已被撤销 | 权威端撤销过这台设备 | 重新配对一次 |
+| 桌面端一直连着服务器，想用本机 | 配对的凭据会自动恢复 | 打开 **Runtime** 面板，选中 **This device** 后点 **Switch to this runtime** |
+
+## 环境变量
+
+上面示例只用了最必要的变量。`vibex-server`、Relay 和桌面端的完整变量清单、默认值与用途见[环境变量参考](/reference/environment-variables)；部署形态、命令与健康检查见[自托管无头运行时](/self-hosted-server)，Relay 的端点、限制与推送配置见[自托管 Relay](/relay)。
+
+需要更底层的细节（配对握手、加密、同步契约）时，阅读开发者指南中的 [Remote v2 与 Relay](/developer/remote-protocol)。

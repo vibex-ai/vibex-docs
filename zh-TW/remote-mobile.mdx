@@ -1,108 +1,323 @@
 ---
 title: "遠端存取與行動端"
-description: "將行動端或另一台桌面端配對到權威執行環境，安全地檢視和操作會話。"
+description: "把 Vibex 部署到伺服器，或讓手機連上你自己的桌面端。"
 ---
 
-行動端是 Vibex 的原生遠端夥伴。權威執行環境（桌面端內嵌的本機執行環境，或自託管的 `vibex-server`）負責 Agent、檔案、Git、終端機、供應商和權限；行動端透過 Remote v2 要求投影並傳送具型別的操作，**不在本機執行 Agent**。
+Vibex 有兩種「人不在電腦前也能繼續工作」的用法。先確認你要哪一種：
 
-## 先確認要連線哪個權威執行環境
+| 你想要的效果 | 這條路線的名字 | Agent 在哪台機器上執行 | 誰連進來 |
+| --- | --- | --- | --- |
+| 把開發環境放到伺服器，公司電腦、家裡筆電、手機都接著用同一個環境 | 雲端開發：部署**無頭執行環境** `vibex-server` | 伺服器 | 桌面端和行動端都作為客戶端連過去 |
+| 手機或平板連你自己開機的電腦 | 遠端開發：桌面端 + 行動端 | 你自己的電腦 | 只有你配對過的行動裝置 |
 
-| 你的情況 | 應該連線 |
-| --- | --- |
-| 手機和電腦在同一個網路，只想在手機上繼續電腦上的會話 | 桌面端內嵌的本機執行環境 |
-| 想讓會話常駐在一台伺服器上，電腦和手機都接進去 | 自託管的 `vibex-server`，請見[自託管無頭執行環境](/zh-TW/self-hosted-server) |
+<Info>
+  **什麼是無頭執行環境**：可以理解成「沒有視窗的 Vibex」。Agent 會話、工作區、Git、終端和供應商設定都由它負責，能力和桌面端完全相同，只是它跑在伺服器上，你需要透過桌面端或手機連過去操作。它的程式名稱是 `vibex-server`。
+</Info>
 
-如果你要連線的是 `vibex-server`，**請先依照該頁的說明將它啟動並取得配對碼或連線字串**，再回到這裡配對用戶端。
+兩條路線都靠**一次性配對**建立信任：第一次必須在裝置旁邊取得配對碼或 QR code；配對成功後長期憑證保存在兩端，之後會自動重新連線，不需要反覆配對。
 
-## 連線方式
+下面的步驟假設你已經裝好桌面端。Android 客戶端可以從 GitHub Releases 側載安裝，iOS 目前只有模擬器建置，詳見[安裝與平台](/zh-TW/install)。
 
-| 方式 | UI 名稱 | 適用情境 |
-| --- | --- | --- |
-| Direct | **Direct HTTPS** | 用戶端可以透過可達位址直連權威端。 |
-| Tailnet | **Tailscale Serve** | 你使用 Tailscale 等私有網路，權威端不暴露公用連接埠。 |
-| Relay | **Self-hosted Relay** | 無法直連時，透過自託管 Relay 轉送加密訊框。 |
-| 區域網路 | **Local network pairing** | 零設定區域網路探索，主機名稱格式為 `vibex-lan.local`。 |
+## 一、雲端開發：把 Vibex 部署到伺服器
 
-Relay 不會儲存、不會解密業務資料，只處理房間、連線和加密訊框等路由中繼資料。詳見[自託管 Relay](/zh-TW/relay)。
+Agent 會在伺服器上讀寫程式碼、執行命令，所以先把伺服器準備好，再用客戶端連過去。
 
-## 配對
+### 開始之前
 
-### 路徑一：桌面端產生，手機掃碼
+- 一台裝了 Docker 的 Linux 伺服器。只有你一個人用：1 核 2 GB 記憶體起步；同時執行多個 Agent：建議 2 核 4 GB 以上。
+- 程式碼必須能在伺服器上存取：在伺服器上 `git clone`，或把主機的程式碼目錄掛進容器（下面範例用掛載）。
+- Agent 的帳號或 API Key 等客戶端連上以後再設定：在桌面端的 **Config Center** 裡新增（見 [Config Center](/zh-TW/config-center)），**不要**寫進 compose 檔，也不要提交到倉庫。
 
-適用於「手機連我的電腦」。
+### 第 1 步：啟動執行環境
 
-1. 在桌面端標題列點選 **Pair mobile**，開啟 **Connect a mobile device** 對話方塊。
-2. 選擇連線方式並啟用，等待狀態變成 **Online**。
-3. 點選 **Generate pairing QR code**，取得短效期的 QR Code 和連結。
-4. 在手機上開啟 Vibex，選擇 **Use QR Code** 掃碼，或貼上連結。
-5. 兩端核對 **Verification code** 是否一致，並在桌面端點選 **Code matches, allow**。
-6. 完成握手後，手機會收到初始投影和會話清單。
+把下面的內容存成 `docker-compose.yml`，放在伺服器上任意目錄：
 
-這個連結的格式是 `vibex://open/<transport>#/pair/<offer>`，有效期為 **60–120 秒**，只能使用一次。
-
-### 路徑二：伺服器列印，用戶端填入
-
-適用於「桌面端和手機都連我的伺服器」。
-
-`vibex-server` 啟動時會列印一次性配對碼和連線字串：
-
-```text
-pairing_code=123-456-789
-pairing_link=vibex://pair#/code/<payload>
-tls_fingerprint=sha256:...
+```yaml
+services:
+  vibex-server:
+    # 用浮動通道標籤：rc 跟隨最新候選版，latest 跟隨最新穩定版；
+    # 需要固定版本時再改成具體的版本號
+    image: ghcr.io/vibex-ai/vibex-server:rc
+    container_name: vibex-server
+    # 伺服器重新啟動後自動拉起；搭配下面的 healthcheck 判斷是否就緒
+    restart: unless-stopped
+    # 共用主機網路：容器裡的回環位址就是主機的回環位址，
+    # 免去橋接網路下發布連接埠需要非回環綁定（回環模式會拒絕這種綁定）的麻煩
+    network_mode: host
+    environment:
+      # 執行環境資料目錄：資料庫、伺服器身分、Agent 安裝都在這裡
+      VIBEX_HOME: /data
+      VIBEX_DB_PATH: /data/vibex.db
+      # 只寫 127.0.0.1 的話，手機和別的電腦連不進來
+      VIBEX_BIND_ADDR: 0.0.0.0:8765
+      # lan = 允許區域網路存取；公網部署要改成 public 並搭配 HTTPS
+      VIBEX_DEPLOYMENT_MODE: lan
+      # 執行環境自己簽一張憑證：客戶端從配對連線字串裡取得指紋，不用買憑證
+      VIBEX_TLS_MODE: pinned_certificate
+      # 客戶端撥號的位址，連接埠必須和 VIBEX_BIND_ADDR 一致
+      VIBEX_PUBLIC_HOST: 192.168.1.10:8765
+      # 允許客戶端在哪些目錄裡挑專案，以冒號分隔；下面第 4 步會用到
+      VIBEX_WORKSPACE_ROOTS: /data:/data/repos
+    volumes:
+      # 唯一需要備份的卷：資料庫 + 伺服器身分（遺失就要重新配對所有裝置）
+      - vibex-data:/data
+      # 你的程式碼目錄：掛進來之後，路徑還要寫進 VIBEX_WORKSPACE_ROOTS
+      - /srv/repos:/data/repos        # 改成你想讓 Vibex 開啟的程式碼目錄
+volumes:
+  vibex-data:
 ```
 
-連線字串中同時帶有**伺服器位址、一次性配對碼和伺服器憑證**。用戶端填入它的好處是：使用自簽憑證的伺服器不需要系統 CA，因為用戶端在發出第一個要求前就固定了這張憑證。
+第 1 步範例只用了最必要的幾個變數；完整的變數清單（包含限流、事件容量、金鑰存放位置等）見[環境變數參考](/zh-TW/reference/environment-variables)。
 
-- **桌面端**：開啟標題列的 **Runtime** 管理員，新增執行環境，選擇 **Connection string** 分頁貼上，或選擇 **Pairing code** 分頁填入位址和配對碼。
-- **行動端**：選擇 **Pair with a Cloud Server**，填入位址和配對碼；或把連線字串貼到 **Pair with Connection String**。
+<Note>
+  `image` 裡的 `rc` 跟隨最新候選版，`latest` 跟隨最新穩定版；需要固定版本時再改成具體版本號。已經複製了倉庫時，也可以直接用倉庫裡的部署檔案從原始碼建置：`docker compose -f deploy/server/docker-compose.yml up --build -d vibex-server`。
+</Note>
 
-配對碼預設有效 **5 分鐘**，最長 30 分鐘，只能使用一次，伺服器端只儲存它的 SHA-256 雜湊。需要新的配對碼時，在伺服器上執行 `vibex-server pairing-code`。
+啟動並取得配對資訊：
+
+```bash
+docker compose up -d
+docker logs vibex-server | grep -E 'pairing_(code|link)'
+```
+
+記錄裡會出現兩樣東西：
+
+- `pairing_code=123-456-789`：一次性配對碼，預設 5 分鐘後過期。
+- `pairing_link=vibex://pair#/code/...`：一條配對連線字串，已包含伺服器位址、一次性配對碼和伺服器憑證（DER）。複製整條即可；客戶端會在發出第一個請求前固定這張憑證，所以自簽憑證的伺服器不需要系統 CA。
 
 <Warning>
-  QR Code 和連線字串等同於一次性的登入憑據。不要將它發佈到聊天、Issue 或任何公開管道。
+  配對碼和連線字串等同於密碼，只在配對時用一次。不要發到群組、Issue 或截圖裡。過期後可以隨時在伺服器上重新產生。
 </Warning>
 
-## 權限等級
+```bash
+docker exec vibex-server vibex-server pairing-code
+```
 
-配對時選擇裝置的權限等級，等級由**發起端**在建立配對時決定，用戶端無法自行提高權限：
+### 如果伺服器在公網
 
-| 等級 | UI 名稱 | 允許的操作 |
-| --- | --- | --- |
-| `read_only` | **Read only** | 讀取專案、會話、檔案和供應商設定摘要。所有寫入操作都會被拒絕並記入稽核。 |
-| `approve_only` | **Approve only** | 上述讀取權限，加上核准或拒絕權限要求和詢問表單。 |
-| `full_control` | **Full control** | 全部操作：傳送訊息、讀寫檔案、Git 寫入操作、終端機輸入、供應商設定修改和裝置管理。 |
+公網部署只多一件事：**必須用 HTTPS**。讓 Caddy 自動申請憑證，執行環境自己只監聽本機回環位址：
 
-授予最小夠用的權限。權威端可以隨時撤銷裝置，撤銷會立即中斷該裝置的活動連線。
+```yaml
+services:
+  vibex-server:
+    image: ghcr.io/vibex-ai/vibex-server:latest
+    container_name: vibex-server
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      # 只監聽本機，公網流量一律走 Caddy；8765 不對公網開放
+      VIBEX_BIND_ADDR: 127.0.0.1:8765
+      # 公網部署：沒有可信任的 HTTPS 會拒絕啟動
+      VIBEX_DEPLOYMENT_MODE: public
+      VIBEX_TLS_MODE: trusted_https_proxy
+      # 讓限流按真實客戶端 IP 計算；只有反向代理終結 TLS 時才設 true
+      VIBEX_TRUST_FORWARDED_HEADERS: "true"
+      # 客戶端實際存取的網域，配對連線字串裡用的也是它
+      VIBEX_PUBLIC_HOST: vibex.example.com
+      # 只接受這些網域/來源的請求，必須和上面一致
+      VIBEX_ALLOWED_HOSTS: vibex.example.com
+      VIBEX_ALLOWED_ORIGINS: https://vibex.example.com
+      # 允許客戶端挑選專案的目錄，以冒號分隔
+      VIBEX_WORKSPACE_ROOTS: /data:/data/repos
+    volumes:
+      # 唯一需要備份的卷：資料庫 + 伺服器身分
+      - vibex-data:/data
+      - /srv/repos:/data/repos
 
-## 行動端能做什麼
+  # 反向代理：自動申請並續期憑證，把 443 的請求轉到執行環境的回環連接埠
+  caddy:
+    image: caddy:2-alpine
+    container_name: vibex-caddy
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
+volumes:
+  vibex-data:
+  caddy-data:
+  caddy-config:
+```
+
+同目錄再放一個 `Caddyfile`：
+
+```text
+vibex.example.com {
+    reverse_proxy 127.0.0.1:8765
+}
+```
+
+```bash
+docker compose up -d
+docker logs vibex-server | grep -E 'pairing_(code|link)'
+```
+
+防火牆只需要放行 `80`、`443` 和 SSH；執行環境的 `8765` 保持在回環位址上，不要暴露到公網。把網域和位址換成你自己的之後，`VIBEX_ALLOWED_HOSTS` 與 `VIBEX_ALLOWED_ORIGINS` 必須和實際存取的網域一致，否則請求會被直接拒絕。
+
+<Tip>
+  不想把服務暴露在公網、又需要跨網路存取時，可以在伺服器上裝 Tailscale，用 `tailscale serve --bg http://127.0.0.1:8765` 把它發布到你的私有網路；然後把 `VIBEX_DEPLOYMENT_MODE` 設為 `public`、`VIBEX_TLS_MODE` 設為 `trusted_https_proxy`，並讓 `VIBEX_PUBLIC_HOST` 與 `VIBEX_ALLOWED_HOSTS` 都填 Tailscale 給你的主機名稱。
+</Tip>
+
+### 第 2 步：桌面端連過去
+
+1. 點標題列的 **Runtime** 按鈕，開啟執行環境管理器。
+2. 點 **Add runtime…**，選 **Connection string** 分頁，把上面那條 `vibex://pair#/code/...` 整條貼進去，點 **Pair**。伺服器用自簽憑證時也走這條，因為憑證指紋就在連線字串裡。
+3. 也可以選 **Pairing code** 分頁，手動填 **Server address** 和 **One-time pairing code**。
+4. 配對成功後，執行環境的 **Certificate** 欄會顯示 `sha256:` 指紋，可以和伺服器記錄裡的 `tls_fingerprint` 對一下。
+5. 在詳情裡點 **Switch to this runtime** 切過去；從這一刻起，桌面端裡的會話、檔案、Git、終端都來自伺服器。想回到用本機開發，在清單裡選中 **This device** 再點 **Switch to this runtime**。要移除這個執行環境，在詳情裡點 **Remove**——它只刪除本機儲存的裝置憑證，伺服器上的裝置授權仍然存在，需要在該伺服器上撤銷。
+
+### 第 3 步：手機連過去
+
+1. 開啟行動端，選 **Pair with a Cloud Server**。
+2. 填 **server address**（例如 `192.168.1.10:8765`）和 **pairing code**，點 **Pair with Code**。
+3. 伺服器用自簽憑證時，改把 `vibex://pair#/code/...` 連線字串貼進 **connection string** 輸入框，它會同時帶上憑證。
+4. 確認配對資訊即可；這台裝置能做什麼由伺服器產生配對碼時決定，預設是 **完整控制**。想給它更小的權限，就在伺服器上用 `docker exec vibex-server vibex-server pairing-code --permission read-only` 重新產生一個配對碼（可選 `read-only`、`approve-only`、`full-control`）。
+
+### 第 4 步：讓 Agent 看到你的程式碼
+
+Agent 在伺服器上執行，**它只能看到伺服器（容器）裡的目錄**。所以程式碼必須放在伺服器上：
+
+- 在伺服器上 `git clone` 到 `/data/repos/你的專案`；或者
+- 在 compose 裡把主機目錄掛進容器（範例中的 `- /srv/repos:/data/repos`）。
+
+然後確認容器內路徑寫在 `VIBEX_WORKSPACE_ROOTS` 裡（範例中的 `/data:/data/repos`）。回到客戶端：新增會話 → **專案目錄** → **選擇其他目錄**，你會看到 `/data` 和 `/data/repos` 兩個位置，進去選中專案即可。
+
+<Note>
+  只掛載、不加進 `VIBEX_WORKSPACE_ROOTS`，客戶端瀏覽不到那個目錄；只加進 `VIBEX_WORKSPACE_ROOTS`、不掛載，執行環境裡也沒有這個路徑。
+</Note>
+
+### 第 5 步：日常維護
+
+| 你要做的事 | 怎麼做 |
+| --- | --- |
+| 升級到新版本 | 改 `image` 裡的版本號，然後 `docker compose pull && docker compose up -d --no-build`。用 `rc`、`latest` 這類浮動標籤時必須先 `pull`，否則容器會留在舊映像上 |
+| 備份 | 備份 `/data` 卷。裡面有資料庫和伺服器身分；身分丟了，所有裝置都要重新配對 |
+| 撤銷一台裝置 | 在伺服器上執行 `docker exec vibex-server vibex-server revoke DEVICE_ID`。在客戶端裡 **Remove** 一個執行環境只會刪除本機憑證，不會撤銷伺服器上的授權 |
+| 看執行狀態 | `docker exec vibex-server vibex-server status`；改過環境變數後先跑 `docker exec vibex-server vibex-server config-check` 檢查設定 |
+| 徹底刪掉執行環境 | `docker compose down`。**不要加 `-v`**，那會連 `/data` 一起刪除 |
+
+## 二、遠端開發：手機連你自己的桌面端
+
+這條路線的權威仍然是你的電腦：Agent、檔案、Git、終端都在桌面端上執行，手機只是拿到一個可以檢視和操作的視窗。適合「人在外面，想看一眼進度、回一句話、批一個權限」。
+
+### 開始之前
+
+- 桌面端正在執行，電腦保持開機（睡眠會導致連線中斷）。
+- 手機和電腦網路可達：同一個 Wi-Fi 最簡單；不在同一網路時用 Tailnet 或自建 Relay。
+
+### 第 1 步：在桌面端發布遠端存取
+
+1. 點頂部工具列的 **Pair mobile** 圖示。
+2. 選擇連線方式：
+   - **Tailnet**（建議）：透過 Tailscale 等私有網路存取，適合不在同一 Wi-Fi 的情況。
+   - **自管 Direct HTTPS**：你自己有一個能指向這台電腦的 HTTPS 位址。
+   - **自建 Relay**：手機和電腦無法直連時，透過你自建的 Relay 轉發加密流量。
+3. 按介面提示填位址（Direct 填 `https://你的位址`，Relay 填 `https://你的 Relay 位址`），選擇這支手機能做什麼（預設 **唯讀**，見下面的[權限等級](#權限等級)），然後點 **Publish**。
+4. 介面會出現 QR code 和配對連結：**掃描即可配對**，也可以 **複製連結** 傳給手機。連結有效期很短，過期就點 **Regenerate**。
+
+<Warning>
+  配對連結和 QR code 等同於一次性密碼，不要發到公開管道。手機配對時桌面端會彈出確認，只有你確認才會成功。
+</Warning>
+
+### 第 2 步：在手機上完成配對
+
+- 和電腦在同一個 Wi-Fi：行動端會直接發現 **nearby desktops**，選中後確認即可。
+- 不在同一網路：用手機掃描 QR code，或開啟複製過來的 `vibex://` 連結。
+- 也可以手動連線：在行動端選 **Pair with Code**，填入桌面端顯示的位址和配對碼。
+
+權限等級在桌面端發布配對時就已經選定，手機發起配對後桌面端會要求你確認；完成後手機會顯示桌面端的會話清單。
+
+### 第 3 步：在手機上能做什麼
 
 | 能力 | 說明 |
 | --- | --- |
-| 會話 | 檢視時間線、傳送後續訊息、重新命名、刪除、分支、批次選取。 |
-| 核准與詢問 | 核准或拒絕權限要求，填寫 elicitation 表單。 |
-| 檔案 | 瀏覽檔案樹、依名稱或內容搜尋、**編輯並儲存檔案**。 |
-| Git | 檢視狀態與差異、stage / unstage / revert / commit、檢視歷程、fetch / push、建立 worktree。 |
-| 終端機 | 建立、附加、調整大小、傳送輸入。 |
-| 用量 | 只顯示會話數量，並提示 "Usage details are available on the desktop host."。 |
+| 會話 | 檢視時間線、傳送後續訊息、重新命名、刪除、分叉、批次選取。 |
+| 審批與詢問 | 核准或拒絕權限請求，填寫 elicitation 表單。 |
+| 檔案 | 瀏覽檔案樹、按名稱或內容搜尋、**編輯並儲存檔案**。 |
+| Git | 檢視狀態與差異、stage / unstage / revert / commit、檢視歷史、fetch / push、建立 worktree。 |
+| 終端 | 建立、附加、調整大小、傳送輸入。 |
+| 用量 | 只顯示會話數量，並提示 "Usage details are available on the desktop host." |
 
 **行動端沒有 Config Center**，不能管理 Agent、供應商、MCP 或 Skills。它的 Settings 只包含 Connection、Session timeline、Appearance、Notifications 和 About。
 
-所有寫入操作的實際結果一律由權威執行環境產生；行動端顯示的是它的投影。
+所有寫入操作的真實結果一律由權威執行環境產生；行動端顯示的是它的投影。
 
-## 斷線與重新連線
+### 直連不通時：自建 Relay
 
-網路切換或應用程式恢復後，行動端會重新驗證並要求 catch-up：先顯示權威的會話和時間線狀態，再恢復即時事件。
+手機和電腦都可能在公司網路或電信商 NAT 後面，互相連不上。這時用一台你能存取的伺服器跑 Relay，它只轉發加密訊框，看不到內容：
+
+```yaml
+services:
+  relay-server:
+    image: ghcr.io/vibex-ai/vibex-relay-server:rc
+    container_name: vibex-relay-server
+    restart: unless-stopped
+    # 只把連接埠發布到主機的回環位址；公網入口交給 HTTPS 反向代理
+    ports:
+      - "127.0.0.1:9700:9700"
+    environment:
+      # 容器內監聽所有網卡，否則主機的連接埠轉送進不來
+      VIBEX_RELAY_BIND_ADDR: 0.0.0.0:9700
+      # 房間數、連線數、限流等上限都有預設值，需要時再按
+      # 「環境變數參考」裡的 Relay 一節加入
+```
+
+```bash
+docker compose up -d
+curl -fsS http://127.0.0.1:9700/health
+```
+
+要讓手機在公網用到它，需要給它一個 HTTPS/WSS 入口（例如用 Caddy 反向代理到 `127.0.0.1:9700`），然後在桌面端發布遠端存取時選 **自建 Relay**，填入 `https://你的 Relay 網域`。
+
+Relay 是純轉發的：它不儲存你的會話、檔案或供應商設定，也不解密內容。它在記憶體裡維護房間和連線，重新啟動後房間會消失，裝置重新連線時會自動重建。
+
+### 斷線與重連
+
+網路切換、鎖屏或應用回到前景後，客戶端會重新認證並補齊缺少的歷史：先顯示權威的會話和時間線狀態，再恢復即時更新。
 
 | 現象 | 處理 |
 | --- | --- |
-| `stale` | 等待權威重新整理，不要根據舊快照重複執行命令。 |
+| `stale` | 等待權威重新整理，不要根據舊快照重複執行有副作用的命令。 |
 | `revoked` | 裝置已被撤銷，必須重新配對。 |
-| `resync_required` | 用戶端偵測到序號或游標缺口，正在重新同步；以權威端的狀態為準。 |
+| `resync_required` | 客戶端偵測到序號或游標缺口，正在重新同步；以權威端的狀態為準。 |
 
-## 安全性檢查
+## 權限等級
 
-- 權威端預設只監聽 loopback。要跨網路使用，請透過 Tailnet、自簽憑證（區域網路）或受控的 HTTPS/WSS 反向代理來發佈。
-- 不要使用未驗證的公用網路監聽。
-- 不要把 room id 或配對碼當作長期憑據。
-- 定期在裝置清單中檢查已配對裝置，並及時 **Revoke** 不再使用的裝置。
+配對時給行動端選權限，按需要最小授權。等級由**發起端**在建立配對時決定，客戶端無法自行提權：
+
+| 等級 | 能做什麼 | 適合 |
+| --- | --- | --- |
+| **唯讀**（`read_only`） | 檢視會話、檔案摘要、Git 狀態和差異、供應商摘要；所有寫入操作被拒絕並記入稽核 | 只想看進度 |
+| **僅核准**（`approve_only`） | 在唯讀基礎上，處理 Agent 的權限請求和詢問表單 | 在外面幫忙點「允許」 |
+| **完整控制**（`full_control`） | 傳送訊息、寫入檔案、輸入終端命令、執行 Git 寫操作（仍受桌面端能力限制） | 真的要在手機上工作 |
+
+撤銷裝置在權威端完成：無頭執行環境上執行 `docker exec vibex-server vibex-server revoke DEVICE_ID`（或直接在伺服器上執行 `vibex-server revoke DEVICE_ID`）。撤銷會立刻中斷該裝置的活動連線，之後必須重新配對。在客戶端裡 **Remove** 一個執行環境只刪除本機儲存的憑證，伺服器上的裝置授權仍然存在。
+
+## 安全清單
+
+- 執行環境的 `8765` 連接埠只在本機或內網開放；公網存取必須走 HTTPS。權威端預設只監聽 loopback，不要使用未認證的公網監聽。
+- 權限給最小的一檔，只在需要時才用 **完整控制**。
+- 配對碼、QR code 和連線字串不要發到公開管道；它們用過一次就失效，也不要當成長期憑證。
+- 定期撤銷不用的裝置。
+- Relay 只轉發加密流量，不要把它當成權限邊界，也不要在它的記錄裡放業務資料。
+
+## 遇到問題先看這裡
+
+| 現象 | 常見原因 | 怎麼辦 |
+| --- | --- | --- |
+| 手機掃描提示配對過期 | QR code 有效期很短 | 在桌面端點 **重新產生**，重新掃描 |
+| 手機連不上桌面端 | 不在同一網路，或路由器/NAT 攔截 | 改用 Tailnet，或部署自建 Relay |
+| 桌面端連不上伺服器 | 位址或連接埠寫錯，防火牆沒放行 | 在伺服器上存取一次配對連線字串裡的位址；確認 `VIBEX_BIND_ADDR` 不是回環位址 |
+| 客戶端提示憑證或主機被拒絕 | `VIBEX_PUBLIC_HOST`、`VIBEX_ALLOWED_HOSTS` 和實際存取位址不一致 | 改成實際存取用的網域/位址後重新啟動容器 |
+| 看不到想開啟的專案目錄 | 程式碼不在伺服器上，或沒寫進 `VIBEX_WORKSPACE_ROOTS` | 按上面第 4 步掛載並加入白名單 |
+| 會話清單不更新 | 網路切換後還在補齊歷史 | 等它同步完，或手動重新整理；持續不更新時檢查桌面端/伺服器是否還在執行 |
+| 手機提示裝置已被撤銷 | 權威端撤銷過這台裝置 | 重新配對一次 |
+| 桌面端一直連著伺服器，想用本機 | 配對的憑證會自動恢復 | 開啟 **Runtime** 面板，選中 **This device** 後點 **Switch to this runtime** |
+
+## 環境變數
+
+上面範例只用了最必要的變數。`vibex-server`、Relay 和桌面端的完整變數清單、預設值與用途見[環境變數參考](/zh-TW/reference/environment-variables)；部署形態、命令與健康檢查見[自託管無頭執行環境](/zh-TW/self-hosted-server)，Relay 的端點、限制與推送設定見[自託管 Relay](/zh-TW/relay)。
+
+需要更底層的細節（配對握手、加密、同步契約）時，閱讀開發者指南中的 [Remote v2 與 Relay](/zh-TW/developer/remote-protocol)。
