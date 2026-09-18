@@ -37,7 +37,7 @@
                 "pages": ["config-center", "agents-and-providers", "mcp-and-skills", "settings"]
               },
               {
-                "group": "远程与自托管",
+                "group": "远程开发与自托管服务",
                 "pages": ["remote-mobile", "self-hosted-server", "relay", "privacy-and-recovery"]
               },
               {
@@ -96,7 +96,7 @@
                 "pages": ["zh-TW/config-center", "zh-TW/agents-and-providers", "zh-TW/mcp-and-skills", "zh-TW/settings"]
               },
               {
-                "group": "遠端與自託管",
+                "group": "遠端開發與自託管服務",
                 "pages": ["zh-TW/remote-mobile", "zh-TW/self-hosted-server", "zh-TW/relay", "zh-TW/privacy-and-recovery"]
               },
               {
@@ -155,7 +155,7 @@
                 "pages": ["en/config-center", "en/agents-and-providers", "en/mcp-and-skills", "en/settings"]
               },
               {
-                "group": "Remote and self-hosting",
+                "group": "Remote development and self-hosting",
                 "pages": ["en/remote-mobile", "en/self-hosted-server", "en/relay", "en/privacy-and-recovery"]
               },
               {

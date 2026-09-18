@@ -1,5 +1,5 @@
 ---
-title: "遠端存取與行動端"
+title: "雲端開發與遠端開發"
 description: "把 Vibex 部署到伺服器，或讓手機連上你自己的桌面端。"
 ---
 
@@ -30,7 +30,7 @@ Agent 會在伺服器上讀寫程式碼、執行命令，所以先把伺服器�
 
 ### 第 1 步：啟動執行環境
 
-把下面的內容存成 `docker-compose.yml`，放在伺服器上任意目錄：
+專案倉庫裡已經包含完整的 `docker-compose.yml` 設定檔，可以直接檢視：[deploy/server/docker-compose.yml](https://github.com/vibex-ai/vibex/blob/main/deploy/server/docker-compose.yml)。下面這份是按本文情境裁剪的最小範例，存成 `docker-compose.yml` 放在伺服器上任意目錄即可：
 
 ```yaml
 services:
