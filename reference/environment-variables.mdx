@@ -30,7 +30,7 @@ description: "自托管运行时、Relay 和桌面端的配置项参考。"
 | --- | --- | --- |
 | `VIBEX_BIND_ADDR` | `127.0.0.1:8765` | 网关监听地址。 |
 | `VIBEX_DEPLOYMENT_MODE` | `loopback` | `loopback` / `lan` / `public`。 |
-| `VIBEX_TLS_MODE` | loopback 时为 `loopback_http`，否则 `trusted_https_proxy` | 另可设为 `pinned_certificate` 或 `server_certificate`。 |
+| `VIBEX_TLS_MODE` | `VIBEX_DEPLOYMENT_MODE=loopback` 时为 `loopback_http`，其它模式为 `trusted_https_proxy` | 四种取值：`loopback_http`（明文 HTTP，仅回环地址）、`trusted_https_proxy`（由反向代理终止 TLS）、`pinned_certificate`（运行时用自签证书终止 TLS，客户端从连接串固定指纹）、`server_certificate`（运行时用你提供的 PEM 终止 TLS）。展开说明见[自托管无头运行时](/self-hosted-server#环境变量)。 |
 | `VIBEX_TLS_CERT_FILE` / `VIBEX_TLS_KEY_FILE` | 未设置 | `server_certificate` 模式下必填。 |
 | `VIBEX_PUBLIC_HOST` | 未设置 | 向配对客户端通告的地址，也用于生成连接串。局域网直连时要带端口。 |
 | `VIBEX_ALLOWED_HOSTS` | `localhost,127.0.0.1,::1` | 接受的 `Host` 值，不匹配返回 `421`。 |

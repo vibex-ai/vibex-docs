@@ -123,7 +123,7 @@ The full list with defaults is in the [environment variables reference](/en/refe
 | `VIBEX_WORKSPACE_ROOTS` | `$VIBEX_HOME` | Comma-separated absolute paths that limit which project directories clients can choose. |
 | `VIBEX_BIND_ADDR` | `127.0.0.1:8765` | Gateway listen address. |
 | `VIBEX_DEPLOYMENT_MODE` | `loopback` | `loopback` / `lan` / `public`. |
-| `VIBEX_TLS_MODE` | See above | One of four values. |
+| `VIBEX_TLS_MODE` | `loopback_http` when `VIBEX_DEPLOYMENT_MODE=loopback`, otherwise `trusted_https_proxy` | How TLS terminates. Four values:<br />`loopback_http` — plain HTTP on loopback addresses only, for local development;<br />`trusted_https_proxy` — a reverse proxy you trust (Caddy, Nginx, and so on) terminates TLS; `VIBEX_PUBLIC_HOST`, `VIBEX_ALLOWED_HOSTS`, and `VIBEX_ALLOWED_ORIGINS` must match the domain clients use, and this is the only mode that allows `VIBEX_TRUST_FORWARDED_HEADERS=true`;<br />`pinned_certificate` — the runtime terminates TLS with its own self-signed certificate; clients pin the `sha256:` fingerprint from the pairing connection string, which suits a LAN with no domain or CA;<br />`server_certificate` — the runtime terminates TLS with PEM files you provide; `VIBEX_TLS_CERT_FILE` and `VIBEX_TLS_KEY_FILE` are both required. |
 | `VIBEX_PUBLIC_HOST` | unset | The address advertised to pairing clients; also used to generate the connection string. |
 
 <Note>

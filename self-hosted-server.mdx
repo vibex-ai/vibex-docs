@@ -123,7 +123,7 @@ journalctl -u vibex-server -o cat | grep -E 'pairing_(code|link)|tls_fingerprint
 | `VIBEX_WORKSPACE_ROOTS` | `$VIBEX_HOME` | 逗号分隔的绝对路径，限制客户端可选的项目目录。 |
 | `VIBEX_BIND_ADDR` | `127.0.0.1:8765` | 网关监听地址。 |
 | `VIBEX_DEPLOYMENT_MODE` | `loopback` | `loopback` / `lan` / `public`。 |
-| `VIBEX_TLS_MODE` | 见上文 | 四种取值之一。 |
+| `VIBEX_TLS_MODE` | `VIBEX_DEPLOYMENT_MODE=loopback` 时为 `loopback_http`，其它模式为 `trusted_https_proxy` | TLS 终止方式，共四种取值：<br />`loopback_http` —— 明文 HTTP，只允许回环地址，仅用于本机开发调试；<br />`trusted_https_proxy` —— 由你信任的反向代理（Caddy、Nginx 等）终止 TLS，`VIBEX_PUBLIC_HOST`、`VIBEX_ALLOWED_HOSTS`、`VIBEX_ALLOWED_ORIGINS` 必须与实际访问的域名一致，也只有这个模式允许 `VIBEX_TRUST_FORWARDED_HEADERS=true`；<br />`pinned_certificate` —— 运行时用自签证书自己终止 TLS，客户端从配对连接串里固定 `sha256:` 指纹，适合没有域名和 CA 的局域网；<br />`server_certificate` —— 运行时用你提供的 PEM 终止 TLS，必须同时设置 `VIBEX_TLS_CERT_FILE` 与 `VIBEX_TLS_KEY_FILE`。 |
 | `VIBEX_PUBLIC_HOST` | 未设置 | 向配对客户端通告的地址，也用于生成连接串。 |
 
 <Note>

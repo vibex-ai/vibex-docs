@@ -123,7 +123,7 @@ journalctl -u vibex-server -o cat | grep -E 'pairing_(code|link)|tls_fingerprint
 | `VIBEX_WORKSPACE_ROOTS` | `$VIBEX_HOME` | 以逗號分隔的絕對路徑，限制用戶端可選的專案目錄。 |
 | `VIBEX_BIND_ADDR` | `127.0.0.1:8765` | 閘道監聽位址。 |
 | `VIBEX_DEPLOYMENT_MODE` | `loopback` | `loopback` / `lan` / `public`。 |
-| `VIBEX_TLS_MODE` | 見上文 | 四種取值之一。 |
+| `VIBEX_TLS_MODE` | `VIBEX_DEPLOYMENT_MODE=loopback` 時為 `loopback_http`，其它模式為 `trusted_https_proxy` | TLS 終止方式，共四種取值：<br />`loopback_http` —— 明文 HTTP，只允許回環位址，僅用於本機開發除錯；<br />`trusted_https_proxy` —— 由你信任的反向代理（Caddy、Nginx 等）終止 TLS，`VIBEX_PUBLIC_HOST`、`VIBEX_ALLOWED_HOSTS`、`VIBEX_ALLOWED_ORIGINS` 必須與實際存取的網域一致，也只有這個模式允許 `VIBEX_TRUST_FORWARDED_HEADERS=true`；<br />`pinned_certificate` —— 執行環境用自簽憑證自己終止 TLS，客戶端從配對連線字串裡固定 `sha256:` 指紋，適合沒有網域和 CA 的區域網路；<br />`server_certificate` —— 執行環境用你提供的 PEM 終止 TLS，必須同時設定 `VIBEX_TLS_CERT_FILE` 與 `VIBEX_TLS_KEY_FILE`。 |
 | `VIBEX_PUBLIC_HOST` | 未設定 | 向配對用戶端通告的位址，也用於產生連線字串。 |
 
 <Note>

@@ -30,7 +30,7 @@ description: "自託管執行環境、Relay 和桌面端的設定項參考。"
 | --- | --- | --- |
 | `VIBEX_BIND_ADDR` | `127.0.0.1:8765` | 閘道監聽位址。 |
 | `VIBEX_DEPLOYMENT_MODE` | `loopback` | `loopback` / `lan` / `public`。 |
-| `VIBEX_TLS_MODE` | loopback 時為 `loopback_http`，否則為 `trusted_https_proxy` | 另可設為 `pinned_certificate` 或 `server_certificate`。 |
+| `VIBEX_TLS_MODE` | `VIBEX_DEPLOYMENT_MODE=loopback` 時為 `loopback_http`，其它模式為 `trusted_https_proxy` | 四種取值：`loopback_http`（明文 HTTP，僅回環位址）、`trusted_https_proxy`（由反向代理終止 TLS）、`pinned_certificate`（執行環境用自簽憑證終止 TLS，客戶端從連線字串固定指紋）、`server_certificate`（執行環境用你提供的 PEM 終止 TLS）。完整說明見[自託管無頭執行環境](/zh-TW/self-hosted-server#環境變數)。 |
 | `VIBEX_TLS_CERT_FILE` / `VIBEX_TLS_KEY_FILE` | 未設定 | `server_certificate` 模式下必填。 |
 | `VIBEX_PUBLIC_HOST` | 未設定 | 向配對用戶端通告的位址，也用於產生連線字串。區域網路直連時要包含連接埠。 |
 | `VIBEX_ALLOWED_HOSTS` | `localhost,127.0.0.1,::1` | 接受的 `Host` 值，不符合時傳回 `421`。 |

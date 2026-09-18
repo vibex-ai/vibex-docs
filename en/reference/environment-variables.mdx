@@ -30,7 +30,7 @@ description: "Reference for self-hosted runtime, Relay, and desktop configuratio
 | --- | --- | --- |
 | `VIBEX_BIND_ADDR` | `127.0.0.1:8765` | Gateway listen address. |
 | `VIBEX_DEPLOYMENT_MODE` | `loopback` | `loopback` / `lan` / `public`. |
-| `VIBEX_TLS_MODE` | `loopback_http` in loopback mode, otherwise `trusted_https_proxy` | Can also be set to `pinned_certificate` or `server_certificate`. |
+| `VIBEX_TLS_MODE` | `loopback_http` when `VIBEX_DEPLOYMENT_MODE=loopback`, otherwise `trusted_https_proxy` | Four values: `loopback_http` (plain HTTP on loopback only), `trusted_https_proxy` (a reverse proxy terminates TLS), `pinned_certificate` (the runtime terminates TLS with a self-signed certificate that clients pin), and `server_certificate` (the runtime terminates TLS with PEM files you provide). See [Self-hosted headless runtime](/en/self-hosted-server#environment-variables) for details. |
 | `VIBEX_TLS_CERT_FILE` / `VIBEX_TLS_KEY_FILE` | unset | Required in `server_certificate` mode. |
 | `VIBEX_PUBLIC_HOST` | unset | The address advertised to pairing clients; also used to generate the connection string. Include the port for direct local network connections. |
 | `VIBEX_ALLOWED_HOSTS` | `localhost,127.0.0.1,::1` | Accepted `Host` values; a mismatch returns `421`. |
