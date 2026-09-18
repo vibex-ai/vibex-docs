@@ -1,0 +1,97 @@
+---
+title: "v0.1.0-rc.4"
+description: "Ten light and dark themes, a floating window frame, one runtime manager, a rebuilt model picker, and terminal and search performance fixes."
+---
+
+## Highlights
+
+* **Ten built-in themes, with light and dark chosen separately** — Appearance is no longer a single light/dark switch. Vibex ships ten palettes — light: Vibex Light, Catppuccin Latte, Gruvbox Light, Solarized Light, and GitHub Light; dark: Vibex Dark, Catppuccin Mocha, Gruvbox Dark, Tokyo Night, and Nord — any light theme pairs with any dark one, and a JSON theme file in the `themes` folder of the runtime home extends the list. Every built-in theme keeps body and secondary text at a contrast ratio of at least 4.5:1, and colors a custom theme leaves out are derived from the surface they are actually painted on (`04d582d`).
+* **The window frame now follows your system** — The title bar floats over the app as a 38-pixel overlay instead of owning a strip of its own, so the sidebar and the panels run all the way to the top edge and the right-hand rail reads as one surface. The buttons in the title bar match the platform you are on: macOS keeps its traffic lights, Windows keeps the areas Snap Layouts needs, and Linux follows the GTK decoration layout. Buttons the window cannot perform are no longer drawn, and pressing one never starts a window drag (`5a2f015`, `a72bf55`, `4035d0e`, `dd87a6f`, `18c8628`).
+* **One place to manage every runtime** — Desktop and mobile now share a single Runtime Manager for browsing, adding, switching, renaming, and removing runtimes, with the list and the details of the selected runtime in one panel instead of stacked dialogs. Switching away no longer shuts down the built-in runtime, so local terminals and running Agent turns survive the round trip; a wrong address changes nothing and the failure reason is kept with that runtime. The list also tells you whether a runtime is another Vibex desktop or a headless server (one with no window of its own) before you connect (`3e72051`, `a33e67c`).
+* **A rebuilt Agent, provider, and model picker** — Choosing a model in the composer is now one floating menu: an Agent tab strip, a **Starred models** view, a star on every row, the default reasoning level marked, and search that puts the closest matches and your favorites first. The panel keeps the same height while you type or switch Agent, so it no longer jumps around under your pointer, and the search box is wider (`973e015`, `6a6380a`).
+* **An Agent that fails silently now tells you** — An Agent connection could hide an internal failure (a rejected API key, for example) and end the turn with nothing at all: the answer vanished, no error appeared, and the message still counted as sent. That now ends the turn with an error and a suggestion for what to try, while a real stop, a permission prompt, or any actual activity still completes normally (`dcd01d8`).
+* **Search no longer drags the app down** — Opening session search used to rebuild its index for every session and repeat the whole scan on every frame while the dialog was open, which dropped a busy session from about 58 fps to 6-8 fps. The index is now built once and kept warm, the scan runs in the background, and reopening the dialog is instant (`95d0a8a`).
+* **Terminals stay smooth** — The terminal rebuilt every single cell as its own object on every repaint — which happens on each line of output and each cursor blink — so even an idle terminal could stall the window twice a second. It now draws the whole grid in one pass: the same frame that took about 242 ms in a debug build takes about 3 ms (`eabe83b`).
+* **Android builds install as updates, at a normal size** — Every Android package carried the same internal version number, so a new APK could not replace an older install on any channel that checks versions. The number is now derived from the release version, so `0.1.0-rc.4` sorts after `0.1.0-rc.3`, and a version that cannot be encoded fails the build instead of silently reusing the old number. Release builds also stop picking up libraries left behind by earlier debug builds: an APK that had grown to 429 MB is back to about 73 MB (`cb9809f`, `8de5d4e`).
+* **No more bundled editor source** — Vibex used to carry a 95 MB copy of the Zed editor's source tree to build its interface toolkit. That copy is gone: the toolkit now comes from ordinary published packages, which makes the checkout much smaller and the build easier to reproduce. The one visible consequence is that **Frosted glass**, which depended on that copy, has been retired (`6ffcf7c`, `825bb97`, `9ecc107`).
+
+## New Features
+
+**Runtime & remote**
+
+* Browse, add, switch, rename, and remove runtimes from one window on both desktop and mobile, with the list and the details of the selected runtime in one panel (`3e72051`)
+* Keep the built-in runtime running while you are switched away, connect first so a bad address changes nothing, and keep the failure reason with each runtime (`3e72051`)
+* See whether a runtime is a Vibex desktop or a headless server, known from the moment you pair and refreshed on every connection (`a33e67c`)
+
+**Themes & appearance**
+
+* Pick from ten built-in light and dark palettes and mix them freely, and extend the list with a JSON theme file that names only the colors you want to change (`04d582d`)
+* Hover and selection colors now come from the theme's own background, so warm or tinted themes no longer get neutral grey highlights (`04d582d`)
+* The right rail — files, Git, and child-Agent timelines — now paints as a single surface (`18c8628`)
+
+**Desktop**
+
+* The title bar floats above the app as a 38-pixel overlay, and every column leaves room for it so nothing hides underneath (`5a2f015`)
+* Title-bar buttons follow the platform's own rules, respect the GTK decoration layout on Linux, hide actions the window cannot perform, and never start a window drag when pressed (`a72bf55`)
+* The Usage range switch now slides, and control outlines are softer (`37e8029`)
+* Usage filters are grouped after the range switch, and each one shows the value it applies — with `+N` for further selections — instead of a count you have to open the menu to understand (`2a03753`)
+* The provider editor saves with Enter instead of closing, every field writes into the draft, and errors appear under the field that caused them (`69489d7`)
+* Export MCP and Skills configuration to an Agent from their own pages, without going through the Advanced page that the main navigation cannot reach (`f7c3129`)
+* A new **Developer** settings section adds an **FPS monitor** switch that overlays realtime frame rate, frame time, and resource usage on the workbench (`a80f3fd`); the overlay can be dragged and remembers where you put it (`b2aa073`), and while it is on one sample a second is recorded as diagnostics data (`8a30d6a`)
+* The composer's Agent, provider, and model picker is now a proper floating menu with an Agent tab strip, a **Starred models** view, star toggles on each row, the default reasoning level marked, and open/close animation (`973e015`)
+* Search in that picker ranks prefix matches first, then partial matches, then provider names, keeps starred models on top, remembers and reorders favorites, locks the Agent row while a switch is in flight, and returns focus to the composer when it closes (`973e015`)
+
+**Agent & ACP**
+
+* The zcode adapter is updated from 0.17.2 to 0.37.1; approval prompts now show the readable description of the tool call and the files it will touch, and the adapter always runs on Node (`d88327f`)
+* Cursor now publishes one option per model parameter instead of freezing every combination into its own model id, so models are listed by name and `fast`, `context`, and reasoning depth are chosen as options on the model you picked (`8ab812f`)
+* Reasoning depth stays settable during a session, a boolean thinking toggle appears under Session options instead of being read as a depth level, and a model saved under an old variant id (`claude-opus-5[thinking=true,context=300k]`) collapses to its model name once the CLI proves it uses the new shape (`8ab812f`)
+
+## Fixes
+
+**Desktop**
+
+* Restore the icons that were silently missing: thirty-four icon paths drew nothing — thirty-two were never registered (sidebar project logos, file and folder actions, file-type icons, and the drag handle) and two pointed at the wrong folder (`2b37048`)
+* The runtime button now shows its icon, and its panel stays open when you click it (`de067b9`)
+* A paired phone always receives its own sidebar layout, instead of the layout of the remote runtime the desktop happens to be showing (`444226b`)
+* Collapsing a card or merging process rows no longer leaves a blank strip under the last row that the view stays parked on (`3e59958`)
+* The macOS Dock icon now matches the size of its neighbors, and clicking the Dock icon reopens the window (`a5af0ee`)
+* In the provider editor, connection fields come before models, in the order you fill them in (`232e8b6`)
+* The Usage toolbar and chart headers use the standard small control size instead of a cramped one (`c98f0f4`)
+* The provider and model menu keeps one height for a given window size, so it no longer resizes while you type or switch Agent; the list scrolls inside it and the search box gets the width back (`6a6380a`)
+* Switching sessions no longer nudges the conversation: the timeline keeps its measured row heights and remembers which turn you were reading, so a reader who scrolled up stays exactly where they were (`5785cdb`)
+* Unselected session rows in the sidebar are easier to read and now match the project and workspace rows (`fff3271`)
+
+**Agent & ACP**
+
+* A completely silent turn now fails instead of saving an empty answer; turns that are waiting for input, stopped by you, or doing real work are unaffected (`dcd01d8`)
+* Cline's address is fixed to `api.openai.com`: the Agent owns that endpoint and ignores whatever address a profile carries, and the preview shows the address it will actually call (`4285157`)
+
+**Mobile & build**
+
+* Android builds now pass the NDK API level, so the Android build, package, and tagged-release steps no longer fail while linking the app (`50a03f9`)
+* Android version numbers are derived from the release version, so a new build installs over an older one; a version that cannot be encoded, or a prerelease number past 99, fails the build (`cb9809f`)
+* Release builds clear out libraries left behind by earlier debug builds, so a release APK no longer ships debug libraries (`8de5d4e`)
+* Swiping a drawer open no longer scrolls the page it reveals, and the flick that follows the swipe no longer carries into the drawer's list (`2609443`)
+* Tapping a field that already has focus brings the keyboard back after you dismissed it, on both Android and iOS; tapping a button next to a field does not open the keyboard, and the tap does nothing while the keyboard is already up (`fe7f843`)
+
+## Performance
+
+* Session search keeps its index between openings, scans in the background instead of while drawing, and matches text in place (`95d0a8a`)
+* The terminal draws its whole grid as one element and handles pointer input with a single listener (`eabe83b`)
+
+## Internal, Build & Docs
+
+* Vibex no longer vendors the Zed source tree: the interface toolkit comes from published packages, the small unpublished bridge it needed now lives in this repository, the bundled fonts and mobile icons moved out of the old copy, and the mobile platform layer, keyboard handling, and iOS entry point were rebuilt on the published package (`6ffcf7c`)
+* The interface toolkit family is pinned to a specific revision, with a note in the specs about when that pin may move (`825bb97`, `9ecc107`, `e1d56bc`)
+* The build and license checks were updated for the new dependencies and assets, the list of bundled software (SBOM), third-party notices, and license policy were regenerated, and the release packaging, platform support, UI boundary, and license documents were refreshed (`6ffcf7c`, `04d582d`, `a5af0ee`)
+* The project's specs were updated for the window chrome, the Usage toolbar, silent Agent turns, the dependency source, terminal drawing, and Cursor's parameterized model picker (`2a03753`, `dcd01d8`, `e1d56bc`, `eabe83b`, `8ab812f`)
+* A code-quality check that failed on the mobile scroll listener no longer breaks the Rust quality gate or CI (`45709c8`)
+* The Android release job no longer dies before it builds anything: the SDK setup action still asked for the legacy `tools` package, which Google no longer publishes, and it is now pinned to the version that dropped it (`b870998`)
+* Version numbers were bumped to `0.1.0-rc.4` across the workspace and the packaging inputs (`4dd6ce6`)
+
+## Related links
+
+* [View the full diff on GitHub](https://github.com/vibex-ai/vibex/compare/v0.1.0-rc.3...v0.1.0-rc.4)
+* [Previous release: v0.1.0-rc.3](/en/changelog/v0.1.0-rc.3)
+* [Back to the changelog](/en/changelog)

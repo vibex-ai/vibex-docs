@@ -10,13 +10,12 @@ description: "安裝 Vibex 的 Rust、Node、pnpm 和平台相依性。"
 | Node.js | 22 |
 | pnpm | 11.3.0，由 `package.json` 的 `packageManager` 欄位宣告 |
 | Rust | 1.97.0，由 `rust-toolchain.toml` 固定 |
-| Git | 需要子模組支援 |
+| Git | 用於複製儲存庫 |
 | Linux 圖形 | 可用的 Vulkan 驅動程式和圖形工作階段 |
 
 ```bash
 git clone https://github.com/vibex-ai/vibex.git
 cd vibex
-git submodule update --init --recursive
 pnpm install --frozen-lockfile
 ```
 

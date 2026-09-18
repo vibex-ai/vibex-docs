@@ -18,6 +18,7 @@ A **Search settings** field at the top of the page jumps straight to an option b
 | **Terminal** | Default shell and the starting directory for new terminals. |
 | **Shortcuts** | View, change, and reset keyboard shortcuts. |
 | **Data & Diagnostics** | Local storage usage and cleanup, plus diagnostics and recovery entry points. |
+| **Developer** | Instrumentation for profiling the workbench itself: the **FPS monitor** overlay. |
 | **About** | Version, channel, software updates, license, and platform information. |
 
 ## General
@@ -35,9 +36,11 @@ A **Search settings** field at the top of the page jumps straight to an option b
 
 ## Appearance
 
-Controls the theme (System / Light / Dark), window zoom (75%–200%), the size and weight of the **Interface font** and **Code font**, **Reduced motion**, and **High contrast**. The code font also applies to code blocks, the integrated editor, and the terminal.
+Controls the theme mode (System / Light / Dark), window zoom (75%–200%), the size and weight of the **Interface font** and **Code font**, **Reduced motion**, and **High contrast**. The code font also applies to code blocks, the integrated editor, and the terminal.
 
-Whether **Frosted glass** is available depends on whether the platform supports background blur (Windows does not). Fonts are listed from those installed on the system, with a fallback when one is missing.
+**Light theme** and **Dark theme** choose their palettes independently. Ten ship built in: Vibex Light, Catppuccin Latte, Gruvbox Light, Solarized Light, and GitHub Light for light; Vibex Dark, Catppuccin Mocha, Gruvbox Dark, Tokyo Night, and Nord for dark. You can extend the list with a JSON theme file in the `themes` folder of the runtime home; name only the colors you want to change and the rest are derived from the surface they are painted on.
+
+Fonts are listed from those installed on the system, with a fallback when one is missing.
 
 ## Workbench
 

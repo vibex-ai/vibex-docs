@@ -9,7 +9,7 @@ description: "为贡献者和无现成产物的平台构建 Vibex。"
 
 | 工具 | 版本或说明 |
 | --- | --- |
-| Git | 需要子模块支持 |
+| Git | 用于克隆仓库 |
 | Node.js | 22 |
 | pnpm | `11.3.0`，以 `package.json` 中的 `packageManager` 字段为准 |
 | Rust | `1.97.0`，由仓库的 `rust-toolchain.toml` 固定 |
@@ -20,7 +20,6 @@ description: "为贡献者和无现成产物的平台构建 Vibex。"
 ```bash
 git clone https://github.com/vibex-ai/vibex.git
 cd vibex
-git submodule update --init --recursive
 pnpm install --frozen-lockfile
 pnpm dev:desktop
 ```

@@ -18,6 +18,7 @@ description: "調整 Vibex 的介面、工作台、會話、終端機、快捷�
 | **Terminal** | 預設 shell 和新增終端機的初始目錄。 |
 | **Shortcuts** | 檢視、修改和重設鍵盤快捷鍵。 |
 | **Data & Diagnostics** | 本機儲存用量與清理、診斷與還原入口。 |
+| **Developer** | 用於診斷與分析工作台自身的效能：**FPS monitor** 幀率浮層。 |
 | **About** | 版本、通道、軟體更新、授權和平台資訊。 |
 
 ## General
@@ -35,9 +36,11 @@ description: "調整 Vibex 的介面、工作台、會話、終端機、快捷�
 
 ## Appearance
 
-控制主題（System / Light / Dark）、視窗縮放（75%–200%）、**Interface font** 與 **Code font** 的字級和字重、**Reduced motion** 與 **High contrast**。程式碼字型同時影響程式碼區塊、整合編輯器和終端機。
+控制主題模式（System / Light / Dark）、視窗縮放（75%–200%）、**Interface font** 與 **Code font** 的字級和字重、**Reduced motion** 與 **High contrast**。程式碼字型同時影響程式碼區塊、整合編輯器和終端機。
 
-是否提供 **Frosted glass** 取決於平台是否支援背景模糊（Windows 不支援）。字型會從系統已安裝的字型中列出，缺少時會回退。
+**Light theme** 與 **Dark theme** 各自選擇配色，兩者互不影響。內建十套：淺色為 Vibex Light、Catppuccin Latte、Gruvbox Light、Solarized Light、GitHub Light，深色為 Vibex Dark、Catppuccin Mocha、Gruvbox Dark、Tokyo Night、Nord。你也可以把只寫想改顏色的 JSON 主題檔案放進執行環境 home 目錄的 `themes` 資料夾來擴充清單；檔案裡沒寫的顏色會按它實際所在的背景補齊。
+
+字型會從系統已安裝的字型中列出，缺少時會回退。
 
 ## Workbench
 

@@ -10,13 +10,12 @@ description: "Install the Rust, Node, pnpm, and platform dependencies for Vibex.
 | Node.js | 22 |
 | pnpm | 11.3.0, declared by the `packageManager` field in `package.json` |
 | Rust | 1.97.0, pinned by `rust-toolchain.toml` |
-| Git | Submodule support required |
+| Git | Used to clone the repository |
 | Linux graphics | A working Vulkan driver and a graphical session |
 
 ```bash
 git clone https://github.com/vibex-ai/vibex.git
 cd vibex
-git submodule update --init --recursive
 pnpm install --frozen-lockfile
 ```
 

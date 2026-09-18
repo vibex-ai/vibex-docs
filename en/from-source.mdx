@@ -9,7 +9,7 @@ Build from source if you want to modify Vibex, review the implementation, or you
 
 | Tool | Version or notes |
 | --- | --- |
-| Git | Submodule support required |
+| Git | Used to clone the repository |
 | Node.js | 22 |
 | pnpm | `11.3.0`, as pinned by the `packageManager` field in `package.json` |
 | Rust | `1.97.0`, pinned by the repository's `rust-toolchain.toml` |
@@ -20,7 +20,6 @@ Build from source if you want to modify Vibex, review the implementation, or you
 ```bash
 git clone https://github.com/vibex-ai/vibex.git
 cd vibex
-git submodule update --init --recursive
 pnpm install --frozen-lockfile
 pnpm dev:desktop
 ```

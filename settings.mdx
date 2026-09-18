@@ -18,6 +18,7 @@ description: "调整 Vibex 的界面、工作台、会话、终端、快捷键�
 | **Terminal** | 默认 shell 和新建终端的初始目录。 |
 | **Shortcuts** | 查看、修改和重置键盘快捷键。 |
 | **Data & Diagnostics** | 本地存储用量与清理、诊断与恢复入口。 |
+| **Developer** | 用于诊断工作台自身的性能：**FPS monitor** 帧率浮层。 |
 | **About** | 版本、通道、软件更新、许可证和平台信息。 |
 
 ## General
@@ -35,9 +36,11 @@ description: "调整 Vibex 的界面、工作台、会话、终端、快捷键�
 
 ## Appearance
 
-控制主题（System / Light / Dark）、窗口缩放（75%–200%）、**Interface font** 与 **Code font** 的字号和字重、**Reduced motion** 与 **High contrast**。代码字体同时影响代码块、集成编辑器和终端。
+控制主题模式（System / Light / Dark）、窗口缩放（75%–200%）、**Interface font** 与 **Code font** 的字号和字重、**Reduced motion** 与 **High contrast**。代码字体同时影响代码块、集成编辑器和终端。
 
-是否有 **Frosted glass** 取决于平台是否支持背景模糊（Windows 不支持）。字体会从系统已安装的字体中列出，缺失时回退。
+**Light theme** 与 **Dark theme** 各自选择配色，两者互不影响。内置十套：浅色为 Vibex Light、Catppuccin Latte、Gruvbox Light、Solarized Light、GitHub Light，深色为 Vibex Dark、Catppuccin Mocha、Gruvbox Dark、Tokyo Night、Nord。你也可以把只写想改颜色的 JSON 主题文件放进运行时 home 目录的 `themes` 文件夹来扩充列表；文件里没写的颜色会按它实际所在的背景补齐。
+
+字体会从系统已安装的字体中列出，缺失时回退。
 
 ## Workbench
 
