@@ -46,10 +46,10 @@ Vibex 的失敗會以結構化錯誤碼傳回，介面會顯示 `錯誤碼: 說�
 
 ## Agent 無法啟動或無法使用
 
-1. 開啟 **Config Center → Agent**，確認該 Agent 的狀態不是 **Disabled**。
-2. 狀態為 **Not installed** 時點選 **Install**；狀態為 **Managed by user** 時，確認對應的命令列程式在 `PATH` 上且可執行。
-3. 展開 **Native credentials**，檢查登入狀態；必要時執行 **Re-authenticate**。
-4. 展開 **Model provider configuration**，確認已設定模型並用 **Test connection** 驗證連線。
+1. 開啟 **配置中心 → Agent**，確認該 Agent 的狀態不是 **已停用**。
+2. 狀態為 **未安裝** 時點選 **安裝**；狀態為 **由使用者管理** 時，確認對應的命令列程式在 `PATH` 上且可執行。
+3. 展開 **原生憑證**，檢查登入狀態；必要時執行 **重新驗證**。
+4. 展開 **模型供應商配置**，確認已設定模型並用 **測試連線** 驗證連線。
 5. 在終端機中直接執行該 Agent 的版本檢查命令，確認 `PATH` 和權限沒有問題。
 
 ## 訊息卡住或狀態不正確
@@ -80,7 +80,7 @@ Vibex 的終端機滾動緩衝區固定為 10000 行，更早的輸出已被丟�
 
 | 現象 | 說明 |
 | --- | --- |
-| 顯示 **Unsupported file** | 該格式不支援預覽：`.bmp`、`.odt`、`.odp`，以及超過 8 MiB 或 5 萬行的檔案。 |
+| 顯示 **不支援的檔案** | 該格式不支援預覽：`.bmp`、`.odt`、`.odp`，以及超過 8 MiB 或 5 萬行的檔案。 |
 | Office 檔案發生錯誤 | 只有 `docx`、`xlsx`、`ods`、`pptx` 能渲染；`doc` / `xls` / `ppt` 需要先轉換。 |
 | 音訊或視訊 | 不會內嵌播放，會交給系統預設應用程式。 |
 | HTML / JSON / YAML | 以帶語法高亮的原始文字開啟，不會渲染或格式化。 |
@@ -92,11 +92,11 @@ Vibex 的終端機滾動緩衝區固定為 10000 行，更早的輸出已被丟�
 2. 確認 `VIBEX_PUBLIC_HOST` 是**用戶端實際能連到的位址**，並包含連接埠。
 3. 區域網路模式必須使用 `VIBEX_TLS_MODE=pinned_certificate`，並從**連線字串**配對（連線字串中帶有憑證）；手動填入位址會因為缺少憑證而失敗。
 4. 公用網路模式請確認 `VIBEX_ALLOWED_HOSTS` 包含實際存取的網域，否則閘道會傳回 `421`。
-5. 檢查伺服器日誌中的 `tls_fingerprint`，與用戶端顯示的 **Certificate** 列進行比對。
+5. 檢查伺服器日誌中的 `tls_fingerprint`，與用戶端顯示的 **憑證** 列進行比對。
 
 ## 手機無法連線
 
-1. 確認權威執行環境正在執行，並且已啟用一種連線方式（**Tailscale Serve** / **Direct HTTPS** / **Self-hosted Relay** / **Local network pairing**）。
+1. 確認權威執行環境正在執行，並且已啟用一種連線方式（**Tailscale Serve** / **Direct HTTPS** / **Self-hosted Relay** / **區域網路配對**）。
 2. 檢查手機和權威端的網路；Direct 失敗時請改用 Tailnet 或 Relay。
 3. 重新產生 QR Code 或連線字串，不要重複使用舊的配對憑據。
 4. 顯示 `revoked` 時必須重新配對；顯示 `resync_required` 時請等待權威端完成同步。
@@ -106,7 +106,7 @@ Vibex 的終端機滾動緩衝區固定為 10000 行，更早的輸出已被丟�
 
 請提供：
 
-- Vibex 版本與發行通道（在 **Settings → About** 中檢視）
+- Vibex 版本與發行通道（在 **設定 → 關於** 中檢視）
 - 作業系統與版本
 - 重現步驟
 - **結構化錯誤碼**（最關鍵）

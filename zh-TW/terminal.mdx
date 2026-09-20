@@ -7,25 +7,25 @@ Vibex 的終端機使用原生 PTY 和 ANSI 模擬，適合執行開發伺服器
 
 ## 開啟終端機
 
-從右側欄的 **New terminal** 圖示開啟，或在檔案樹裡對某個路徑選擇 **Open In → Terminal**，讓終端機以該目錄為初始工作目錄。
+從右側欄的 **新增終端機** 圖示開啟，或在檔案樹裡對某個路徑選擇 **Open In → 終端機**，讓終端機以該目錄為初始工作目錄。
 
 ```bash
 git status --short
 pnpm test
 ```
 
-Composer 上方還有一個**內嵌終端機面板**，可以用 `cmd-shift-t` 在對話和終端機之間切換。
+輸入框上方還有一個**內嵌終端機面板**，可以用 `cmd-shift-t` 在對話和終端機之間切換。
 
 ## 終端機操作
 
 | 能力 | 說明 |
 | --- | --- |
-| 分頁 | 新增、關閉、重新命名（**Rename terminal** / `Terminal name`）和切換。 |
-| 分割 | 分頁選單提供 **Split right** 和 **Split down**，分割邊界可拖曳。 |
+| 分頁 | 新增、關閉、重新命名（**重新命名終端機** / `Terminal name`）和切換。 |
+| 分割 | 分頁選單提供 **向右分割** 和 **向下分割**，分割邊界可拖曳。 |
 | 調整大小 | 拖曳面板邊界，PTY 會收到最新的 rows/columns。 |
 | 捲動緩衝區 | 固定 **10000 行**，不可設定。 |
 | 搜尋 | **Search terminal** 開啟搜尋列，顯示 `0 matches` 或 `{n} / {total}`。**只支援下一個符合項目**，循環前進。 |
-| 複製貼上 | 工具列 **Copy** / **Paste**，或 `ctrl-shift-c` / `ctrl-shift-v`。 |
+| 複製貼上 | 工具列 **複製** / **貼上**，或 `ctrl-shift-c` / `ctrl-shift-v`。 |
 | 搜尋快速鍵 | `ctrl-shift-f`。 |
 | 開啟連結 | 游標懸停在超連結上時出現 **Open link**。 |
 | 狀態 | 分頁上顯示 `running`、`exited`、`killed` 或 `stale`。 |
@@ -36,7 +36,7 @@ Composer 上方還有一個**內嵌終端機面板**，可以用 `cmd-shift-t` �
 
 工具列提供可用的 shell，選取後會切換目前分頁的 shell：
 
-- Windows：**PowerShell**、**Command**。
+- Windows：**PowerShell**、**命令**。
 - 其他平台：**bash**、**zsh**、**fish**（只列出系統上實際存在的）。
 
 每個分頁可以獨立選擇 shell。修改預設 shell 見[設定](/zh-TW/settings)。

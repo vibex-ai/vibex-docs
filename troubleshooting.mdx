@@ -46,10 +46,10 @@ Vibex 的失败以结构化错误码返回，界面会显示 `错误码: 说明`
 
 ## Agent 无法启动或不可用
 
-1. 打开 **Config Center → Agent**，确认该 Agent 的状态不是 **Disabled**。
-2. 状态为 **Not installed** 时点击 **Install**；状态为 **Managed by user** 时，确认对应的命令行程序在 `PATH` 上且可执行。
-3. 展开 **Native credentials**，检查登录状态；必要时 **Re-authenticate**。
-4. 展开 **Model provider configuration**，确认已配置模型并用 **Test connection** 验证连通性。
+1. 打开 **配置中心 → Agent**，确认该 Agent 的状态不是 **已停用**。
+2. 状态为 **未安装** 时点击 **安装**；状态为 **由用户管理** 时，确认对应的命令行程序在 `PATH` 上且可执行。
+3. 展开 **原生凭证**，检查登录状态；必要时 **重新认证**。
+4. 展开 **模型供应商配置**，确认已配置模型并用 **测试连接** 验证连通性。
 5. 在终端里直接运行该 Agent 的版本检查命令，确认 `PATH` 和权限没有问题。
 
 ## 消息卡住或状态不正确
@@ -80,7 +80,7 @@ Vibex 的终端滚动缓冲区固定为 10000 行，更早的输出已经丢弃�
 
 | 现象 | 说明 |
 | --- | --- |
-| 显示 **Unsupported file** | 该格式不支持预览：`.bmp`、`.odt`、`.odp`，以及超过 8 MiB 或 5 万行的文件。 |
+| 显示 **不支持的文件** | 该格式不支持预览：`.bmp`、`.odt`、`.odp`，以及超过 8 MiB 或 5 万行的文件。 |
 | Office 文件报错 | 只有 `docx`、`xlsx`、`ods`、`pptx` 能渲染；`doc` / `xls` / `ppt` 需要先转换。 |
 | 音频或视频 | 不会内嵌播放，会交给系统默认应用。 |
 | HTML / JSON / YAML | 以带高亮的源文本打开，不会渲染或格式化。 |
@@ -92,11 +92,11 @@ Vibex 的终端滚动缓冲区固定为 10000 行，更早的输出已经丢弃�
 2. 确认 `VIBEX_PUBLIC_HOST` 是**客户端实际能拨到的地址**，并带上端口。
 3. 局域网模式必须使用 `VIBEX_TLS_MODE=pinned_certificate`，并从**连接串**配对（连接串里带证书）；手工填地址会因缺少证书而失败。
 4. 公网模式确认 `VIBEX_ALLOWED_HOSTS` 包含实际访问的域名，否则网关返回 `421`。
-5. 检查服务器日志里的 `tls_fingerprint`，与客户端显示的 **Certificate** 行比对。
+5. 检查服务器日志里的 `tls_fingerprint`，与客户端显示的 **证书** 行比对。
 
 ## 手机无法连接
 
-1. 确认权威运行时正在运行，并且已经启用了一种连接方式（**Tailscale Serve** / **Direct HTTPS** / **Self-hosted Relay** / **Local network pairing**）。
+1. 确认权威运行时正在运行，并且已经启用了一种连接方式（**Tailscale Serve** / **Direct HTTPS** / **Self-hosted Relay** / **局域网配对**）。
 2. 检查手机和权威端的网络；Direct 失败时改试 Tailnet 或 Relay。
 3. 重新生成二维码或连接串，不要复用旧的配对凭据。
 4. 显示 `revoked` 时必须重新配对；显示 `resync_required` 时等待权威端同步完成。
@@ -106,7 +106,7 @@ Vibex 的终端滚动缓冲区固定为 10000 行，更早的输出已经丢弃�
 
 请提供：
 
-- Vibex 版本与发布通道（在 **Settings → About** 查看）
+- Vibex 版本与发布通道（在 **设置 → 关于** 查看）
 - 操作系统与版本
 - 复现步骤
 - **结构化错误码**（最关键）

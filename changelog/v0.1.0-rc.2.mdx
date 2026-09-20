@@ -6,7 +6,7 @@ description: "远程云端运行时落地、桌面端客户端模式、云端部
 ## 亮点
 
 * **远程与云端运行时全链路落地** — 新增无头 `vibex-server` 守护进程，让一台云服务器成为桌面端与移动端共同依赖的权威 DesktopRuntime（走 Remote v2 协议）。配对码是运营者可展示的一次性密钥，落盘仅保存 SHA-256 哈希，通过限流的领取接口发放唯一绑定客户端身份密钥的设备授权。
-* **桌面端客户端模式** — 工作台现在可以连接到配对的远程运行时（无头 `vibex-server` 或另一台桌面端）作为权威运行时，替代本地运行时；配套服务器固定、身份绑定的凭据存储、设置页 "Remote Runtime"，以及启动时自动重连。
+* **桌面端客户端模式** — 工作台现在可以连接到配对的远程运行时（无头 `vibex-server` 或另一台桌面端）作为权威运行时，替代本地运行时；配套服务器固定、身份绑定的凭据存储、设置页 "Remote 运行时"，以及启动时自动重连。
 * **云端部署方案** — `deploy/server` 提供多阶段构建、非 root 运行、带健康检查的 Dockerfile，docker compose 编排，以及 Caddy 反向代理配置。
 * **移动端大改版** — 会话设置、工具页面与终端全面重建；支持持久化的深色/浅色主题与语言切换；电池优化白名单检测引导；页面栈式返回导航。
 * **桌面端视觉升级** — 基于全新 backdrop-blur GPUI 原语的毛玻璃表面；升级到 gpui-kit 0.6.0；按工具类型展开的时间线详情；应用内目录选择器。
@@ -17,7 +17,7 @@ description: "远程云端运行时落地、桌面端客户端模式、云端部
 
 * 实现云端无头服务的基础部分：Remote v2 网关、配对流程与远程客户端后端（`4c9b7bf`）
 * 无头云端运行时端到端交付：`vibex-server` 守护进程提供 `serve` / `status` / `pairing-code` / `revoke` / `config-check` 子命令，优雅响应 SIGINT/SIGTERM，`headless_from_environment` 覆盖完整 `VIBEX_*` 部署契约（绑定地址、部署模式、TLS 模式、host/origin 白名单、转发头信任、对端限流、home 锁定）。配对码改为有界分组数字密钥，仅以 SHA-256 哈希存储，新增限流的 `POST /api/v2/pairing/code/claim` 接口、一次性设备授权、审计记录与脱敏 Debug 输出。移动端新增"配对云服务器"流程（服务器地址 + 数字配对码），远程客户端不再自行编造 provider profile 修订号（`fc975bd`）
-* 工作台连接配对的远程运行时：桌面端远程客户端凭据栈（服务器固定、身份绑定、原子写入的 0600 存储），设置页 Remote Runtime 提供配对表单、实时模式/服务器状态与 Forget 操作，启动时自动重连，并提供 `VIBEX_DISABLE_REMOTE_CLIENT` 逃生开关（`7e6b320`）
+* 工作台连接配对的远程运行时：桌面端远程客户端凭据栈（服务器固定、身份绑定、原子写入的 0600 存储），设置页 Remote 运行时提供配对表单、实时模式/服务器状态与 Forget 操作，启动时自动重连，并提供 `VIBEX_DISABLE_REMOTE_CLIENT` 逃生开关（`7e6b320`）
 * 更新云端部署资产：`deploy/server` 的 Caddyfile、Dockerfile、docker-compose 与 README（`d930095`）
 
 **桌面端**

@@ -3,104 +3,104 @@ title: "设置"
 description: "调整 Vibex 的界面、工作台、会话、终端、快捷键和诊断选项。"
 ---
 
-打开 **Settings**（`cmd-,`）可以修改桌面端的本地偏好。设置不会替代 Config Center 中的 Agent、MCP 或 Skills 配置。
+打开 **设置**（`cmd-,`）可以修改桌面端的本地偏好。设置不会替代配置中心中的 Agent、MCP 或技能配置。
 
-页面顶部有 **Search settings** 输入框，可以按名称或关键字直接跳到某一项。改动过的项旁边会出现 **Undo changes**。
+页面顶部有 **搜索设置** 输入框，可以按名称或关键字直接跳到某一项。改动过的项旁边会出现 **撤销更改**。
 
 ## 分区
 
 | 分区 | 可调整内容 |
 | --- | --- |
-| **General** | 语言、启动行为、网络代理、通知与更新。 |
-| **Appearance** | 主题、窗口缩放、界面字体与代码字体、动效与对比度。 |
-| **Workbench** | 侧栏视图、新会话默认位置、预览窗口位置、布局记忆、Git 改动计数和编辑器自动保存。 |
-| **Session** | 会话内容宽度、时间线显示、消息队列、自动继续和 Agent 通知。 |
-| **Terminal** | 默认 shell 和新建终端的初始目录。 |
-| **Shortcuts** | 查看、修改和重置键盘快捷键。 |
-| **Data & Diagnostics** | 本地存储用量与清理、诊断与恢复入口。 |
-| **Developer** | 用于诊断工作台自身的性能：**FPS monitor** 帧率浮层。 |
-| **About** | 版本、通道、软件更新、许可证和平台信息。 |
+| **常规** | 语言、启动行为、网络代理、通知与更新。 |
+| **外观** | 主题、窗口缩放、界面字体与代码字体、动效与对比度。 |
+| **工作台** | 侧栏视图、新会话默认位置、预览窗口位置、布局记忆、Git 改动计数和编辑器自动保存。 |
+| **会话** | 会话内容宽度、时间线显示、消息队列、自动继续和 Agent 通知。 |
+| **终端** | 默认 shell 和新建终端的初始目录。 |
+| **快捷键** | 查看、修改和重置键盘快捷键。 |
+| **数据与诊断** | 本地存储用量与清理、诊断与恢复入口。 |
+| **开发者** | 用于诊断工作台自身的性能：**帧率监视器** 帧率浮层。 |
+| **关于** | 版本、通道、软件更新、许可证和平台信息。 |
 
-## General
+## 常规
 
 | 选项 | 说明 |
 | --- | --- |
-| **Language** | System default / 简体中文 / 繁體中文 / English。 |
-| **Keep running after closing the window** | 关闭窗口后保留在系统托盘。 |
-| **Network proxy** | 让 Vibex 的网络请求和 Agent 工具走本地或企业代理。支持 `http`、`https`、`socks5`、`socks5h`。启用前会校验地址。 |
-| **Startup** | 启动后恢复工作台，或直接新建会话。 |
-| **Launch at login** | 登录系统时启动 Vibex。 |
-| **System notifications** | 桌面通知总开关。 |
-| **Automatic updates** | 发现已签名的新版本后立即下载；可以立即安装，或在退出应用时自动安装。 |
-| **Update prompts** | 显示标题栏更新按钮和更新浮层。后台安全检查始终保持启用。 |
+| **语言** | 系统默认 / 简体中文 / 繁體中文 / English。 |
+| **关闭窗口后继续运行** | 关闭窗口后保留在系统托盘。 |
+| **网络代理** | 让 Vibex 的网络请求和 Agent 工具走本地或企业代理。支持 `http`、`https`、`socks5`、`socks5h`。启用前会校验地址。 |
+| **启动行为** | 启动后恢复工作台，或直接新建会话。 |
+| **开机启动** | 登录系统时启动 Vibex。 |
+| **系统通知** | 桌面通知总开关。 |
+| **自动更新** | 发现已签名的新版本后立即下载；可以立即安装，或在退出应用时自动安装。 |
+| **更新提示** | 显示标题栏更新按钮和更新浮层。后台安全检查始终保持启用。 |
 
-## Appearance
+## 外观
 
-控制主题模式（System / Light / Dark）、窗口缩放（75%–200%）、**Interface font** 与 **Code font** 的字号和字重、**Reduced motion** 与 **High contrast**。代码字体同时影响代码块、集成编辑器和终端。
+控制主题模式（跟随系统 / 浅色 / 深色）、窗口缩放（75%–200%）、**界面字体** 与 **代码字体** 的字号和字重、**减少动效** 与 **高对比度**。代码字体同时影响代码块、集成编辑器和终端。
 
-**Theme** 用三张预览卡片选择 **System** / **Light** / **Dark**，每张卡片都会用该模式解析出的配色画一个微缩工作台。**Light theme** 与 **Dark theme** 是各自独立的下拉框，收起状态和菜单里都显示色块与主题名。内置二十套：浅色为 Vibex Light、Catppuccin Latte、Gruvbox Light、Solarized Light、GitHub Light、Rosé Pine Dawn、Everforest Light、Ayu Light、One Light、Kanagawa Lotus，深色为 Vibex Dark、Catppuccin Mocha、Gruvbox Dark、Tokyo Night、Nord、Rosé Pine、Everforest Dark、Ayu Dark、Dracula、Kanagawa Wave。你也可以把只写想改颜色的 JSON 主题文件放进运行时 home 目录的 `themes` 文件夹来扩充列表；文件里没写的颜色会按它实际所在的背景补齐。
+**主题** 用三张预览卡片选择 **跟随系统** / **浅色** / **深色**，每张卡片都会用该模式解析出的配色画一个微缩工作台。**浅色主题** 与 **深色主题** 是各自独立的下拉框，收起状态和菜单里都显示色块与主题名。内置二十套：浅色为 Vibex Light、Catppuccin Latte、Gruvbox Light、Solarized Light、GitHub Light、Rosé Pine Dawn、Everforest Light、Ayu Light、One Light、Kanagawa Lotus，深色为 Vibex Dark、Catppuccin Mocha、Gruvbox Dark、Tokyo Night、Nord、Rosé Pine、Everforest Dark、Ayu Dark、Dracula、Kanagawa Wave。你也可以把只写想改颜色的 JSON 主题文件放进运行时 home 目录的 `themes` 文件夹来扩充列表；文件里没写的颜色会按它实际所在的背景补齐。
 
 字体会从系统已安装的字体中列出，缺失时回退。
 
-## Workbench
+## 工作台
 
 | 选项 | 说明 |
 | --- | --- |
-| **Sidebar hierarchy** | **Session view**（按会话分组）或 **Workspace view**（按工作区分组）。 |
-| **Default new-session location** | **Current checkout** 或 **New worktree**（中文界面显示「新建 Worktree」）。 |
-| **Preview window** | **Inline**（在工作台列内嵌打开，默认）或 **Separate window**（弹出为独立窗口）。预览面板标题栏的弹出和停靠按钮写入同一项设置。 |
-| **Remember layout** | 记住侧栏、预览、右侧栏和分栏布局。 |
-| **Show Git change count** | 在 Git 图标上显示待处理改动数。 |
-| **Project overrides** | 清除各项目的布局覆盖。 |
-| **Reset workbench layout** | 把工作台布局恢复默认。 |
-| **Autosave** | **Manual**（只用保存快捷键）、**After delay**（停止输入后写回）或 **On focus change**（编辑器或窗口失去焦点时写回）。 |
-| **Autosave delay** | 停止输入多久之后写回，250–5000 毫秒，默认 1000 毫秒；只在 **After delay** 时出现。 |
+| **侧栏层级** | **会话视图**（按会话分组）或 **工作区视图**（按工作区分组）。 |
+| **新会话默认位置** | **当前检出** 或 **新建 Worktree**（中文界面显示「新建 Worktree」）。 |
+| **预览窗口** | **内嵌**（在工作台列内嵌打开，默认）或 **独立窗口**（弹出为独立窗口）。预览面板标题栏的弹出和停靠按钮写入同一项设置。 |
+| **记住工作台布局** | 记住侧栏、预览、右侧栏和分栏布局。 |
+| **显示 Git 变更数量** | 在 Git 图标上显示待处理改动数。 |
+| **项目覆盖项** | 清除各项目的布局覆盖。 |
+| **重置工作台布局** | 把工作台布局恢复默认。 |
+| **自动保存** | **手动**（只用保存快捷键）、**延迟保存**（停止输入后写回）或 **失焦保存**（编辑器或窗口失去焦点时写回）。 |
+| **自动保存延迟** | 停止输入多久之后写回，250–5000 毫秒，默认 1000 毫秒；只在 **延迟保存** 时出现。 |
 
-## Session
+## 会话
 
-控制会话内容宽度（Narrow / Standard / Full width）、时间线条目显示（**Session preview rail**、**Agent generation status**、**Reasoning display**、**Expand reasoning by default**、**Command card rendering**、**File edit card rendering**），以及消息队列行为：
+控制会话内容宽度（窄屏 / 标准 / 全屏）、时间线条目显示（**会话预览条**、**Agent 生成状态**、**推理显示方式**、**默认展开推理**、**命令卡片渲染**、**文件编辑卡片渲染**），以及消息队列行为：
 
-- **Queue sending** —— Automatic 或 Manual。
-- **Message send key** —— Enter 或 Cmd/Ctrl+Enter。
-- **Auto-continue** —— 让满足条件的回合自动推进；无法继续时会停下来等待你处理。
-- **Agent notifications** —— **Agent completed** / **Agent needs input** / **Agent failed** 三类通知开关，已从 **General** 移到这个分区；**System notifications** 总开关关闭时这三项不可用。
-- **Remembered runtime** / **Auto-continue defaults** —— 清除已记住的选择。
+- **队列发送** —— 自动或 手动。
+- **消息发送按键** —— Enter 或 Cmd/Ctrl+Enter。
+- **自动继续** —— 让满足条件的回合自动推进；无法继续时会停下来等待你处理。
+- **Agent 通知** —— **Agent 完成** / **Agent 需要输入** / **Agent 失败** 三类通知开关，已从 **常规** 移到这个分区；**系统通知** 总开关关闭时这三项不可用。
+- **已记住的运行时** / **自动继续默认项** —— 清除已记住的选择。
 
-## Terminal
+## 终端
 
-设置默认 shell 和新建终端的初始目录（**Worktree** / **Project** / **Current file**）。
+设置默认 shell 和新建终端的初始目录（**Worktree** / **项目** / **当前文件**）。
 
 - 默认 shell 可以从系统检测到的 shell 中选择，也可以指定自定义路径。
 - 已打开的终端不会因为修改偏好而迁移。
 - 滚动缓冲区固定为 10000 行，不可配置。
 
-## Shortcuts
+## 快捷键
 
-所有可重绑定的快捷键、默认键位和分组见[快捷键参考](/reference/shortcuts)。在这里可以逐项修改，也可以 **Reset** 单项或 **Reset all** 全部恢复默认。冲突的键位会被拒绝并提示 **Shortcut is invalid or already in use**。
+所有可重绑定的快捷键、默认键位和分组见[快捷键参考](/reference/shortcuts)。在这里可以逐项修改，也可以 **重置** 单项或 **全部重置** 全部恢复默认。冲突的键位会被拒绝并提示 **快捷键无效或已被占用**。
 
-## Data & Diagnostics
+## 数据与诊断
 
 显示本地存储用量明细（数据库、会话、终端、附件、诊断、Agent 安装），并提供逐类清理入口：
 
 | 操作 | 影响 |
 | --- | --- |
-| **Clear sessions and attachments** | 删除会话和附件记录。 |
-| **Clear terminal data** | 删除终端元数据。 |
-| **Clear diagnostic data** | 删除诊断数据。 |
-| **Open data directory** | 在文件管理器中打开数据目录。 |
-| **Open Usage** | 跳转到用量统计。 |
-| **Open Management Center** | 跳转到 Config Center。 |
+| **清理会话与附件** | 删除会话和附件记录。 |
+| **清理终端数据** | 删除终端元数据。 |
+| **清理诊断数据** | 删除诊断数据。 |
+| **数据目录** | 在文件管理器中打开数据目录。 |
+| **打开用量统计** | 跳转到用量统计。 |
+| **打开管理中心** | 跳转到配置中心。 |
 
 <Warning>
   这些清理操作是**破坏性**的，且不会回滚。执行前先阅读[隐私与恢复](/privacy-and-recovery)。
 </Warning>
 
-## About
+## 关于
 
-显示当前**版本**与**通道**（Preview / ReleaseCandidate / Stable）、平台信息、许可证，并提供：
+显示当前**版本**与**通道**（预览 / ReleaseCandidate / Stable）、平台信息、许可证，并提供：
 
-- **Software update** —— 更新状态与操作按钮（**Check now** / **Download** / **Install update** / **Restart now** / **Open release** / **Retry**）。更新清单经过签名校验，校验失败不会安装。卡片还会列出 **Latest version**、**Published** 和 **Download size**，并把该版本的发布说明渲染成 Markdown（**What's new in Vibex**）；没有更新时显示当前已安装版本的发布说明。
-- **Environment summary** —— 可复制的不敏感环境信息，报问题时附上它。
-- **Source code** / **Release notes** —— 跳转到仓库和发布说明。
+- **软件更新** —— 更新状态与操作按钮（**立即检查** / **下载更新** / **安装更新** / **立即重启** / **打开发行版** / **重试**）。更新清单经过签名校验，校验失败不会安装。卡片还会列出 **最新版本**、**发布时间** 和 **下载大小**，并把该版本的发布说明渲染成 Markdown（**Vibex 更新内容**）；没有更新时显示当前已安装版本的发布说明。
+- **环境摘要** —— 可复制的不敏感环境信息，报问题时附上它。
+- **源代码** / **更新日志** —— 跳转到仓库和发布说明。
 
 报告问题时请附上版本、通道、平台和结构化错误码，不要附上完整日志。

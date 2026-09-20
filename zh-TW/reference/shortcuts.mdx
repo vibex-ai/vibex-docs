@@ -3,7 +3,7 @@ title: "快捷鍵"
 description: "Vibex 的所有預設快捷鍵，以及如何重新綁定。"
 ---
 
-Vibex 的快捷鍵可以在 **Settings → Shortcuts** 中檢視、修改和重設。衝突的按鍵組合會被拒絕，並提示 **Shortcut is invalid or already in use**。
+Vibex 的快捷鍵可以在 **設定 → 快速鍵** 中檢視、修改和重設。衝突的按鍵組合會被拒絕，並提示 **快速鍵無效或已被占用**。
 
 ## 可重新綁定的快捷鍵
 
@@ -11,27 +11,27 @@ Vibex 的快捷鍵可以在 **Settings → Shortcuts** 中檢視、修改和重�
 
 | 操作 | 預設鍵 | 分組 |
 | --- | --- | --- |
-| Toggle sidebar | `cmd-b` | Workbench |
-| Toggle preview | `cmd-shift-p` | Workbench |
-| Toggle right rail | `cmd-shift-r` | Workbench |
-| Open runtimes | `cmd-shift-o` | Workbench |
-| Toggle conversation / terminal | `cmd-shift-t` | Composer |
-| Find in conversation | `cmd-f` | Navigation |
-| Open settings | `cmd-,` | Navigation |
-| Global search | `cmd-k` | Navigation |
-| Navigate back | `alt-left` | Navigation |
-| Navigate forward | `alt-right` | Navigation |
-| Retry runtime | `cmd-r` | Runtime |
-| Save active file | `cmd-s` | Editor |
-| Go to line in editor | `ctrl-g` | Editor |
-| Undo image edit | `cmd-z` / `ctrl-z` | Image editor |
-| Redo image edit | `cmd-shift-z` / `ctrl-shift-z` | Image editor |
+| 切換側邊欄 | `cmd-b` | 工作台 |
+| 切換預覽 | `cmd-shift-p` | 工作台 |
+| 切換右側欄 | `cmd-shift-r` | 工作台 |
+| 開啟執行階段 | `cmd-shift-o` | 工作台 |
+| 切換對話/終端機模式 | `cmd-shift-t` | 輸入框 |
+| 在目前會話中尋找 | `cmd-f` | 導覽 |
+| 開啟設定 | `cmd-,` | 導覽 |
+| 全域搜尋 | `cmd-k` | 導覽 |
+| 返回 | `alt-left` | 導覽 |
+| 前進 | `alt-right` | 導覽 |
+| 重試執行階段 | `cmd-r` | 執行階段 |
+| 儲存目前檔案 | `cmd-s` | 編輯器 |
+| 跳轉到行 | `ctrl-g` | 編輯器 |
+| 復原圖片編輯 | `cmd-z` / `ctrl-z` | 圖片編輯器 |
+| 重做圖片編輯 | `cmd-shift-z` / `ctrl-shift-z` | 圖片編輯器 |
 
 <Note>
   表中寫的是 `cmd-` 前置字元，它在 macOS 上是 Command 鍵，在 Windows / Linux 上是 Ctrl 鍵。只有圖片編輯器的復原 / 重做是依平台分別定義。
 </Note>
 
-**Reset** 會還原單項的預設值，**Reset all** 會清除所有自訂對應。
+**重設** 會還原單項的預設值，**全部重設** 會清除所有自訂對應。
 
 ## 不可重新綁定的快捷鍵
 
@@ -64,13 +64,13 @@ Vibex 有多個作用範圍不同的搜尋功能，不要把它們的範圍搞�
 
 | 搜尋 | 範圍 | 入口 |
 | --- | --- | --- |
-| **Find in conversation** | 目前會話時間線 | `cmd-f` |
-| **Global search** | 所有會話標題與訊息內文、設定項目、快捷操作 | 標題列的搜尋圖示或 `cmd-k` |
-| **Search workspace files** | 目前工作區的檔案內容 | 檔案樹 |
-| **Search MCP** / **Search Skills** / **Search Agent** | 對應的 Config Center 清單 | 各自清單頂部 |
-| **Search commits** | Git 提交歷程 | Git 面板的 Commits 分頁 |
-| **Search settings** | 設定項目 | Settings 頂部 |
+| **在目前會話中尋找** | 目前會話時間線 | `cmd-f` |
+| **全域搜尋** | 所有會話標題與訊息內文、設定項目、快捷操作 | 標題列的搜尋圖示或 `cmd-k` |
+| **搜尋工作區檔案** | 目前工作區的檔案內容 | 檔案樹 |
+| **搜尋 MCP** / **搜尋技能** / **搜尋 Agent** | 對應的配置中心清單 | 各自清單頂部 |
+| **搜尋提交資訊或代碼** | Git 提交歷程 | Git 面板的提交分頁 |
+| **搜尋設定** | 設定項目 | 設定頂部 |
 
 <Note>
-  **Global search** 是唯一的跨類型入口：一次輸入會同時給出會話、設定項目和快捷操作三組結果，按 `cmd-k` 在任何位置都能開啟。會話搜尋不再掛在側欄，入口移到了標題列、緊鄰執行環境控制項之前。
+  **全域搜尋** 是唯一的跨類型入口：一次輸入會同時給出會話、設定項目和快捷操作三組結果，按 `cmd-k` 在任何位置都能開啟。會話搜尋不再掛在側欄，入口移到了標題列、緊鄰執行環境控制項之前。
 </Note>

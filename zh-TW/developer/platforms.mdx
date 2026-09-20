@@ -29,7 +29,7 @@ description: "各平台的產物格式、建置方式和驗證要求。"
 
 | 通道 | 產品名 | 應用程式 ID | 資料目錄 |
 | --- | --- | --- | --- |
-| Preview | Vibex Preview | `dev.vibex.desktop.preview` | `desktop-preview` |
+| 預覽 | Vibex 預覽 | `dev.vibex.desktop.preview` | `desktop-preview` |
 | RC | Vibex RC | `dev.vibex.desktop.rc` | `desktop-rc` |
 | Stable | Vibex | `dev.vibex.desktop` | `desktop-stable` |
 
@@ -63,7 +63,7 @@ pnpm package:mobile:android    # Release（未签名）
 
 設定 `VIBEX_MOBILE_ANDROID_TARGETS`（以空格分隔）可覆寫 Debug ABI，Release 預設只建置 `arm64-v8a`。
 
-發佈工作流程會呼叫 `apps/mobile/scripts/sign-android-release.sh`：APK 使用 `zipalign` + `apksigner`，AAB 使用 `jarsigner`。RC / Preview 在沒有儲存庫金鑰時產生一次性的 `vibex-ci` 金鑰；Stable 發佈必須設定 `VIBEX_ANDROID_KEYSTORE_BASE64` 和 `VIBEX_ANDROID_KEYSTORE_PASSWORD`，可選 `VIBEX_ANDROID_KEY_PASSWORD` 和儲存庫變數 `VIBEX_ANDROID_KEY_ALIAS`（預設 `vibex`）。
+發佈工作流程會呼叫 `apps/mobile/scripts/sign-android-release.sh`：APK 使用 `zipalign` + `apksigner`，AAB 使用 `jarsigner`。RC / 預覽在沒有儲存庫金鑰時產生一次性的 `vibex-ci` 金鑰；Stable 發佈必須設定 `VIBEX_ANDROID_KEYSTORE_BASE64` 和 `VIBEX_ANDROID_KEYSTORE_PASSWORD`，可選 `VIBEX_ANDROID_KEY_PASSWORD` 和儲存庫變數 `VIBEX_ANDROID_KEY_ALIAS`（預設 `vibex`）。
 
 <Warning>
   使用臨時金鑰意味著**每次 RC 發佈的 APK 簽章都不同**，使用者無法直接覆蓋升級，必須先解除安裝再安裝。這是目前 RC 階段的已知取捨。
@@ -93,7 +93,7 @@ Linux 使用 cargo-packager 封裝，PDFium 執行環境只在 **linux-x86_64** 
 
 - 從 GitHub Releases Atom feed 探索候選版本，依通道篩選。
 - 驗證 `vibex-update.json` 的 Ed25519 簽章，並對產物做 SHA-256 驗證，URL 白名單限定在 releases 下載路徑。
-- 啟動 30 秒後首次檢查，之後 RC / Preview 每 2 小時、Stable 每 6 小時檢查一次，帶抖動與退避。
+- 啟動 30 秒後首次檢查，之後 RC / 預覽每 2 小時、Stable 每 6 小時檢查一次，帶抖動與退避。
 - AppImage 走原地自我替換（帶 `.vibex-backup` 與 `pending-install.json` 崩潰恢復）；deb、macOS app 和 NSIS 拉起系統安裝程式並要求重新啟動。
 - 發佈流程會把標記提交裡的 `docs/operations/release-notes-v<version>.md` 暫存為 `vibex-release-notes.md`，檔案缺失或沒有 `## English` 段落時直接讓發佈失敗；桌面端在限定大小和更短逾時下從已驗證的標籤取得它，並依介面語言選擇段落，依次回退到通用中文和英文。
 

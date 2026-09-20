@@ -1,21 +1,21 @@
 ---
-title: "Agents 与供应商配置"
+title: "Agent 与供应商配置"
 description: "添加 Agent、安装托管运行时、登录账号并配置模型供应商。"
 ---
 
 Vibex 使用 [Agent Client Protocol](https://agentclientprotocol.com/)（ACP）连接在线 Agent。**Agent**（谁来做）和**模型供应商配置**（用哪个模型、走哪条线路）是分开管理的两件事。
 
-这两者都在 **Config Center → Agent** 标签页里操作。
+这两者都在 **配置中心 → Agent** 标签页里操作。
 
 ## Agent 标签页的结构
 
-打开 **Config Center → Agent** 后，左侧是 Agent 列表，右侧是所选 Agent 的详情区。详情区从上到下有三张卡片：
+打开 **配置中心 → Agent** 后，左侧是 Agent 列表，右侧是所选 Agent 的详情区。详情区从上到下有三张卡片：
 
 | 卡片 | 作用 |
 | --- | --- |
-| **Agent installation** | 查看安装状态，安装 / 升级 / 卸载托管运行时。 |
-| **Native credentials** | 登录 Agent 自己的账号。 |
-| **Model provider configuration** | 为该 Agent 配置模型供应商、模型和凭据。 |
+| **Agent 安装** | 查看安装状态，安装 / 升级 / 卸载托管运行时。 |
+| **原生凭证** | 登录 Agent 自己的账号。 |
+| **模型供应商配置** | 为该 Agent 配置模型供应商、模型和凭据。 |
 
 <Note>
   模型供应商**不是**独立标签页。它挂在每个 Agent 下面，因为不同 Agent 支持不同的通信协议和模型目录。
@@ -27,94 +27,94 @@ Vibex 使用 [Agent Client Protocol](https://agentclientprotocol.com/)（ACP）�
 
 | 状态 | 可做的操作 |
 | --- | --- |
-| **Not added** | 点击 **+** 加入。 |
-| **Not installed** | 点击 **Install**，Vibex 会下载并校验托管运行时。 |
-| **Update available** | 点击 **Upgrade** 升级到新版本。 |
-| **Available** | 已就绪，可用启用开关控制它是否出现在会话的 Agent 选择器里。 |
-| **Managed by user** | 该 Agent 不在托管目录中，Vibex 会使用你 `PATH` 上的命令行程序。 |
-| **Disabled** | 已停用。 |
+| **未添加** | 点击 **+** 加入。 |
+| **未安装** | 点击 **安装**，Vibex 会下载并校验托管运行时。 |
+| **有可用更新** | 点击 **升级** 升级到新版本。 |
+| **可用** | 已就绪，可用启用开关控制它是否出现在会话的 Agent 选择器里。 |
+| **由用户管理** | 该 Agent 不在托管目录中，Vibex 会使用你 `PATH` 上的命令行程序。 |
+| **已停用** | 已停用。 |
 
 Vibex 自带四个内建预设：**Claude Code**、**Codex**、**ZCode**、**OpenCode**。ACP 目录另外提供 **Google Antigravity**、**Cline**、**Codebuddy Code**、**GitHub Copilot**、**Cursor**、**DeepSeek Harness**、**Devin CLI**、**Gemini CLI**、**Grok**、**Hermes**、**Kimi Code CLI**、**Pi** 等集成。
 
 <Warning>
-  **Install** 会从网络下载并校验运行时，过程不可取消。**Uninstall** 会弹出确认对话框，并删除该 Agent 的托管运行时和缓存版本；会话历史会保留。
+  **安装** 会从网络下载并校验运行时，过程不可取消。**卸载** 会弹出确认对话框，并删除该 Agent 的托管运行时和缓存版本；会话历史会保留。
 </Warning>
 
 ### 添加自定义 ACP Agent
 
-点击列表底部的 **Add custom ACP Agent**，填写：
+点击列表底部的 **添加自定义 ACP Agent**，填写：
 
 | 字段 | 说明 |
 | --- | --- |
 | **Agent ID** | 小写 kebab-case 标识，例如 `my-acp-agent`。 |
-| **Display name** | 显示名称。 |
-| **Description** | 可选，说明用途。 |
-| **ACP command** | 可执行文件、`npx` 或 `uvx` 形式的命令。 |
-| **Arguments** | 以空格分隔的参数。 |
-| **Environment variables** | 每行一个 `KEY=value`。 |
+| **显示名称** | 显示名称。 |
+| **描述** | 可选，说明用途。 |
+| **ACP 命令** | 可执行文件、`npx` 或 `uvx` 形式的命令。 |
+| **参数** | 以空格分隔的参数。 |
+| **环境变量（可选）** | 每行一个 `KEY=value`。 |
 
 自定义 Agent 目前只能新建，不能编辑；关闭开关会删除它，但会话历史保留。
 
 ## 登录 Agent 账号
 
-**Native credentials** 卡片管理 Agent 自己的账号，它与外部 CLI 共享同一份凭据——卡片上会明确写出 "Agent-native account · shared with the external Agent CLI"。
+**原生凭证** 卡片管理 Agent 自己的账号，它与外部 CLI 共享同一份凭据——卡片上会明确写出 "Agent-native account · shared with the external Agent CLI"。
 
-- 可用的登录方式由 Agent 决定，常见的有 **Sign in**、**Save and sign in**、**Open sign-in terminal**。
-- 卡片提供 **Refresh methods**、**Verify account**、**Refresh models**、**Re-authenticate**、**Sign out**。
+- 可用的登录方式由 Agent 决定，常见的有 **登录**、**保存并登录**、**打开登录终端**。
+- 卡片提供 **刷新认证方式**、**验证账号**、**刷新模型**、**重新认证**、**退出登录**。
 - 重新认证会影响正在使用旧凭据的 Agent 进程；界面会先给出提示。
-- **Sign out** 同时影响外部 CLI 和 Vibex 会话，执行前会显示受影响的会话数量。
+- **退出登录** 同时影响外部 CLI 和 Vibex 会话，执行前会显示受影响的会话数量。
 
 ## 配置模型供应商
 
-在 **Model provider configuration** 卡片中点击 **Add config**，或对已有配置点击编辑。编辑器分三段：
+在 **模型供应商配置** 卡片中点击 **添加配置**，或对已有配置点击编辑。编辑器分三段：
 
-### Basics
+### 基本信息
 
 | 字段 | 说明 |
 | --- | --- |
-| **Provider name** | 必填。显示用名称。 |
-| **Note** | 可选备注。 |
-| **Website URL** | 可选。 |
+| **供应商名称** | 必填。显示用名称。 |
+| **备注** | 可选备注。 |
+| **官网链接** | 可选。 |
 
-### Connection & credentials
+### 连接与凭证
 
 | 字段 | 说明 |
 | --- | --- |
 | 凭据 | 由所选 Agent 决定用 API Key、OAuth 还是 Agent 账号。 |
-| **Default API request URL** | 供应商的 API 地址，例如 `https://provider.example/v1`。部分 Agent 会锁定此项。 |
-| **Set an address per protocol** | 折叠区，需要为不同协议分别指定地址时展开。 |
+| **默认 API 请求地址** | 供应商的 API 地址，例如 `https://provider.example/v1`。部分 Agent 会锁定此项。 |
+| **按协议分别设置地址** | 折叠区，需要为不同协议分别指定地址时展开。 |
 
-API Key 输入框是**只写**的：默认掩码显示，点眼睛图标可以显示明文；已保存时会标出 **Saved**。没有改动过的字段不会重写已保存的值，留空保存会保留原值；要清除就点 **Clear**，此时状态变成 **Will be cleared**，按钮变成 **Keep stored key**。
+API Key 输入框是**只写**的：默认掩码显示，点眼睛图标可以显示明文；已保存时会标出 **已保存**。没有改动过的字段不会重写已保存的值，留空保存会保留原值；要清除就点 **清除**，此时状态变成 **保存后清除**，按钮变成 **保留密钥**。
 
-### Models
+### 模型
 
-编辑器把模型分成两栏：左栏是 **Available models** 选择器，右栏是所选模型的 **Model settings**。选择器是唯一的模型列表——点选一行，右栏就显示它的可编辑字段，而不是把列表再重复一遍。
+编辑器把模型分成两栏：左栏是 **可选模型** 选择器，右栏是所选模型的 **模型设置**。选择器是唯一的模型列表——点选一行，右栏就显示它的可编辑字段，而不是把列表再重复一遍。
 
 Vibex **不预置模型列表**：
 
-- **Fetch models** —— 需要已填 API Key 和地址，拉取该账号可用的模型来填充 **Available models**。拉取本身不写入任何配置。
-- **Available models** —— 勾选一行会把这个模型加入草稿；取消勾选会移除它但保留已声明的能力，重新勾选即可恢复。**Select all** / **Enable all** 可以批量处理；没有可拉取的模型时，在 **Custom model** 里手动输入 id 再加入。
-- **Model ID** / **Display name** —— 在右栏编辑。选中状态按模型 id 跟踪，所以重命名之后右栏仍停在正在编辑的模型上。
-- **Model API protocol** —— 每个模型可以单独指定通信协议，默认 **Inherit**（继承供应商设置）。
-- **Reasoning** / **Thinking levels** —— 选择是否推理，或声明**思考深度**档位。
-- **Context window / Max output tokens** —— 在 **Advanced** 折叠区中声明模型上限。
+- **拉取模型** —— 需要已填 API Key 和地址，拉取该账号可用的模型来填充 **可选模型**。拉取本身不写入任何配置。
+- **可选模型** —— 勾选一行会把这个模型加入草稿；取消勾选会移除它但保留已声明的能力，重新勾选即可恢复。**全选** / **全部启用** 可以批量处理；没有可拉取的模型时，在 **自定义模型** 里手动输入 id 再加入。
+- **Model ID** / **显示名称** —— 在右栏编辑。选中状态按模型 id 跟踪，所以重命名之后右栏仍停在正在编辑的模型上。
+- **模型接口协议** —— 每个模型可以单独指定通信协议，默认 **继承**（继承供应商设置）。
+- **推理能力** / **思考档位** —— 选择是否推理，或声明**思考深度**档位。
+- **上下文窗口 / 最大输出 Token** —— 在 **高级** 折叠区中声明模型上限。
 
-供应商不提供的模型，右栏会显示 **Add this model**，点它把该模型加入列表。
+供应商不提供的模型，右栏会显示 **添加该模型**，点它把该模型加入列表。
 
 思考深度的可选档位来自供应商或 Agent 声明，常见取值为 `off`、`minimal`、`low`、`medium`、`high`、`xhigh`、`max`。
 
 ## 在会话中使用
 
-发送消息前，从 Composer 顶部的级联菜单选择 **Agent**、**Model provider**、**Model** 和 **Thinking depth**。切换只影响后续运行；已有时间线保留原运行的 Agent 和模型信息。
+发送消息前，从输入框顶部的级联菜单选择 **Agent**、**模型供应商**、**模型** 和 **思考深度**。切换只影响后续运行；已有时间线保留原运行的 Agent 和模型信息。
 
 <Warning>
-  **Test connection** 和 **Fetch models** 会真实访问供应方网络并可能消耗额度。移动端的 `read_only` 设备不能触发这些操作。
+  **测试连接** 和 **拉取模型** 会真实访问供应方网络并可能消耗额度。移动端的 `read_only` 设备不能触发这些操作。
 </Warning>
 
 ## 故障排查
 
 - **Agent 不在列表中**：确认可执行文件在 `PATH` 中，或检查自定义命令和参数。
-- **模型不可选**：先 **Refresh models**，再检查该模型是否已启用。
+- **模型不可选**：先 **刷新模型**，再检查该模型是否已启用。
 - **认证失败**：确认账号状态，重新登录；不要在 Issue 中粘贴响应头或 token。
 - **远程端看不到配置**：确认设备权限级别是否为 `full_control`，以及当前连的是哪个权威运行时。
 - **托管 Agent 安装失败**：检查网络是否能访问 GitHub 与 nodejs.org，然后重试。

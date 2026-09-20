@@ -15,43 +15,43 @@ description: "安裝 Vibex，連上一個 Agent，完成第一次會話。"
 
 ## 2. 加入一個 Agent
 
-第一次啟動時，Vibex 會顯示 **Start something new** 頁面。沒有可用 Agent 時會提示 **No Agent has been added. Open Config Center to add one.**，點擊 **Add Agent** 進入 Config Center。
+第一次啟動時，Vibex 會顯示 **開始新的工作** 頁面。沒有可用 Agent 時會提示 **尚未新增 Agent，請進入配置中心新增。**，點擊 **新增 Agent** 進入配置中心。
 
 1. 在 **Agent** 分頁的清單中找到你想用的 Agent。內建預設包括 **Claude Code**、**Codex**、**ZCode** 和 **OpenCode**，另有十多個 ACP 整合。
 2. 點擊項目右側的 **+** 將它加入。加入後項目會顯示啟用開關。
-3. 如果該 Agent 由 Vibex 託管且尚未安裝，安裝卡片會顯示 **Install**。點擊後 Vibex 會下載並驗證執行環境；安裝過程中不能取消，裝好後按鈕會變成 **Check for updates**。
-4. 如果項目顯示 **Managed by user**，代表它不在託管目錄裡，Vibex 會直接使用你 `PATH` 上的同名命令列程式——你需要先自行安裝好它。
+3. 如果該 Agent 由 Vibex 託管且尚未安裝，安裝卡片會顯示 **安裝**。點擊後 Vibex 會下載並驗證執行環境；安裝過程中不能取消，裝好後按鈕會變成 **檢查更新**。
+4. 如果項目顯示 **由使用者管理**，代表它不在託管目錄裡，Vibex 會直接使用你 `PATH` 上的同名命令列程式——你需要先自行安裝好它。
 
-接著展開詳細頁裡的 **Native credentials** 卡片完成登入（`Sign in` / `Open sign-in terminal`），再在 **Model provider configuration** 卡片裡設定模型供應商和憑證。
+接著展開詳細頁裡的 **原生憑證** 卡片完成登入（`Sign in` / `Open sign-in terminal`），再在 **模型供應商配置** 卡片裡設定模型供應商和憑證。
 
 ## 3. 開啟一個專案目錄
 
-1. 在側欄點擊 **New project**，或使用 **New chat** 頁面上的 **Project directory**。
+1. 在側欄點擊 **新建專案**，或使用 **建立會話** 頁面上的 **專案目錄**。
 2. 在彈出的目錄瀏覽器裡選擇儲存庫根目錄，確認。
 3. 第一次嘗試請使用測試分支或臨時儲存庫——Agent 會實際修改磁碟上的檔案。
 
 ## 4. 完成第一次會話
 
-1. 在 Composer 頂端選擇 Agent、供應商設定、模型和**思考深度**。
+1. 在輸入框頂端選擇 Agent、供應商設定、模型和**思考深度**。
 2. 輸入一個範圍明確的任務，例如「在 `README.md` 中補充安裝步驟，並先顯示計畫」。
-3. 查看時間線中的計畫和工具呼叫。需要檔案、終端機或權限時，Vibex 會顯示具體請求，你可以 **Approve** 或 **Deny**。
-4. Agent 完成後開啟 **Git** 面板檢查 **Changes**，逐處確認變更，再決定是否提交或繼續追問。
+3. 查看時間線中的計畫和工具呼叫。需要檔案、終端機或權限時，Vibex 會顯示具體請求，你可以 **允許** 或 **拒絕**。
+4. Agent 完成後開啟 **Git** 面板檢查 **變更**，逐處確認變更，再決定是否提交或繼續追問。
 
 <Tip>
   第一次任務先要求 Agent 提出計畫，再允許它修改檔案。這樣你能在時間線裡確認範圍和風險。
 </Tip>
 
 <Warning>
-  **Stop** 只停止執行，不會復原已經寫入的檔案或已經執行的命令。停止後請在 Git diff 和終端機裡分別確認結果。
+  **停止** 只停止執行，不會復原已經寫入的檔案或已經執行的命令。停止後請在 Git diff 和終端機裡分別確認結果。
 </Warning>
 
-## 了解 Composer 輸入
+## 了解輸入框
 
-在 Composer 中可以組合多種上下文：
+在輸入框中可以組合多種上下文：
 
 | 寫法 | 作用 |
 | --- | --- |
-| `/` | 選擇可用的 Prompt 或 slash command。 |
+| `/` | 選擇可用的提示詞或 slash command。 |
 | `@` | 從目前專案引用檔案或目錄。 |
 | `$` | 插入已啟用的 Skill。 |
 | 附件按鈕 | 加入圖片等會話附件。 |
@@ -62,5 +62,5 @@ description: "安裝 Vibex，連上一個 Agent，完成第一次會話。"
 
 - [核心概念](/zh-TW/concepts) —— 專案、工作區、會話和權威執行環境之間的關係。
 - [工作區](/zh-TW/workspaces) —— 檔案與 Git 的作用邊界。
-- [Config Center](/zh-TW/config-center) —— Agent、MCP 和 Skills 設定。
+- [配置中心](/zh-TW/config-center) —— Agent、MCP 和技能設定。
 - [配對行動端](/zh-TW/remote-mobile) —— 在手機上繼續這些會話。

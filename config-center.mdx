@@ -1,22 +1,22 @@
 ---
-title: "Config Center"
-description: "在 Config Center 中管理 Agent、MCP 服务器和 Skills。"
+title: "配置中心"
+description: "在配置中心管理 Agent、MCP 服务器和技能。"
 ---
 
-**Config Center** 是 Vibex 的配置入口，从侧栏的 **Config Center** 按钮或系统托盘打开。它把 Agent 运行时、MCP 服务器和 Skills 集中在一处管理，并为每项资源显示状态和验证结果。
+**配置中心** 是 Vibex 的配置入口，从侧栏的 **配置中心** 按钮或系统托盘打开。它把 Agent 运行时、MCP 服务器和技能集中在一处管理，并为每项资源显示状态和验证结果。
 
 ## 分区
 
-Config Center 顶部有三个标签页：
+配置中心顶部有三个标签页：
 
 | 标签页 | 用途 |
 | --- | --- |
 | **Agent** | 添加、安装、登录和管理 Agent 运行时，并在其中配置模型供应商。 |
 | **MCP** | 添加 MCP 服务器，并逐个 Agent 启用。 |
-| **Skills** | 导入可复用的 `SKILL.md` 能力包，并逐个 Agent 启用。 |
+| **技能** | 导入可复用的 `SKILL.md` 能力包，并逐个 Agent 启用。 |
 
 <Note>
-  **Config Center 当前只提供这三个分区。** 模型供应商不是独立标签页——它在 **Agent** 标签页的详情区里，见[Agents 与供应商配置](/agents-and-providers)。
+  **配置中心当前只提供这三个分区。** 模型供应商不是独立标签页——它在 **Agent** 标签页的详情区里，见[Agent 与供应商配置](/agents-and-providers)。
 </Note>
 
 ## 通用操作
@@ -24,11 +24,11 @@ Config Center 顶部有三个标签页：
 ### 保存与验证
 
 1. 填写字段并保存。
-2. 在资源卡片上点击 **Validate** 运行校验。校验是**离线**的：它检查必填字段、格式和作用域，不会启动进程或发起网络请求。
-3. 对模型供应商可以额外运行 **Test connection**，它会真实调用一次模型接口。
+2. 在资源卡片上点击 **验证** 运行校验。校验是**离线**的：它检查必填字段、格式和作用域，不会启动进程或发起网络请求。
+3. 对模型供应商可以额外运行 **测试连接**，它会真实调用一次模型接口。
 
 <Warning>
-  **Test connection** 和 **Fetch models** 会访问供应方网络并可能产生费用。确认地址、模型和权限后再运行。
+  **测试连接** 和 **拉取模型** 会访问供应方网络并可能产生费用。确认地址、模型和权限后再运行。
 </Warning>
 
 ### 作用域
@@ -43,12 +43,12 @@ Config Center 顶部有三个标签页：
 - 需要全局默认时才使用 **global**。
 
 <Info>
-  MCP 服务器的编辑器目前只提供 **User** 和 **Workspace** 两种作用域。
+  MCP 服务器的编辑器目前只提供 **用户** 和 **工作区** 两种作用域。
 </Info>
 
 ### 启用与停用
 
-资源和 Agent 之间是**逐 Agent 启用**的关系。资源卡片下方的 **Agent enablement** 区域为每个已添加的 Agent 提供一个开关；只有打开开关的 Agent 才会加载该资源。
+资源和 Agent 之间是**逐 Agent 启用**的关系。资源卡片下方的 **Agent 启用范围** 区域为每个已添加的 Agent 提供一个开关；只有打开开关的 Agent 才会加载该资源。
 
 不需要某个资源时先**停用**，而不是立刻删除——停用会保留记录，便于之后恢复。
 
@@ -60,16 +60,16 @@ Config Center 顶部有三个标签页：
 
 ## 导出到 Agent 原生配置
 
-在资源卡片上可以使用 **Preview export** / **Apply** / **Rollback**，把 Vibex 里的 MCP 或 Skills 写入对应 Agent 自己的配置文件（例如 Codex 的 `~/.codex/config.toml`、Claude 的 `~/.claude/settings.json`、以及各 Agent 的 Skills 目录）。
+在资源卡片上可以使用 **预览导出** / **应用** / **回滚**，把 Vibex 里的 MCP 或技能写入对应 Agent 自己的配置文件（例如 Codex 的 `~/.codex/config.toml`、Claude 的 `~/.claude/settings.json`、以及各 Agent 的技能目录）。
 
 <Warning>
-  **Apply 之前一定要看预览。** Vibex 默认不会改写 Agent 的原生 home 配置，只有你明确应用时才会写入。应用后可以从同一处 **Rollback** 恢复。
+  **应用之前一定要看预览。** Vibex 默认不会改写 Agent 的原生 home 配置，只有你明确应用时才会写入。应用后可以从同一处 **回滚** 恢复。
 </Warning>
 
 ## 配置出现问题时
 
 1. 确认资源的作用域和启用状态。
-2. 运行 **Validate** 看是否有结构化错误。
-3. 确认该资源已在目标 Agent 的 **Agent enablement** 里打开。
+2. 运行 **验证** 看是否有结构化错误。
+3. 确认该资源已在目标 Agent 的 **Agent 启用范围** 里打开。
 
 如果重启后状态不一致，见[故障排查](/troubleshooting)。不要直接删除 SQLite 数据库。

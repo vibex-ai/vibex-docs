@@ -40,7 +40,7 @@ Linux 的 `.deb` 依赖 `libvulkan1`、`libxcb1`、`libxcb-xkb1`、`libxkbcommon
 
 | 通道 | 产品名 | 数据目录 |
 | --- | --- | --- |
-| Preview | Vibex Preview | `desktop-preview` |
+| 预览 | Vibex 预览 | `desktop-preview` |
 | RC | Vibex RC | `desktop-rc` |
 | Stable | Vibex | `desktop-stable` |
 
@@ -48,9 +48,9 @@ Linux 的 `.deb` 依赖 `libvulkan1`、`libxcb1`、`libxcb-xkb1`、`libxkbcommon
 
 ### 升级
 
-桌面端内置签名自动更新。在 **Settings → About → Software update** 中：
+桌面端内置签名自动更新。在 **设置 → 关于 → 软件更新** 中：
 
-- 应用启动约 30 秒后自动检查一次，之后 RC / Preview 通道每 2 小时、Stable 通道每 6 小时检查一次。
+- 应用启动约 30 秒后自动检查一次，之后 RC / 预览通道每 2 小时、Stable 通道每 6 小时检查一次。
 - 更新清单经过 Ed25519 签名校验，产物再做 SHA-256 校验，校验失败不会安装。
 - 安装方式取决于包格式：**AppImage 会原地自我替换**；`.deb`、macOS `.app` 和 NSIS 会**拉起系统安装器**，完成后需要重启应用。
 

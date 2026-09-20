@@ -40,7 +40,7 @@ Linux 的 `.deb` 相依於 `libvulkan1`、`libxcb1`、`libxcb-xkb1`、`libxkbcom
 
 | 通道 | 產品名稱 | 資料目錄 |
 | --- | --- | --- |
-| Preview | Vibex Preview | `desktop-preview` |
+| 預覽 | Vibex 預覽 | `desktop-preview` |
 | RC | Vibex RC | `desktop-rc` |
 | Stable | Vibex | `desktop-stable` |
 
@@ -48,9 +48,9 @@ Linux 的 `.deb` 相依於 `libvulkan1`、`libxcb1`、`libxcb-xkb1`、`libxkbcom
 
 ### 升級
 
-桌面端內建經簽章驗證的自動更新。在 **Settings → About → Software update** 中：
+桌面端內建經簽章驗證的自動更新。在 **設定 → 關於 → 軟體更新** 中：
 
-- 應用程式啟動約 30 秒後自動檢查一次，之後 RC / Preview 通道每 2 小時、Stable 通道每 6 小時檢查一次。
+- 應用程式啟動約 30 秒後自動檢查一次，之後 RC / 預覽通道每 2 小時、Stable 通道每 6 小時檢查一次。
 - 更新清單經過 Ed25519 簽章驗證，產物再做 SHA-256 驗證，驗證失敗不會安裝。
 - 安裝方式取決於套件格式：**AppImage 會原地自我替換**；`.deb`、macOS `.app` 和 NSIS 會**啟動系統安裝程式**，完成後需要重新啟動應用程式。
 

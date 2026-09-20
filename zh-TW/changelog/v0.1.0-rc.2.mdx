@@ -6,7 +6,7 @@ description: "遠端雲端執行時落地、桌面端客戶端模式、雲端部
 ## 亮點
 
 * **遠端與雲端執行時全鏈路落地** — 新增無頭 `vibex-server` 守護程序，讓一臺雲伺服器成為桌面端與行動端共同依賴的權威 DesktopRuntime（走 Remote v2 協議）。配對碼是營運者可展示的一次性金鑰，寫入磁碟時僅儲存 SHA-256 雜湊，透過限流的領取端點發放唯一綁定客戶端身份金鑰的裝置授權。
-* **桌面端客戶端模式** — 工作臺現在可以連線到配對的遠端執行時（無頭 `vibex-server` 或另一臺桌面端）作為權威執行時，替代本機執行時；配套伺服器固定、身份綁定的憑證儲存、設定頁 "Remote Runtime"，以及啟動時自動重連。
+* **桌面端客戶端模式** — 工作臺現在可以連線到配對的遠端執行時（無頭 `vibex-server` 或另一臺桌面端）作為權威執行時，替代本機執行時；配套伺服器固定、身份綁定的憑證儲存、設定頁 "Remote 執行階段"，以及啟動時自動重連。
 * **雲端部署方案** — `deploy/server` 提供多階段建置、非 root 執行、帶健康檢查的 Dockerfile，docker compose 編排，以及 Caddy 反向代理設定。
 * **行動端大改版** — 會話設定、工具頁面與終端全面重建；支援持久化的深色/淺色主題與語言切換；電池最佳化白名單偵測引導；頁面棧式返回導航。
 * **桌面端視覺升級** — 基於全新 backdrop-blur GPUI 基礎元件的毛玻璃表面；升級到 gpui-kit 0.6.0；按工具型別展開的時間線詳情；應用內目錄選擇器。
@@ -17,7 +17,7 @@ description: "遠端雲端執行時落地、桌面端客戶端模式、雲端部
 
 * 實現雲端無頭服務的基礎部分：Remote v2 閘道、配對流程與遠端客戶端後端（`4c9b7bf`）
 * 無頭雲端執行時端到端交付：`vibex-server` 守護程序提供 `serve` / `status` / `pairing-code` / `revoke` / `config-check` 子命令，優雅回應 SIGINT/SIGTERM，`headless_from_environment` 覆蓋完整 `VIBEX_*` 部署契約（綁定地址、部署模式、TLS 模式、host/origin 白名單、轉送標頭信任、對端限流、home 鎖定）。配對碼改為有界分組數字金鑰，僅以 SHA-256 雜湊儲存，新增限流的 `POST /api/v2/pairing/code/claim` 介面、一次性裝置授權、審計記錄與遮蔽敏感資訊的 Debug 輸出。行動端新增"配對雲伺服器"流程（伺服器位址 + 數字配對碼），遠端客戶端不再自行編造 provider profile 修訂號（`fc975bd`）
-* 工作臺連線配對的遠端執行時：桌面端遠端客戶端憑證儲存（伺服器固定、身份綁定、原子寫入的 0600 儲存），設定頁 Remote Runtime 提供配對表單、即時模式/伺服器狀態與 Forget 操作，啟動時自動重連，並提供 `VIBEX_DISABLE_REMOTE_CLIENT` 逃生開關（`7e6b320`）
+* 工作臺連線配對的遠端執行時：桌面端遠端客戶端憑證儲存（伺服器固定、身份綁定、原子寫入的 0600 儲存），設定頁 Remote 執行階段提供配對表單、即時模式/伺服器狀態與 Forget 操作，啟動時自動重連，並提供 `VIBEX_DISABLE_REMOTE_CLIENT` 逃生開關（`7e6b320`）
 * 更新雲端部署資產：`deploy/server` 的 Caddyfile、Dockerfile、docker-compose 與 README（`d930095`）
 
 **桌面端**

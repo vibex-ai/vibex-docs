@@ -5,7 +5,7 @@ description: "远程权威端承接工作台、连接链接配对、gpui-kit 迁
 
 ## 亮点
 
-* **远程权威端已承接整个工作台** — 配对后的无头 `vibex-server` 现在通过 Remote v2 应答几乎全部桌面端领域：配置中心的单次聚合读取，MCP / Skills / Prompts / Hooks / Automation / Scheduled 管理域，Agent 生命周期与凭据、登录、终端、代码工作台、会话搜索与子 Agent 时间线、worktree 生命周期、Provider 用量以及设备审计记录（`ec6e378`、`847feb9`、`4b4f42d`、`7b51cce`）。
+* **远程权威端已承接整个工作台** — 配对后的无头 `vibex-server` 现在通过 Remote v2 应答几乎全部桌面端领域：配置中心的单次聚合读取，MCP / 技能 / 提示词 / Hooks / 自动化 / 定时任务管理域，Agent 生命周期与凭据、登录、终端、代码工作台、会话搜索与子 Agent 时间线、worktree 生命周期、Provider 用量以及设备审计记录（`ec6e378`、`847feb9`、`4b4f42d`、`7b51cce`）。
 * **用连接链接配对服务器** — `vibex-server` 会打印 `vibex://pair#/code/<payload>` 连接串，其中同时携带服务器地址、一次性配对码与 DER 证书，并在旁边给出 `sha256:` 指纹与二维码；桌面端与移动端在发出第一个请求前即固定该证书，局域网运行时不再需要公共 CA（`8e2e523`）。
 * **桌面端统一走后端门面** — 配置中心、管理中心、Agent 账户生命周期、终端、elicitation、消息内联重写与子 Agent 时间线全部经 `BackendFacade` 触达权威端，本地运行时与配对运行时行为一致（`ffaffbc`、`84d1e4c`、`33cfd6c`）。
 * **两个客户端同时接入 gpui-kit** — 桌面端改用 DataTable、`Bubble`、TabBar、Tags、Marker、Form/Field、`Select` 与 `Collapsible`，并下线手写组件；移动端接入 kit 主题与浮层根节点，输入全部重建在 kit 的 `Input` 与 `Textarea` 之上（`cf2bc8b`、`4836301`、`976e11e`）。
@@ -16,7 +16,7 @@ description: "远程权威端承接工作台、连接链接配对、gpui-kit 迁
 
 **远程与服务端**
 
-* 配置中心改为权威端的单次聚合读取，随后补齐 MCP、Skills、Prompts、Hooks、Automation、Scheduled、Advanced、托管 Agent 与原生配置管理域（`ec6e378`、`847feb9`、`9efd0f8`、`d08b3bd`、`cec95da`、`4b4f42d`）
+* 配置中心改为权威端的单次聚合读取，随后补齐 MCP、技能、提示词、Hooks、自动化、定时任务、高级、托管 Agent 与原生配置管理域（`ec6e378`、`847feb9`、`9efd0f8`、`d08b3bd`、`cec95da`、`4b4f42d`）
 * 补完剩余 provider 设置缺口，并将 Agent 生命周期、运行时选项探测、配置更新、认证上下文播种、Agent 登录与凭据存储搬到 Remote v2（`28e4517`、`4a074ee`、`f1d613f`、`669b114`、`5d6bb7a`、`e0a72da`）
 * 在权威端发现 Agent 自有的模型目录，并解析输入框命令补全（`95c7137`、`2adca41`）
 * 在权威端提供会话、Provider 用量摘要、项目删除、worktree 重命名与 worktree 生命周期；远程加载子 Agent 时间线与会话搜索索引；通过 Remote v2 重写最后一条用户消息（`7b51cce`、`161c8bd`、`ca54b6d`、`8457d36`、`33cfd6c`）
@@ -29,9 +29,9 @@ description: "远程权威端承接工作台、连接链接配对、gpui-kit 迁
 * Provider 模型可声明上下文与输出上限（`24996aa`），并可在 Provider 编辑器中编辑每个模型的思考深度（`6fec8b9`）；路由模型也可声明自己的思考深度（`61c077c`）
 * 将 Agent 选择并入 Provider 与模型菜单（`5055a20`）
 * 以目录模型选择器投影 Cline Provider（`4da7999`）
-* 配置中心改走权威端聚合读取，其 MCP、Skills 与 Provider 操作远程执行（`39b1ecf`、`63d85f3`）；其余配置中心操作与 Provider profile 复制搬到后端门面，并给管理中心接入门面句柄（`ffaffbc`、`503057c`、`84d1e4c`）
+* 配置中心改走权威端聚合读取，其 MCP、技能与 Provider 操作远程执行（`39b1ecf`、`63d85f3`）；其余配置中心操作与 供应商配置复制搬到后端门面，并给管理中心接入门面句柄（`ffaffbc`、`503057c`、`84d1e4c`）
 * Agent 账户生命周期走后端（`8087687`）；持久化提交轮询与中断走后端（`7866dee`）
-* 旧版 Agent 模型 Provider profile 与密钥写入走后端门面（`5ea9758`、`6795317`）
+* 旧版 Agent 模型 供应商配置与密钥写入走后端门面（`5ea9758`、`6795317`）
 * 配对运行时明确提示配置中心读取不可用的原因（`260402b`）
 * 桌面端 UI 迁移到 gpui-kit：用量统计表改用 DataTable，用户消息改用 `Bubble`，分段标签页、标签、Marker 与表单字段接入 kit，新会话 base-ref 选择器改用 `Select`，输入框协作区展开改用 `Collapsible`，并以 kit 组件替换手写控件（进度环、标签条、按钮组、提示条、加载动画、状态栏与重复的输入框包装）（`6e91977`、`af7d9c8`、`bd9af83`、`d3009b9`、`06ffa7f`、`cf2bc8b`）
 

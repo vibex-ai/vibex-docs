@@ -1,22 +1,22 @@
 ---
-title: "Config Center"
-description: "在 Config Center 中管理 Agent、MCP 伺服器和 Skills。"
+title: "配置中心"
+description: "在配置中心管理 Agent、MCP 伺服器和技能。"
 ---
 
-**Config Center** 是 Vibex 的設定入口，可從側欄的 **Config Center** 按鈕或系統匣開啟。它把 Agent 執行環境、MCP 伺服器和 Skills 集中在一處管理，並為每項資源顯示狀態和驗證結果。
+**配置中心** 是 Vibex 的設定入口，可從側欄的 **配置中心** 按鈕或系統匣開啟。它把 Agent 執行環境、MCP 伺服器和技能集中在一處管理，並為每項資源顯示狀態和驗證結果。
 
 ## 分區
 
-Config Center 頂部有三個分頁：
+配置中心頂部有三個分頁：
 
 | 分頁 | 用途 |
 | --- | --- |
 | **Agent** | 新增、安裝、登入和管理 Agent 執行環境，並在其中設定模型供應商。 |
 | **MCP** | 新增 MCP 伺服器，並依 Agent 逐一啟用。 |
-| **Skills** | 匯入可重複使用的 `SKILL.md` 能力包，並依 Agent 逐一啟用。 |
+| **技能** | 匯入可重複使用的 `SKILL.md` 能力包，並依 Agent 逐一啟用。 |
 
 <Note>
-  **Config Center 目前只提供這三個分區。** 模型供應商不是獨立分頁——它位於 **Agent** 分頁的詳細資料區，請見[Agents 與供應商設定](/zh-TW/agents-and-providers)。
+  **配置中心目前只提供這三個分區。** 模型供應商不是獨立分頁——它位於 **Agent** 分頁的詳細資料區，請見[Agent 與供應商設定](/zh-TW/agents-and-providers)。
 </Note>
 
 ## 一般操作
@@ -24,11 +24,11 @@ Config Center 頂部有三個分頁：
 ### 儲存與驗證
 
 1. 填寫欄位並儲存。
-2. 在資源卡片上點選 **Validate** 執行驗證。驗證是**離線**的：它檢查必填欄位、格式和作用範圍，不會啟動處理程序或發出網路要求。
-3. 對模型供應商可以額外執行 **Test connection**，它會實際呼叫一次模型 API。
+2. 在資源卡片上點選 **驗證** 執行驗證。驗證是**離線**的：它檢查必填欄位、格式和作用範圍，不會啟動處理程序或發出網路要求。
+3. 對模型供應商可以額外執行 **測試連線**，它會實際呼叫一次模型 API。
 
 <Warning>
-  **Test connection** 和 **Fetch models** 會連線至供應方網路，並可能產生費用。確認位址、模型和權限後再執行。
+  **測試連線** 和 **擷取模型** 會連線至供應方網路，並可能產生費用。確認位址、模型和權限後再執行。
 </Warning>
 
 ### 作用範圍
@@ -43,12 +43,12 @@ Config Center 頂部有三個分頁：
 - 只有在需要全域預設值時才使用 **global**。
 
 <Info>
-  MCP 伺服器的編輯器目前只提供 **User** 和 **Workspace** 兩種作用範圍。
+  MCP 伺服器的編輯器目前只提供 **使用者** 和 **工作區** 兩種作用範圍。
 </Info>
 
 ### 啟用與停用
 
-資源和 Agent 之間是**依 Agent 逐一啟用**的關係。資源卡片下方的 **Agent enablement** 區域為每個已新增的 Agent 提供一個開關；只有開啟開關的 Agent 才會載入該資源。
+資源和 Agent 之間是**依 Agent 逐一啟用**的關係。資源卡片下方的 **Agent 啟用範圍** 區域為每個已新增的 Agent 提供一個開關；只有開啟開關的 Agent 才會載入該資源。
 
 不需要某項資源時請先**停用**，而不是立刻刪除——停用會保留記錄，方便之後還原。
 
@@ -60,16 +60,16 @@ Config Center 頂部有三個分頁：
 
 ## 匯出至 Agent 原生設定
 
-在資源卡片上可以使用 **Preview export** / **Apply** / **Rollback**，把 Vibex 中的 MCP 或 Skills 寫入對應 Agent 自己的設定檔（例如 Codex 的 `~/.codex/config.toml`、Claude 的 `~/.claude/settings.json`，以及各 Agent 的 Skills 目錄）。
+在資源卡片上可以使用 **預覽匯出** / **套用** / **回復**，把 Vibex 中的 MCP 或技能寫入對應 Agent 自己的設定檔（例如 Codex 的 `~/.codex/config.toml`、Claude 的 `~/.claude/settings.json`，以及各 Agent 的技能目錄）。
 
 <Warning>
-  **執行 Apply 之前一定要先看預覽。** Vibex 預設不會改寫 Agent 的原生 home 設定，只有你明確套用時才會寫入。套用後可以從同一處 **Rollback** 還原。
+  **執行套用之前一定要先看預覽。** Vibex 預設不會改寫 Agent 的原生 home 設定，只有你明確套用時才會寫入。套用後可以從同一處 **回復** 還原。
 </Warning>
 
 ## 設定出現問題時
 
 1. 確認資源的作用範圍和啟用狀態。
-2. 執行 **Validate**，查看是否有結構化錯誤。
-3. 確認該資源已在目標 Agent 的 **Agent enablement** 中開啟。
+2. 執行 **驗證**，查看是否有結構化錯誤。
+3. 確認該資源已在目標 Agent 的 **Agent 啟用範圍** 中開啟。
 
 如果重新啟動後狀態不一致，請見[疑難排解](/zh-TW/troubleshooting)。不要直接刪除 SQLite 資料庫。
