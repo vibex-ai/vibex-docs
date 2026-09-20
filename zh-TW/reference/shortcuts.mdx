@@ -7,7 +7,7 @@ Vibex 的快捷鍵可以在 **Settings → Shortcuts** 中檢視、修改和重�
 
 ## 可重新綁定的快捷鍵
 
-以下 14 個動作可以在設定中重新綁定：
+以下 15 個動作可以在設定中重新綁定：
 
 | 操作 | 預設鍵 | 分組 |
 | --- | --- | --- |
@@ -18,6 +18,7 @@ Vibex 的快捷鍵可以在 **Settings → Shortcuts** 中檢視、修改和重�
 | Toggle conversation / terminal | `cmd-shift-t` | Composer |
 | Find in conversation | `cmd-f` | Navigation |
 | Open settings | `cmd-,` | Navigation |
+| Global search | `cmd-k` | Navigation |
 | Navigate back | `alt-left` | Navigation |
 | Navigate forward | `alt-right` | Navigation |
 | Retry runtime | `cmd-r` | Runtime |
@@ -43,7 +44,8 @@ Vibex 的快捷鍵可以在 **Settings → Shortcuts** 中檢視、修改和重�
 | 切換上一個 / 下一個分頁 | `cmd-pageup` / `cmd-pagedown` | 非終端機分頁 |
 | 終端機複製 / 貼上 / 搜尋 | `ctrl-shift-c` / `ctrl-shift-v` / `ctrl-shift-f` | 終端機分頁 |
 | Tab 補齊 | `tab` / `shift-tab` | 終端機分頁（傳送給 shell 而非移動焦點） |
-| 關閉彈出視窗 | `escape` | 執行環境管理員、搜尋列 |
+| 調取歷史訊息 | `up` / `down` | 會話輸入框（上鍵只在輸入框為空時開始；輸入即結束翻閱；下鍵回到最新，越過最新則恢復草稿） |
+| 關閉彈出視窗 | `escape` | 執行環境管理員、搜尋列、全域搜尋（第一次清空輸入，第二次關閉） |
 
 ## 滑鼠操作
 
@@ -63,12 +65,12 @@ Vibex 有多個作用範圍不同的搜尋功能，不要把它們的範圍搞�
 | 搜尋 | 範圍 | 入口 |
 | --- | --- | --- |
 | **Find in conversation** | 目前會話時間線 | `cmd-f` |
-| **Search sessions** | 所有會話標題與訊息內文 | 側欄搜尋圖示 |
+| **Global search** | 所有會話標題與訊息內文、設定項目、快捷操作 | 標題列的搜尋圖示或 `cmd-k` |
 | **Search workspace files** | 目前工作區的檔案內容 | 檔案樹 |
 | **Search MCP** / **Search Skills** / **Search Agent** | 對應的 Config Center 清單 | 各自清單頂部 |
 | **Search commits** | Git 提交歷程 | Git 面板的 Commits 分頁 |
 | **Search settings** | 設定項目 | Settings 頂部 |
 
 <Note>
-  目前**沒有**全域命令選擇區或跨類型的快速開啟。
+  **Global search** 是唯一的跨類型入口：一次輸入會同時給出會話、設定項目和快捷操作三組結果，按 `cmd-k` 在任何位置都能開啟。會話搜尋不再掛在側欄，入口移到了標題列、緊鄰執行環境控制項之前。
 </Note>

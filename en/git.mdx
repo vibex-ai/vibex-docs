@@ -20,10 +20,10 @@ The **Commits** tab shows commit history and supports:
 - **Search commits** to search by commit message.
 - **Branch** and author filters (the author picker defaults to **All Users**).
 - Filtering by author date range.
-- Clicking a commit to open the **Commit detail** drawer with the full diff.
+- Clicking a commit to open the **Commit detail** drawer with the full diff. The drawer truncates its label to 48 characters with the whole subject in a tooltip, clamps the commit body to three lines with a click and keyboard expand toggle, and replaces the header badge with a summary row (changed-file count, total additions and deletions, plus **Side-by-side diff**, **Wrap long lines**, and **Collapse all files** toggles). File rows stand at 36px and every diff row starts with a colour rail.
 
 <Note>
-  The diff view is unified only, with no side-by-side view. There is also **no hunk-level staging** — staging works on whole files. There is no stash or tag interface; use the terminal when you need those.
+  Only the **Commit detail** drawer offers a side-by-side view; the working-tree diff view is still unified only. There is also **no hunk-level staging** — staging works on whole files. There is no stash or tag interface; use the terminal when you need those.
 </Note>
 
 ## Branches and commits

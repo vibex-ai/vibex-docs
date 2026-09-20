@@ -209,7 +209,7 @@ Agent 在伺服器上執行，**它只能看到伺服器（容器）裡的目錄
 
 ### 第 1 步：在桌面端發布遠端存取
 
-1. 點頂部工具列的 **Pair mobile** 圖示。
+1. 點頂部工具列的 **Pair mobile** 圖示。對話框有兩個分頁：**Pair** 用來發佈新的配對，**Paired devices (N)** 用來管理已經持有授權的裝置。
 2. 選擇連線方式：
    - **Tailnet**（建議）：透過 Tailscale 等私有網路存取，適合不在同一 Wi-Fi 的情況。
    - **自管 Direct HTTPS**：你自己有一個能指向這台電腦的 HTTPS 位址。
@@ -293,7 +293,12 @@ Relay 是純轉發的：它不儲存你的會話、檔案或供應商設定，�
 | **僅核准**（`approve_only`） | 在唯讀基礎上，處理 Agent 的權限請求和詢問表單 | 在外面幫忙點「允許」 |
 | **完整控制**（`full_control`） | 傳送訊息、寫入檔案、輸入終端命令、執行 Git 寫操作（仍受桌面端能力限制） | 真的要在手機上工作 |
 
-撤銷裝置在權威端完成：無頭執行環境上執行 `docker exec vibex-server vibex-server revoke DEVICE_ID`（或直接在伺服器上執行 `vibex-server revoke DEVICE_ID`）。撤銷會立刻中斷該裝置的活動連線，之後必須重新配對。在客戶端裡 **Remove** 一個執行環境只刪除本機儲存的憑證，伺服器上的裝置授權仍然存在。
+撤銷裝置在權威端完成：
+
+- **桌面端作為權威端**時，開啟 **Pair mobile**，切到 **Paired devices (N)** 分頁，找到那台裝置點 **Revoke** 並確認。清單顯示每台裝置的狀態、權限和最後活動時間，可以 **Refresh devices** 重新載入；裝置多於六台時分頁顯示。
+- **無頭執行環境作為權威端**時，在伺服器上執行 `docker exec vibex-server vibex-server revoke DEVICE_ID`（或直接執行 `vibex-server revoke DEVICE_ID`）。
+
+撤銷會立刻中斷該裝置的活動連線，之後必須重新配對。在客戶端裡 **Remove** 一個執行環境只刪除本機儲存的憑證，伺服器上的裝置授權仍然存在。
 
 ## 安全清單
 

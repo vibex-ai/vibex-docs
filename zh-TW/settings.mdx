@@ -11,10 +11,10 @@ description: "調整 Vibex 的介面、工作台、會話、終端機、快捷�
 
 | 分區 | 可調整內容 |
 | --- | --- |
-| **General** | 語言、啟動行為、網路代理和通知。 |
+| **General** | 語言、啟動行為、網路代理、通知與更新。 |
 | **Appearance** | 主題、視窗縮放、介面字型與程式碼字型、動效與對比度。 |
-| **Workbench** | 側欄檢視、新會話預設位置、版面記憶和 Git 變更計數。 |
-| **Session** | 會話內容寬度、時間線顯示、訊息佇列和自動繼續。 |
+| **Workbench** | 側欄檢視、新會話預設位置、預覽視窗位置、版面記憶、Git 變更計數和編輯器自動儲存。 |
+| **Session** | 會話內容寬度、時間線顯示、訊息佇列、自動繼續和 Agent 通知。 |
 | **Terminal** | 預設 shell 和新增終端機的初始目錄。 |
 | **Shortcuts** | 檢視、修改和重設鍵盤快捷鍵。 |
 | **Data & Diagnostics** | 本機儲存用量與清理、診斷與還原入口。 |
@@ -31,14 +31,14 @@ description: "調整 Vibex 的介面、工作台、會話、終端機、快捷�
 | **Startup** | 啟動後還原工作台，或直接新增會話。 |
 | **Launch at login** | 登入系統時啟動 Vibex。 |
 | **System notifications** | 桌面通知總開關。 |
-| **Agent completed / Agent needs input / Agent failed** | 分別控制三類通知；總開關關閉時這三項無法使用。 |
-| **Update prompts** | 控制是否顯示更新提示。背景安全檢查不受影響，仍依發行策略執行。 |
+| **Automatic updates** | 發現已簽署的新版本後立即下載；可以立即安裝，或在結束應用程式時自動安裝。 |
+| **Update prompts** | 顯示標題列更新按鈕與更新浮層。背景安全檢查始終保持啟用。 |
 
 ## Appearance
 
 控制主題模式（System / Light / Dark）、視窗縮放（75%–200%）、**Interface font** 與 **Code font** 的字級和字重、**Reduced motion** 與 **High contrast**。程式碼字型同時影響程式碼區塊、整合編輯器和終端機。
 
-**Light theme** 與 **Dark theme** 各自選擇配色，兩者互不影響。內建十套：淺色為 Vibex Light、Catppuccin Latte、Gruvbox Light、Solarized Light、GitHub Light，深色為 Vibex Dark、Catppuccin Mocha、Gruvbox Dark、Tokyo Night、Nord。你也可以把只寫想改顏色的 JSON 主題檔案放進執行環境 home 目錄的 `themes` 資料夾來擴充清單；檔案裡沒寫的顏色會按它實際所在的背景補齊。
+**Theme** 用三張預覽卡片選擇 **System** / **Light** / **Dark**，每張卡片都會用該模式解析出的配色畫一個微縮工作台。**Light theme** 與 **Dark theme** 是各自獨立的下拉框，收起狀態和選單裡都顯示色塊與主題名。內建二十套：淺色為 Vibex Light、Catppuccin Latte、Gruvbox Light、Solarized Light、GitHub Light、Rosé Pine Dawn、Everforest Light、Ayu Light、One Light、Kanagawa Lotus，深色為 Vibex Dark、Catppuccin Mocha、Gruvbox Dark、Tokyo Night、Nord、Rosé Pine、Everforest Dark、Ayu Dark、Dracula、Kanagawa Wave。你也可以把只寫想改顏色的 JSON 主題檔案放進執行環境 home 目錄的 `themes` 資料夾來擴充清單；檔案裡沒寫的顏色會按它實際所在的背景補齊。
 
 字型會從系統已安裝的字型中列出，缺少時會回退。
 
@@ -47,11 +47,14 @@ description: "調整 Vibex 的介面、工作台、會話、終端機、快捷�
 | 選項 | 說明 |
 | --- | --- |
 | **Sidebar hierarchy** | **Session view**（依會話分組）或 **Workspace view**（依工作區分組）。 |
-| **Default new-session location** | **Current checkout** 或 **Worktree**。 |
+| **Default new-session location** | **Current checkout** 或 **New worktree**（中文介面顯示「新增 Worktree」）。 |
+| **Preview window** | **Inline**（在工作台欄內嵌開啟，預設）或 **Separate window**（彈出為獨立視窗）。預覽面板標題列的彈出和停靠按鈕寫入同一項設定。 |
 | **Remember layout** | 記住側欄、預覽、右側欄和分欄版面。 |
 | **Show Git change count** | 在 Git 圖示上顯示待處理變更數。 |
 | **Project overrides** | 清除各專案的版面覆寫。 |
 | **Reset workbench layout** | 把工作台版面還原為預設。 |
+| **Autosave** | **Manual**（只用儲存快速鍵）、**After delay**（停止輸入後寫回）或 **On focus change**（編輯器或視窗失去焦點時寫回）。 |
+| **Autosave delay** | 停止輸入多久之後寫回，250–5000 毫秒，預設 1000 毫秒；只在 **After delay** 時出現。 |
 
 ## Session
 
@@ -60,6 +63,7 @@ description: "調整 Vibex 的介面、工作台、會話、終端機、快捷�
 - **Queue sending** —— Automatic 或 Manual。
 - **Message send key** —— Enter 或 Cmd/Ctrl+Enter。
 - **Auto-continue** —— 讓符合條件的回合自動推進；無法繼續時會停下來等待你處理。
+- **Agent notifications** —— **Agent completed** / **Agent needs input** / **Agent failed** 三類通知開關，已從 **General** 移到這個分區；**System notifications** 總開關關閉時這三項無法使用。
 - **Remembered runtime** / **Auto-continue defaults** —— 清除已記住的選擇。
 
 ## Terminal
@@ -95,7 +99,7 @@ description: "調整 Vibex 的介面、工作台、會話、終端機、快捷�
 
 顯示目前的**版本**與**通道**（Preview / ReleaseCandidate / Stable）、平台資訊、授權，並提供：
 
-- **Software update** —— 更新狀態與操作按鈕（**Check now** / **Download** / **Install update** / **Restart now** / **Open release** / **Retry**）。更新資訊清單經過簽章驗證，驗證失敗時不會安裝。
+- **Software update** —— 更新狀態與操作按鈕（**Check now** / **Download** / **Install update** / **Restart now** / **Open release** / **Retry**）。更新資訊清單經過簽章驗證，驗證失敗時不會安裝。卡片還會列出 **Latest version**、**Published** 和 **Download size**，並把該版本的發行說明渲染成 Markdown（**What's new in Vibex**）；沒有更新時顯示目前安裝版本的發行說明。
 - **Environment summary** —— 可複製的不敏感環境資訊，回報問題時請附上。
 - **Source code** / **Release notes** —— 跳至儲存庫和發行說明。
 

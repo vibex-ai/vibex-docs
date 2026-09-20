@@ -1,0 +1,183 @@
+---
+title: "v0.1.0-rc.5"
+description: "Goals as part of the session, a preview panel that can detach into its own window, the workbench command palette, automatic updates with release notes, native steering, and twenty built-in palettes."
+---
+
+## Highlights
+
+* **Goals are now part of the session, not a row in the transcript** — Vibex normalizes the goal surfaces ACP Agents already publish — the provider-neutral `_meta.goal` extension and Codex's legacy `_meta.codex.goal` namespace — into one shared model, saves every change as a goal timeline item, and pumps goal transitions that arrive outside a turn so they are no longer dropped. The goal moved out of the transcript into a fixed bar above the composer, stacked under the queued-message bar, showing the phase, the objective, and the provider's own stats, with **Edit goal**, **Pause goal**, **Resume goal**, and **Clear goal** offered only when the adapter advertises them. The pencil opens an inline editor that re-objectives through a goal control instead of the composer, and a blocked or usage-limited goal can now be cleared, where only active and paused goals offered Clear before (`f90d55e`, `b7496f5`, `cd33868`, `f9afb09`).
+* **The preview panel can live in a window of its own, and full screen no longer swallows the workbench** — The panel header gained a pop-out control that rehosts the multi-tab panel in a detached window and a dock control that brings it back; the panel entity never changes hands, so every open tab, editor buffer, and terminal moves with it, and exactly one panel exists at a time. Closing the detached window hands the panel back to the workbench column instead of taking it down, and closing the panel closes its window. Full screen used to cover the whole shell and made the sidebar and the right rail disappear; it now gives the panel the workbench column, so both keep their place, their width, and their activity bar. A new Workbench setting decides where the preview opens — inline, which is the default, or in a window of its own (`ebf868d`, `e9737b5`, `a877bf9`).
+* **Session search became the workbench command palette** — The sidebar's session-only search is rebuilt on the interface kit's command palette, and its trigger moved from one project's toolbar to the title bar, immediately before the runtime control, so Cmd-K opens it from anywhere. One query now answers over three groups: sessions (title and message content through the existing background index, opening the session and jumping to the message that hit), settings entries (opening Settings on the matching section with the row highlighted), and quick actions (real actions registered on the workbench, so each row shows its keybinding and stays reachable from the keyboard and the menus, with unmet preconditions disabled rather than inert). Escape clears a non-empty query on the first press and dismisses on the second (`f7c1ab3`, `7341c1b`, `c8f7f4b`).
+* **Updates download themselves, install on quit, and explain what changed** — A new Automatic updates setting sits beside Update prompts; with it on, a release is downloaded as soon as it is found, and otherwise Vibex offers the update and waits for confirmation. The transient version toast became a persistent rounded panel below the title-bar arrow that shows download progress and the install action, with a footer that opens About, and a staged update installs on quit when you did not install it. About now shows the release's version, publication time, download size, and its release notes as rendered Markdown, and when nothing newer exists it falls back to the notes published for the installed version, so the card always answers what you are running or about to run (`0ed31c2`, `9b252a7`, `12605e3`, `642eefd`, `905c894`).
+* **A queued message can steer the turn that is already running** — DeepSeek Harness 0.4.32 advertises `_meta.steering.supported` and accepts `_session/steering`, which injects a user message into the running turn; Vibex ignored both, so a queued message could only reach a busy Agent by cancelling the turn first. Vibex now records the advertisement, offers a Steer action only for Agents that negotiated it, and falls back to interrupt-and-resend for everyone else. The delivery is recorded on the user's timeline item (`prompt`, `steer`, `resend`), so the transcript explains why a turn stopped, and a turn is marked superseded once a later turn exists — its live status, running duration, and streamed-row extension stop while the rows it already produced stay visible and expanded (`b99920f`, `dbab0ba`, `b866300`).
+* **The timeline stops paying for the whole session on every frame** — The timeline virtualizes by turn, so one virtual row is an entire turn, and an expanded turn rebuilt, laid out, and painted every one of its process rows on every frame; a session that ran for hours is one turn with hundreds of rows. Turning on "expand reasoning by default" made each reasoning row two Markdown views instead of one clipped line, which took the desktop app from 60 fps to 30, and to 12 while the layout settled. Expanded reasoning rows now keep one Markdown surface, projection caches are sized per expanded turn instead of per screen, the layout fingerprint is memoized, a turn's process section paints through a windowed run, and a folder's session rows are windowed instead of resolving every row against the folder's session list (`7c5aa8c`, `2dedcde`, `01c823c`, `40f51b8`).
+* **Appearance ships twenty palettes, and the theme reaches every control** — Appearance went from ten built-in palettes to twenty: five new light (Rosé Pine Dawn, Everforest Light, Ayu Light, One Light, Kanagawa Lotus) and five new dark (Rosé Pine, Everforest Dark, Ayu Dark, Dracula, Kanagawa Wave). Each is authored in the shared token source's 67-role model, and each new palette's secondary text is walked along its own hue until it clears 4.5:1 on both the page and the muted plate. Separately, the interface framework reloads its own neutral palette on every theme change, so switches, segmented tabs, outline buttons, scrollbars, skeletons, and text selections had been painting its stock grey in any tinted theme; the theme bridge now fills every remaining framework token from the active theme (`1556492`, `d29c59e`, `5e2af95`, `a7b5fa2`).
+* **The model provider editor was rebuilt around a fetched catalogue** — Discovery now fills a picker and configures nothing on its own: checking a row adds that model to the draft, unchecking releases it while keeping its declared capabilities so re-checking restores them, and hand-typed ids still join the chosen list. The picker is the only Model list; the second column shows the clicked row's editable fields instead of repeating the list with an Edit button on every row, and selection follows the model id so renaming keeps the column on the model you are editing. Stored provider keys are read back into the editor, masked, with an eye to reveal them, and an untouched field never rewrites the stored value (`4848f52`, `46f7990`, `8df655b`, `27ac399`, `a52e213`).
+* **The composer remembers what you already sent, and edited files save themselves** — Up and Down in the composer now walk the selected session's earlier user messages, so a message can be re-sent without retyping; Up only starts from an empty composer, typing into a recalled message ends the walk so an edit is never replaced by a stale draft, and Down steps back toward the newest and past it restores the draft the walk started from. Edited buffers are written back without an explicit save — after a typing pause, 1000 ms by default, or when the editor or window loses focus — with a Manual mode that restores save-only editing and an adjustable idle delay in Workbench settings. The fullscreen composer also became editable edge to edge; it had kept the collapsed two-to-eight row cap, so everything past roughly eight rows was dead space (`f477b4c`, `65bd62b`, `fdc87bc`).
+
+## New Features
+
+**Goals**
+
+* Goal state is normalized into one shared model and persisted as a goal timeline item, and goal transitions that arrive outside a turn are pumped instead of dropped; the ACP adapter parses the initialize advertisement, `session_info_update` goal decoding, `_session/goal`, and the legacy `_codex/session/goal_control` (`f90d55e`)
+* A goal card with Pause, Resume, and Clear gating and localized labels ships on desktop and mobile (`f90d55e`)
+* A fixed goal bar above the composer, stacked directly under the queued-message bar, shows the phase, the objective, and the provider stats, and the transcript no longer projects a goal row (`b7496f5`)
+* The objective is editable inline in the bar; saving issues a `set` or `edit` goal control carried through the ACP control parameters and the mock agent (`cd33868`)
+* A blocked or usage-limited goal can be cleared, not just an active or paused one (`f9afb09`)
+* A `/goal` user message keeps its bubble and gains a ghost goal icon whose tooltip marks the message as a goal prompt (`b7496f5`, `cd33868`)
+* The goal badge rides the bubble's lower-edge reaction region — the same pill a queued delivery already uses, goal badge inboard — so the body keeps its full content width and a wrapped line starts where an ordinary message's does (`23d25f8`)
+
+**Updates**
+
+* An Automatic updates setting beside Update prompts downloads a release as soon as it is found when on, and otherwise offers the update and waits for confirmation (`0ed31c2`)
+* A persistent rounded panel below the title-bar arrow shows download progress and the install action, with a footer that opens About; a staged update installs on quit when you did not install it (`0ed31c2`)
+* About shows the release version, publication time, download size, and localized release notes as rendered Markdown, with a status chip, a description, and the single valid next action (`9b252a7`)
+* With nothing newer available, the same card shows the notes published for the installed version, and shows nothing when that release predates the notes asset (`642eefd`, `905c894`)
+* The release pipeline stages `vibex-release-notes.md` from the tagged commit's `docs/operations/release-notes-v<version>.md` and fails the release when it is missing or carries no `## English` section; the desktop fetches it from the verified tag under a bounded size and a shorter timeout, and notes selection resolves the interface language with a fallback to generic Chinese and then English (`12605e3`)
+
+**Preview window**
+
+* Pop the multi-tab preview panel into a detached window and dock it back; every open tab, editor buffer, and terminal moves with the panel entity, and exactly one panel exists at a time (`ebf868d`)
+* Closing the detached window hands the panel back to the workbench column instead of taking it down, closing the panel closes its window, and the detached window keeps Ctrl+S and go-to-line through the same editor actions the shell handles (`ebf868d`)
+* Full screen gives the panel the workbench column, so the sidebar and right rail keep their place, width, and activity bar, and the rail keeps its resize handle (`e9737b5`)
+* A Workbench setting chooses where the preview opens — inline, the default, or a window of its own; the header's pop-out and dock controls write the same preference, and a restored layout reopens the preview in the configured host once the runtime is ready (`e9737b5`)
+
+**Global search**
+
+* Cmd-K opens a workbench command palette from anywhere, triggered from the title bar immediately before the runtime control (`f7c1ab3`)
+* One query answers over sessions (title and message content, opening the session and jumping to the hit), settings entries (opening Settings on the matching section with the row highlighted), and quick actions (real actions showing their keybinding and disabled when the precondition is unmet) (`f7c1ab3`)
+* The palette renders its own query field at the large control size, draws rules between the session, settings, and quick-action groups, and fixes arrow-key highlight movement and Escape-clears-then-closes (`7341c1b`)
+* Session search indexes and highlights conversation text only — user messages, agent answers, reasoning, and plans — and tints just the matched keyword, with the current match painted stronger and scrolled into view when stepping through hits (`c8f7f4b`)
+* The palette content sits one gutter off its border, and the scrollbar no longer sits under session timestamps and keybinding hints (`baa227b`, `a4cec5b`)
+* The command is called "Global search" everywhere, including the trigger tooltip and the shortcut table (`7341c1b`)
+
+**Composer & sessions**
+
+* Recall earlier user messages with Up and Down in the composer; the placeholder advertises the keys alongside the existing command, mention, and skill triggers (`f477b4c`)
+* The fullscreen composer is editable edge to edge, while the collapsed composer keeps its two-to-eight row growth (`fdc87bc`)
+* Autosave writes edited files back after a typing pause, 1000 ms by default, or on editor or window focus loss, with a Manual mode, an adjustable idle delay in Workbench settings, and a pending edit flushed when its tab closes (`65bd62b`)
+* Queued messages that steered into or interrupted a turn are recorded on the user timeline item and rendered as a labelled reaction on the bubble edge — primary for steer, warning for resend — so the interrupted turn above is explained without relying on colour alone (`dbab0ba`, `b866300`)
+* Native steering offers a Steer action only for Agents that advertised `_meta.steering.supported`, with interrupt-and-resend as the fallback for every other Agent and for a failed or `promptRequired` native attempt (`b99920f`)
+* A session parked on an approval or elicitation shows a circled question-mark call to action in the warning colour, with a localized tooltip, in the session row and in the workspace row that aggregates it, instead of a loading spinner (`fe89fb8`)
+* The scroll-to-bottom control floats over the timeline instead of shortening the viewport by its own height (`09b98e5`)
+* The session preview rail numbers only turns anchored by a user message, so auto-continue turns fold into the turn that triggered them and a conversation with only continuation turns does not mount the rail (`130a70c`)
+
+**Agent & ACP**
+
+* DeepSeek Harness keeps its slash-command catalog across the prepared attachment window, and the composer shows a pinned pre-session catalog (`/status`, `/model`, `/compact`, `/goal`, `/permission`, `/plan`, `/feedback`) before a session exists (`aec42c2`, `dc23ae4`)
+* The DeepSeek Harness `danger-full-access` permission switch no longer fails on every attempt (`da3bffc`)
+* The DeepSeek Harness catalog pin moves to 0.4.32, the version that advertises steering (`b99920f`)
+
+**Model provider editor**
+
+* Pick models from a fetched catalogue: checking a row adds it to the draft, unchecking releases it while keeping declared capabilities, hand-typed ids still join the list, and the two panes sit side by side on a wide window and stack on a narrow one, each scrolling on its own (`4848f52`)
+* The picker is the only Model list, the second column shows the clicked row's editable fields, a row the provider does not offer presents the command that adds it, and selection is tracked by model id (`46f7990`)
+* Stored provider keys are read back into the editor, shown masked, and revealed by an eye; an untouched field never rewrites the stored value, and Clear is an explicit command (`8df655b`)
+* The editor is rebuilt as panels with caption strips, a scrolling body, and their own foot, with one chip shape for the catalogue, interface, reasoning, and thinking-level groups (`27ac399`)
+* The editor's surfaces are quieted: the identity and connection band keeps content height, panes are plain columns, rows carry state with one wash instead of filled pills, and Test connection joins Cancel and Save on the trailing edge (`a52e213`)
+
+**Pairing & remote**
+
+* A Paired devices mode in the Connect-mobile-device dialog shows status, permission, last seen, revoke with confirmation, refresh, counts, and an empty state; the registry loads when the dialog opens and reloads after a pairing or revoke (`3901a8a`)
+* The paired-device list pages six devices at a time, renders the pager only when the registry pages, shows a "13-18 of 24" caption, and clamps the page when a revoke empties it (`d26c2de`)
+
+**Settings & appearance**
+
+* Settings pages declare labelled groups, each with a small label, an optional full-width control, and its own panel, with wider space between groups than inside one (`c3b9182`)
+* Appearance mode is chosen with preview cards that paint a miniature workbench in the palette each mode resolves to; system splits the card between both slots, the selected card keeps a primary border and name, and the cards are radio buttons with an accessible name (`5e2af95`)
+* Light theme and dark theme became dropdowns showing the swatch and the theme's name in both the closed control and the menu (`a7b5fa2`)
+* Ten more built-in palettes, bringing the total to twenty (`1556492`)
+* Settings shortcuts render as keycaps, with the raw text kept as a fallback for a keystroke the interface toolkit refuses to parse (`a262799`)
+* Every shortcut label and group is localized to the active language, and the string table now carries the locale it was resolved for instead of reaching for a process-wide locale (`f1367ec`)
+* Agent notification toggles moved from General into Session settings (`ca1eec1`)
+* Star project directories in the directory picker: a starred folder joins the Places rail as its own group, newest star first and bounded to twelve, and starring again from the row or the rail removes it (`16f798b`)
+
+**Workbench & editor**
+
+* The commit detail tab shortens its label to 48 characters with the whole subject in a tooltip, clamps the message body to three lines with a click and keyboard expand toggle, replaces the header badge with a summary row (changed-file count, total additions and deletions, side-by-side, wrap, and collapse-all toggles), stands file rows at 36px, starts every changed diff row with a colour rail, and projects the patch into aligned side-by-side rows in the model so the split view keeps the same virtualization and word-diff cache (`20455d4`)
+* Loading surfaces draw skeletons at the row height the real list already uses instead of a spinner or a misleading empty state, with the gates pinned in a source contract (`96af670`)
+* Empty states across desktop and mobile use the kit's empty-state component instead of seven hand-rolled helpers and a dozen inline blocks (`695c1ae`)
+
+**Developer experience**
+
+* Remote Access hints and settings operation results are pushed through the kit's notification component, with tone following the result and each family having its own id so a newer hint replaces the older one (`4bba017`)
+* Hints paint above dialog backdrops, deferred in the gap between the dialog band and the popup band (`a254439`)
+* The collapsed thinking label uses the kit's shimmer text, keeps the previous 1.2 s sweep and 0.42 spread, and stays static under reduced motion (`6b818e5`)
+
+## Fixes
+
+**Desktop — layout, chrome, and readability**
+
+* The settings dialog and the command palette keep their content inside their rounded corners, since the interface toolkit clips children to a square; both round the content surface themselves, one pixel inside the border radius (`e5e0092`, `85c3f37`)
+* The command palette's rows, query field, and footer sit one gutter off the border, and its scrollbar lane is reserved inside two-line rows so timestamps and keybinding hints are no longer under the thumb (`baa227b`, `a4cec5b`)
+* The commit message body actually collapses to three lines: the clamp budgeted each newline-separated line separately, so a body of paragraphs rendered in full; the preview now projects leading logical lines and drops the repeated subject (`2d4ebfe`)
+* The file preview header is flattened and uses a pencil edit icon (`5bf7818`)
+* Preview tab actions get standard small icon-button geometry so hover paints a rounded rectangle, and single-click preview tabs use the bundled sans italic face (`8d49875`)
+* The usage range control matches the segmented bars — a filled track, a raised page-coloured pill, and no outlines (`7910b20`)
+* The settings font selects are backed by a searchable list, so typing in the popup actually narrows the family list instead of accepting typing and doing nothing (`5a8f729`)
+* The shortcut dialog's input stays editable across repaints; the input entity was created inside the dialog builder, which is re-evaluated on every repaint, so its focus handle and text were replaced while typing, and a rejected chord now shows its reason inside the dialog (`1b0d087`)
+* Switching sessions no longer strands a composer: the fork's window-wide action lock was released only when no session had been announced, so the normal path left every send button loading and the new-session home without runtime controls until restart; the lock is now released unconditionally when the fork settles, and the same rule was applied to the other takers (`a25c532`)
+
+**Desktop — sessions, sidebar, and timeline**
+
+* A streaming process unit alternated between its measured height and the estimate on every frame because its content revision advances with every chunk, which made a running session's timeline bounce when following its bottom; a streaming unit never shrinks below its last measured height (`1115b36`)
+* The windowed process run's two loose ends are wired: the shared unit walk reads the display preference through the pairing flag it computed, and the virtual list's turn renderer is handed the turn index the run resolves its turn by (`1999ed2`)
+* The sidebar group rows are disclosure controls again: project and workspace rows collapse and expand without switching focus, undoing the session-switch-on-group-click behaviour added earlier in this same range (`72b798d`)
+* Clicking a sidebar project or workspace row no longer switches sessions, while the New Session home keeps activating the workspace directly (`72b798d`)
+
+**Desktop — agent turn presentation**
+
+* The delivery mark for steered and resent messages moved from an inline logo in the bubble body to an icon-only ghost button in the bubble's lower-edge reaction region, tinted on the glyph so the hue survives hover, with the label kept in the tooltip and the accessibility name (`b866300`)
+* A session waiting on an approval or elicitation shows a call-to-action glyph instead of the progress spinner, and the error state is no longer hidden by an optimistic turn (`fe89fb8`)
+* Auto-continue turns no longer consume session-preview rail slots or preview a bare turn number above an error (`130a70c`)
+
+**Agent & ACP**
+
+* State-only session updates, including available-command and config-option updates, now apply at their exact fence even while an attachment is still prepared; losing the DeepSeek Harness catalog left the committed attachment reporting an authoritative empty catalog, which suppressed the pre-session fallback and hid the composer's slash commands for as long as that attachment stayed current (`aec42c2`)
+* Config-option updates no longer reach a prepared attachment: the DeepSeek Harness bridge publishes a config-option update before answering the mode switch, which bumped the runtime configuration revision and made the confirmation reject itself as stale, so every new DeepSeek Harness session's `danger-full-access` switch failed (`da3bffc`)
+* Remaining goal tokens are clamped at zero, and wire tokens are folded only at a camelCase boundary so an all-caps `RESUME` stays one token instead of becoming `r_e_s_u_m_e` (`acc5026`)
+* `GoalPhase` derives its default instead of carrying a manual implementation (`eebcaad`)
+* An unused goal-card binding and an unused goal-phase import were dropped (`3a6a38a`, `f35bddc`)
+
+**Markdown & rendering**
+
+* A streaming Thought painted its parse-pending fallback through the code renderer, so every reasoning row appeared as a bordered code card with a copy button and then snapped into prose; literals now render as selectable wrapped text and estimate height the same way, matching mobile (`c5f1364`)
+
+**Theme**
+
+* The interface framework's own neutral palette is filled in from the active theme, so tinted appearances no longer paint switches, segmented tabs, outline buttons, scrollbars, skeletons, and text selections in stock grey (`d29c59e`)
+
+**Localization**
+
+* A bare Latin "Worktree" no longer sits beside a translated option in the new-session location control; it is now translated in both Chinese locales (`34585b4`)
+* Shortcut labels are no longer hardcoded English, which had shown mixed-language copy in the shortcuts page, settings search, and palette quick actions at once (`f1367ec`)
+
+**Build, release, and dependencies**
+
+* The release publish retries up to three times, clearing any leftover release between attempts: `gh release create` stages a draft and uploads assets concurrently, and its transport retry reused an asset name without deleting the interrupted upload, so GitHub answered HTTP 422 and gh rolled the whole draft back — the rc.4 run failed exactly there on the Android arm64 APK and left no release behind (`e115770`)
+* `brace-expansion` was bumped to 1.1.21 and 5.0.12 for its denial-of-service advisories; the 5.x line's engine requirement moves to node 20 or 22 and newer (`967ba44`)
+* `js-yaml` was bumped to 4.3.2 for CVE-2026-84375 (`2fb3c5d`)
+
+## Performance
+
+* **Expanded reasoning rows** — With "expand reasoning by default" on, the desktop app ran at 30 fps instead of 60, and dropped to 12 while the layout settled. An expanded reasoning row now keeps one Markdown surface, since the disclosure header is a single clipped line of styled text and the second view bought a second element tree, keyed state entry, selection buffer, and hitbox per row; projection caches are sized per expanded turn instead of per screen, because the old 32-entry table missed on nearly every row with hundreds of rows and re-copied each body into a fresh allocation; and the layout fingerprint is memoized against a cheap turn-level shape key (`7c5aa8c`)
+* **Markdown view state** — The selection buffer concatenated the whole document into one string every frame, plus a formatted element id per text segment, whether or not anything was selected; it is now materialized on demand, and segment ids come from a prefix built once per view. Block virtualization thresholds sat at 24 blocks or 16 KB with 8 blocks, so a typical reasoning row always took the full-render path; they now sit where virtualizing pays for itself. A non-streaming document up to 16 KB was parsed on the main thread when its view was created, which stalled the single frame that creates one view per reasoning row; thoughts now take the background-parse path past a small budget, while answers and document previews keep the larger one (`2dedcde`)
+* **Turn process rows** — One virtual row is a whole turn, so an expanded turn built and painted every process row on every frame; a turn's process section now paints through a windowed run, reserving the height its units occupy and building only the ones the viewport shows. The run and the height estimator share one walk, measured unit heights are kept per unit id and revision, and the find bar's pending match is built even when it falls outside the window so it can still be scrolled to (`01c823c`)
+* **Sidebar session rows** — A folder holding hundreds of sessions built, laid out, and painted every row on each frame, and every row resolved its session by rescanning the folder's session list, so frame cost grew with folder size rather than with rows on screen. Each contiguous band of session rows now renders through one element that builds only the rows the viewport can see; rows resolve by index into the cached projection, the selected row is built even when scrolled out, and the legacy folder migration returns early when no folder is legacy and indexes workspaces once (`40f51b8`)
+
+## Internal, Build & Docs
+
+* Empty states moved to the kit's empty-state component, preserving call-site signatures, copy, padding, gaps, and alignment (`695c1ae`); hints moved to the kit's notification component (`4bba017`); the collapsed thinking label moved to the kit's shimmer text, and the desktop shimmer constant was renamed because the startup wordmark is now its only other consumer (`6b818e5`); the usage charts were rewritten on the kit's plots, moving 746 lines into a dedicated module (`40a5a7f`); the model provider editor became panels and chips (`27ac399`); the selected model's settings open beside the picker (`46f7990`); agent notification toggles moved into Session settings (`ca1eec1`); the directory picker's footer hint was dropped (`92926b4`)
+* The preview window code was made clippy- and rustfmt-clean, and its keep-alive observer field renamed so clippy stays quiet (`ea96106`, `0393a74`)
+* Specs were updated for state-only ACP updates at the prepared fence and native steering, the release-notes asset and About behaviour, the provider configuration contract, GPUI dialog input lifetime rules and the user-message delivery mark, composer queue pause semantics, and device management as a local operation beside remote-access setup
+* The release workflow gained a step that stages the tagged commit's release notes and fails the release when the file is missing or has no English section, and the release checker and runbook were updated for the same contract (`12605e3`); the publish-retry recovery is pinned in the release contract (`e115770`)
+* Dependencies were bumped for security: `brace-expansion` to 1.1.21 and 5.0.12 (`967ba44`), `js-yaml` to 4.3.2 for CVE-2026-84375 (`2fb3c5d`), and the DeepSeek Harness ACP catalog pin to 0.4.32 (`b99920f`)
+* The repository now ignores patch and merge backup files, so a stray `.orig` or `.rej` copy of a source file can never reach the public repository (`a80a5ce`)
+* Tests were added or extended for the preview panel host, paired-device paging and clamping, sidebar row windowing and reserved flow height, composer queue and turn-completion probes, the locale invariant that no Latin letters survive outside the product name in either Chinese locale, full coverage of the interface framework's theme tokens, the skeleton gates, and the session-switch action lock (`2759f32`, `d26c2de`, `40f51b8`, `b1b8e74`, `60bd848`, `f1367ec`, `d29c59e`, `96af670`, `a25c532`)
+* Version numbers were bumped to `0.1.0-rc.5` across the workspace, the packaging inputs, the Android version fallback, the README and deployment documentation, and the reviewed first-party asset-bundle versions in the license policy
+
+## Related links
+
+* [View the full diff on GitHub](https://github.com/vibex-ai/vibex/compare/v0.1.0-rc.4...v0.1.0-rc.5)
+* [Previous release: v0.1.0-rc.4](/en/changelog/v0.1.0-rc.4)
+* [Back to the changelog](/en/changelog)

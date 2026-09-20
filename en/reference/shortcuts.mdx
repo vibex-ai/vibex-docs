@@ -7,7 +7,7 @@ You can view, change, and reset Vibex shortcuts in **Settings → Shortcuts**. C
 
 ## Rebindable shortcuts
 
-These 14 actions can be rebound in Settings:
+These 15 actions can be rebound in Settings:
 
 | Action | Default key | Group |
 | --- | --- | --- |
@@ -18,6 +18,7 @@ These 14 actions can be rebound in Settings:
 | Toggle conversation / terminal | `cmd-shift-t` | Composer |
 | Find in conversation | `cmd-f` | Navigation |
 | Open settings | `cmd-,` | Navigation |
+| Global search | `cmd-k` | Navigation |
 | Navigate back | `alt-left` | Navigation |
 | Navigate forward | `alt-right` | Navigation |
 | Retry runtime | `cmd-r` | Runtime |
@@ -43,7 +44,8 @@ These shortcuts are fixed behavior:
 | Switch to the previous / next tab | `cmd-pageup` / `cmd-pagedown` | Non-terminal tabs |
 | Terminal copy / paste / search | `ctrl-shift-c` / `ctrl-shift-v` / `ctrl-shift-f` | Terminal tabs |
 | Tab completion | `tab` / `shift-tab` | Terminal tabs (sent to the shell instead of moving focus) |
-| Close an overlay | `escape` | Runtime manager, find bar |
+| Recall an earlier user message | `up` / `down` | Session composer (Up starts only from an empty composer; typing ends the walk; Down steps back toward the newest and restores your draft past it) |
+| Close an overlay | `escape` | Runtime manager, find bar, Global search (the first press clears the query, the second closes) |
 
 ## Mouse actions
 
@@ -63,12 +65,12 @@ Vibex has several searches with different scopes. Do not confuse them:
 | Search | Scope | Entry point |
 | --- | --- | --- |
 | **Find in conversation** | The current session timeline | `cmd-f` |
-| **Search sessions** | All session titles and message bodies | The sidebar search icon |
+| **Global search** | All session titles and message bodies, settings entries, and quick actions | The title-bar search icon or `cmd-k` |
 | **Search workspace files** | File contents in the current workspace | The file tree |
 | **Search MCP** / **Search Skills** / **Search Agent** | The matching Config Center list | The top of each list |
 | **Search commits** | Git commit history | The Commits tab of the Git panel |
 | **Search settings** | Settings options | The top of Settings |
 
 <Note>
-  There is currently **no** global command palette or cross-type quick open.
+  **Global search** is the only cross-type entry point: one query answers over sessions, settings entries, and quick actions at once, and `cmd-k` opens it from anywhere. Session search no longer lives in the sidebar; its trigger moved to the title bar, immediately before the runtime control.
 </Note>

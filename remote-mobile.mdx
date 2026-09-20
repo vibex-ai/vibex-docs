@@ -209,7 +209,7 @@ Agent 在服务器上运行，**它只能看到服务器（容器）里的目录
 
 ### 第 1 步：在桌面端发布远程访问
 
-1. 点击顶部工具栏的 **Pair mobile** 图标。
+1. 点击顶部工具栏的 **Pair mobile** 图标。对话框有两个标签：**Pair** 用来发布新的配对，**Paired devices (N)** 用来管理已经持有授权的设备。
 2. 选择连接方式：
    - **Tailnet**（推荐）：通过 Tailscale 等私有网络访问，适合不在同一 Wi-Fi 的情况。
    - **自管 Direct HTTPS**：你自己有一个能指向这台电脑的 HTTPS 地址。
@@ -293,7 +293,12 @@ Relay 是纯转发的：它不保存你的会话、文件或供应商配置，�
 | **仅审批**（`approve_only`） | 在只读基础上，处理 Agent 的权限请求和询问表单 | 在外面帮忙点“允许” |
 | **完全控制**（`full_control`） | 发送消息、写文件、输入终端命令、执行 Git 写操作（仍受桌面端能力限制） | 真的要在手机上干活 |
 
-撤销设备在权威端完成：无头运行时上执行 `docker exec vibex-server vibex-server revoke DEVICE_ID`（或直接在服务器上运行 `vibex-server revoke DEVICE_ID`）。撤销会立刻断开该设备的活动连接，之后必须重新配对。在客户端里 **Remove** 一个运行时只删除本机保存的凭据，服务器上的设备授权仍然存在。
+撤销设备在权威端完成：
+
+- **桌面端作为权威端**时，打开 **Pair mobile**，切到 **Paired devices (N)** 标签，找到那台设备点 **Revoke** 并确认。列表显示每台设备的状态、权限和最后活动时间，可以 **Refresh devices** 重新加载；设备多于六台时分页显示。
+- **无头运行时作为权威端**时，在服务器上执行 `docker exec vibex-server vibex-server revoke DEVICE_ID`（或直接运行 `vibex-server revoke DEVICE_ID`）。
+
+撤销会立刻断开该设备的活动连接，之后必须重新配对。在客户端里 **Remove** 一个运行时只删除本机保存的凭据，服务器上的设备授权仍然存在。
 
 ## 安全清单
 

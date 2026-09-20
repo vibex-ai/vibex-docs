@@ -21,12 +21,13 @@ Search never modifies files on its own. Large files, undecodable content, and pa
 
 - Edit text directly in the editor.
 - Use **Save file** to save the current file (`cmd-s`).
+- Autosave is on by default: an edited file is written back after a typing pause (1000 ms by default) and when the editor or window loses focus. In **Settings → Workbench** you can switch to **Manual** (the `cmd-s` shortcut is the only way to save) or **On focus change**, and adjust the idle delay.
 - The toolbar toggles **soft wrap** and **whitespace** display.
 - The status bar shows `Ln N, Col N`, the total line count, language, encoding (`UTF-8` / `UTF-8 BOM` / `Binary`), line endings (`LF` / `CRLF` / `Mixed EOL`), and file size.
 - The title bar shows **Modified** (unsaved changes), **Saving**, or **Saved**.
 
 <Note>
-  The editor has **no** Save As: saving always writes back to the original path. There is also no in-file find bar — `cmd-f` opens session search.
+  The editor has **no** Save As: saving always writes back to the original path. There is also no in-file find bar — `cmd-f` opens **Find in conversation**.
 </Note>
 
 ### Large files and read-only
@@ -42,9 +43,9 @@ These files open read-only and are marked **Large file - read only** or **Binary
 
 Each editor buffer tracks the saved content, the external revision, and the local revision at the same time. Save requests use optimistic concurrency control: if the content on disk has already changed, the save fails with `file_external_revision_changed` instead of overwriting silently.
 
-Tabs with unsaved changes prompt **Save or discard the dirty editor before closing it** when you close them; switching workspaces is blocked the same way.
+Tabs with unsaved changes prompt **Save or discard the dirty editor before closing it** when you close them; with autosave on, the pending edit is written first and the tab closes without interrupting you. Switching workspaces is blocked the same way.
 
-After the authoritative runtime restarts, Vibex restores unsaved buffers (marked **Restored buffer**). Restored content still needs an explicit save and never overwrites files on disk automatically.
+After the authoritative runtime restarts, Vibex restores unsaved buffers. They are still marked **Modified**, still need an explicit save, and never overwrite files on disk automatically. When the file has been deleted on disk, the title bar shows **Deleted - recovery buffer**.
 
 <Warning>
   Deleting a file changes the workspace. Check Git status before you delete, and copy the content or create a commit first if you need to.
@@ -100,6 +101,12 @@ Saving re-encodes the image as **PNG**; you cannot choose another format, and th
 ## Preview tabs and splits
 
 Drag a tab, or use **Split right** / **Split down** in the tab menu, to split the view; you can drag the split boundary to resize it. Code, diffs, terminals, and documents can all share one window.
+
+**Pop out preview window** in the panel header rehosts the whole multi-tab panel in a window of its own, and **Dock preview into the main window** brings it back. The panel entity never changes hands, so every open tab, editor buffer, and terminal moves with it, and exactly one panel exists at a time. Closing the detached window hands the panel back to the workbench column instead of taking it down; closing the panel closes its window. The detached window keeps the shell's editor actions, so `cmd-s` and go-to-line still work there.
+
+Full screen gives the panel the workbench column, so the sidebar and the right rail keep their place, their width, and their activity bar, and the rail keeps its resize handle.
+
+**Settings → Workbench** has a **Preview window** option that chooses where the panel opens by default: **Inline** (the default, inside the workbench column) or **Separate window**. The header's pop-out and dock controls write the same preference.
 
 Closing a tab does not delete a file or a terminal — it only closes the current view.
 

@@ -84,17 +84,22 @@ In the **Model provider configuration** card, click **Add config**, or click an 
 | **Default API request URL** | The provider's API address, for example `https://provider.example/v1`. Some Agents lock this field. |
 | **Set an address per protocol** | A collapsible section; expand it when you need a separate address per protocol. |
 
-The API key field is **write-only**: it shows "Saved" when a value is stored, and leaving it blank keeps the current value. Enter a new value to replace it, or click **Clear** to remove it.
+The API key field is **write-only**: it is masked by default, with an eye icon to reveal it, and shows **Saved** when a value is stored. An untouched field never rewrites the stored value, and leaving it blank keeps the current one. To remove it, click **Clear**; the state becomes **Will be cleared** and the button becomes **Keep stored key**.
 
 ### Models
 
-Vibex **does not ship a model list**; you add models manually or fetch them from the provider:
+The editor splits models into two columns: the **Available models** picker on the left and the selected model's **Model settings** on the right. The picker is the only model list — click a row and the right column shows its editable fields instead of repeating the list.
 
-- **Model ID** — enter the model identifier manually, for example `deepseek-chat`.
-- **Fetch models** — requires an API key and address; returns the models available to that account.
-- **Model API protocol** — each model can specify its own protocol; by default it inherits the provider setting.
-- **Reasoning** — choose whether to reason, or pick a **thinking depth** level.
-- **Context window / Max output tokens** — declare model limits in the Advanced collapsible section.
+Vibex **does not ship a model list**:
+
+- **Fetch models** — requires an API key and address; loads the models available to that account into **Available models**. Fetching on its own configures nothing.
+- **Available models** — checking a row adds that model to the draft; unchecking releases it while keeping its declared capabilities, so re-checking restores them. **Select all** / **Enable all** handle the list in bulk; when there is nothing to fetch, type an id under **Custom model** and add it.
+- **Model ID** / **Display name** — edited in the right column. Selection follows the model id, so renaming keeps the column on the model you are editing.
+- **Model API protocol** — each model can specify its own protocol; by default it **Inherit**s the provider setting.
+- **Reasoning** / **Thinking levels** — choose whether to reason, or declare **thinking depth** levels.
+- **Context window / Max output tokens** — declare model limits in the **Advanced** collapsible section.
+
+When the provider does not offer a model, the right column offers **Add this model**, which adds it to the list.
 
 The available thinking depth levels come from the provider or Agent. Common values are `off`, `minimal`, `low`, `medium`, `high`, `xhigh`, and `max`.
 

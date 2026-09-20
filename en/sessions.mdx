@@ -7,9 +7,9 @@ A session stores the input, Agent output, and tool activity of one development t
 
 ## Create a session
 
-1. Choose the target project and location (**Local** or a new **Worktree** — see [Projects and workspaces](/en/workspaces)).
+1. Choose the target project and location (**Local** or **New Worktree** — see [Projects and workspaces](/en/workspaces)).
 2. At the top of Composer, choose the Agent, provider profile, model, **Thinking depth**, and **Conversation mode**.
-3. Enter your task. Use `/` to pick a command, `@` to reference a workspace file, `$` to insert a Skill, or add an attachment.
+3. Enter your task. Use `/` to pick a command, `@` to reference a workspace file, `$` to insert a Skill, or `↑` / `↓` to recall an earlier message from this session; you can also add an attachment.
 4. Confirm the workspace and permission scope before sending. The Agent may need to read files, run terminal commands, or request extra authorization.
 
 Switching Agent or model only affects later runs. Messages already written to the timeline keep their original run identity.
@@ -31,6 +31,19 @@ The elapsed time above a turn is shown as **Worked for**. While output is being 
 
 Tool arguments, terminal output, and file diffs can contain sensitive content. Review and redact them before sharing diagnostics.
 
+## Goals
+
+Agents that support goals publish their state over ACP: the provider-neutral `_meta.goal` extension and Codex's legacy `_meta.codex.goal` namespace. Vibex normalizes both into one shared model and saves every change as a goal timeline item.
+
+The goal lives in a fixed bar above the composer, stacked directly under the queued-message bar:
+
+- The bar shows the phase, the objective, and the provider's own stats (time used, token usage, rounds).
+- The pencil button (**Edit goal**) opens an inline editor; saving issues a goal control instead of going through the composer.
+- **Pause goal** / **Resume goal** pause or resume the goal.
+- **Clear goal** clears it; active, paused, blocked, and usage-limited goals can all be cleared.
+
+Each control appears only when the adapter advertises it. A message sent with `/goal` keeps its own bubble and wears a goal icon on the bubble edge.
+
 ## Controlling a run
 
 | Action | Description |
@@ -51,8 +64,11 @@ Tool arguments, terminal output, and file diffs can contain sensitive content. R
 Follow-up messages you send while a run is active go into a queue. The queue area above Composer gives you:
 
 - **Auto send** / **Manual send** — switch between automatic and manual submission of the queue.
+- **Steer** — appears only for Agents that negotiated native steering: it injects this message into the running turn instead of interrupting it first. Every other Agent still falls back to interrupt-and-resend.
 - **Send queued message**, **Edit queued message**, **Delete queued message** — act on one item at a time.
 - **Resume queued messages** / **Clear queued messages** — resume or clear the whole queue.
+
+How a queued message was delivered is recorded on the user's message and rendered as a reaction on the bubble edge: **Steered into the running turn** (primary) or **Interrupted the turn and resent** (warning). Once a later turn exists, the earlier turn is marked superseded: its live status, running duration, and streamed-row extension stop, while the rows it already produced stay visible and expanded.
 
 Canceling or deleting a queue item does not undo work that already completed.
 
@@ -64,20 +80,22 @@ When an Agent asks for a terminal, a file write, or another protected capability
 
 Elicitation forms ask for structured input. Check the values and the scope before you submit; canceling a form returns a cancellation result to the Agent rather than an implicit approval.
 
-## Searching sessions
+## Global search
 
-Vibex offers two kinds of search:
+`cmd-k` opens the workbench command palette (**Global search**) from anywhere; the entry point is the search icon in the title bar, immediately before the runtime control. One query answers over three groups:
 
-| Method | Scope | Entry point |
+| Group | Scope | Selecting a row |
 | --- | --- | --- |
-| **Find in conversation** | The current session's timeline | `cmd-f` |
-| **Search sessions** | Every session title and message body | The search icon at the top of the session list in the sidebar |
+| **Recent sessions** / **Sessions** | Session titles and message bodies | Opens the session and jumps to the message that hit |
+| **Settings** | Settings entries | Opens Settings on the matching section with the row highlighted |
+| **Quick actions** | Real actions registered on the workbench | Runs it; each row shows its keybinding, and unmet preconditions are disabled rather than inert |
 
-**Search sessions** opens a full-screen overlay showing **Recent sessions** (for an empty query) or **Search results**, with matching snippets highlighted. Selecting a result jumps to that session and to the matching message.
+- The palette draws its own query field at the top and rules between the three groups; an empty query lists only **Recent sessions**.
+- Session search indexes and highlights conversation text only — user messages, agent answers, reasoning, and plans — and tints just the matched keyword, with the current match painted stronger.
+- With a non-empty query, `escape` clears it on the first press and dismisses on the second.
+- The index is built in the background and kept, so reopening the palette is instant. Archived sessions are not searched.
 
-<Note>
-  Cross-session search is **indexed on demand**: the index is built when you open search and released when you close it. While indexing, you see **Indexing session messages...**. Archived sessions are not searched.
-</Note>
+Finding something inside one session still uses `cmd-f` (**Find in conversation**).
 
 ## Importing local history
 
@@ -99,7 +117,7 @@ Results fall into four groups: **Imported**, **Already imported**, **Not found**
 
 ## Notifications and unread
 
-The authoritative runtime can send desktop notifications when a session completes, fails, or waits for input. The three notification types can be toggled separately in **Settings → General**.
+The authoritative runtime can send desktop notifications when a session completes, fails, or waits for input. The three notification types can be toggled separately under **Settings → Session → Agent notifications**; they moved there from **General**.
 
 Sessions with unread completions show a dot in the sidebar; opening the session clears the dot, and the authoritative timeline is the source of truth. The system tray menu also offers shortcuts to **New chat**, **Config Center**, and **Settings**.
 

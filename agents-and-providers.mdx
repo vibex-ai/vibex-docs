@@ -84,17 +84,22 @@ Vibex 自带四个内建预设：**Claude Code**、**Codex**、**ZCode**、**Ope
 | **Default API request URL** | 供应商的 API 地址，例如 `https://provider.example/v1`。部分 Agent 会锁定此项。 |
 | **Set an address per protocol** | 折叠区，需要为不同协议分别指定地址时展开。 |
 
-API Key 输入框是**只写**的：已保存时显示 "Saved"，留空则保留原值；要替换就输入新值，要清除则点 **Clear**。
+API Key 输入框是**只写**的：默认掩码显示，点眼睛图标可以显示明文；已保存时会标出 **Saved**。没有改动过的字段不会重写已保存的值，留空保存会保留原值；要清除就点 **Clear**，此时状态变成 **Will be cleared**，按钮变成 **Keep stored key**。
 
 ### Models
 
-Vibex **不预置模型列表**，需要你手动添加或从供应商拉取：
+编辑器把模型分成两栏：左栏是 **Available models** 选择器，右栏是所选模型的 **Model settings**。选择器是唯一的模型列表——点选一行，右栏就显示它的可编辑字段，而不是把列表再重复一遍。
 
-- **Model ID** —— 手动输入模型标识，例如 `deepseek-chat`。
-- **Fetch models** —— 需要已填 API Key 和地址，返回该账号可用的模型。
-- **Model API protocol** —— 每个模型可以单独指定通信协议，默认继承供应商设置。
-- **Reasoning** —— 选择是否推理，或指定**思考深度**档位。
-- **Context window / Max output tokens** —— 在 Advanced 折叠区中声明模型上限。
+Vibex **不预置模型列表**：
+
+- **Fetch models** —— 需要已填 API Key 和地址，拉取该账号可用的模型来填充 **Available models**。拉取本身不写入任何配置。
+- **Available models** —— 勾选一行会把这个模型加入草稿；取消勾选会移除它但保留已声明的能力，重新勾选即可恢复。**Select all** / **Enable all** 可以批量处理；没有可拉取的模型时，在 **Custom model** 里手动输入 id 再加入。
+- **Model ID** / **Display name** —— 在右栏编辑。选中状态按模型 id 跟踪，所以重命名之后右栏仍停在正在编辑的模型上。
+- **Model API protocol** —— 每个模型可以单独指定通信协议，默认 **Inherit**（继承供应商设置）。
+- **Reasoning** / **Thinking levels** —— 选择是否推理，或声明**思考深度**档位。
+- **Context window / Max output tokens** —— 在 **Advanced** 折叠区中声明模型上限。
+
+供应商不提供的模型，右栏会显示 **Add this model**，点它把该模型加入列表。
 
 思考深度的可选档位来自供应商或 Agent 声明，常见取值为 `off`、`minimal`、`low`、`medium`、`high`、`xhigh`、`max`。
 

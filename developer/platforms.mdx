@@ -95,6 +95,7 @@ Linux 用 cargo-packager 打包，PDFium 运行时只在 **linux-x86_64** 上随
 - 校验 `vibex-update.json` 的 Ed25519 签名，并对产物做 SHA-256 校验，URL 白名单限定在 releases 下载路径。
 - 启动 30 秒后首次检查，之后 RC / Preview 每 2 小时、Stable 每 6 小时检查一次，带抖动与退避。
 - AppImage 走原地自我替换（带 `.vibex-backup` 与 `pending-install.json` 崩溃恢复）；deb、macOS app 和 NSIS 拉起系统安装器并要求重启。
+- 发布流水线会把标记提交里的 `docs/operations/release-notes-v<version>.md` 暂存为 `vibex-release-notes.md`，文件缺失或没有 `## English` 段落时直接让发布失败；桌面端在限定大小和更短超时下从已验证的标签获取它，并按界面语言选择段落，依次回退到通用中文和英文。
 
 只有编译进公钥的构建才会自动检查。
 

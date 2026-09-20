@@ -95,6 +95,7 @@ Linux packages with cargo-packager, and the PDFium runtime ships with the packag
 - It verifies the Ed25519 signature of `vibex-update.json` and the SHA-256 of the artifact, with a URL allowlist limited to release download paths.
 - It checks 30 seconds after launch, then every 2 hours on RC / Preview and every 6 hours on Stable, with jitter and backoff.
 - AppImage replaces itself in place (with `.vibex-backup` and `pending-install.json` crash recovery); deb, the macOS app, and NSIS launch the system installer and require a restart.
+- The release pipeline stages `docs/operations/release-notes-v<version>.md` from the tagged commit as `vibex-release-notes.md`, and fails the release when the file is missing or carries no `## English` section. The desktop fetches it from the verified tag under a bounded size and a shorter timeout, and selects the section by interface language with a fallback to generic Chinese and then English.
 
 Only builds with the public key compiled in check for updates automatically.
 

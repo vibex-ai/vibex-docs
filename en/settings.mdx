@@ -11,10 +11,10 @@ A **Search settings** field at the top of the page jumps straight to an option b
 
 | Section | What you can adjust |
 | --- | --- |
-| **General** | Language, startup behavior, network proxy, and notifications. |
+| **General** | Language, startup behavior, network proxy, notifications, and updates. |
 | **Appearance** | Theme, window zoom, interface and code fonts, motion, and contrast. |
-| **Workbench** | Sidebar view, default new-session location, layout memory, and Git change count. |
-| **Session** | Conversation content width, timeline display, message queue, and auto-continue. |
+| **Workbench** | Sidebar view, default new-session location, preview window host, layout memory, Git change count, and editor autosave. |
+| **Session** | Conversation content width, timeline display, message queue, auto-continue, and Agent notifications. |
 | **Terminal** | Default shell and the starting directory for new terminals. |
 | **Shortcuts** | View, change, and reset keyboard shortcuts. |
 | **Data & Diagnostics** | Local storage usage and cleanup, plus diagnostics and recovery entry points. |
@@ -31,14 +31,14 @@ A **Search settings** field at the top of the page jumps straight to an option b
 | **Startup** | Restore the workbench on launch, or open a new session directly. |
 | **Launch at login** | Start Vibex when you sign in to the system. |
 | **System notifications** | Master switch for desktop notifications. |
-| **Agent completed / Agent needs input / Agent failed** | Control the three notification types; they are unavailable while the master switch is off. |
-| **Update prompts** | Control whether update prompts appear. Background security checks are unaffected and still follow the release policy. |
+| **Automatic updates** | Download a signed release as soon as it is found. Install it now, or let Vibex install it when you quit. |
+| **Update prompts** | Show the title-bar update button and update panel. Background security checks remain enabled. |
 
 ## Appearance
 
 Controls the theme mode (System / Light / Dark), window zoom (75%–200%), the size and weight of the **Interface font** and **Code font**, **Reduced motion**, and **High contrast**. The code font also applies to code blocks, the integrated editor, and the terminal.
 
-**Light theme** and **Dark theme** choose their palettes independently. Ten ship built in: Vibex Light, Catppuccin Latte, Gruvbox Light, Solarized Light, and GitHub Light for light; Vibex Dark, Catppuccin Mocha, Gruvbox Dark, Tokyo Night, and Nord for dark. You can extend the list with a JSON theme file in the `themes` folder of the runtime home; name only the colors you want to change and the rest are derived from the surface they are painted on.
+**Theme** is chosen with three preview cards — **System**, **Light**, and **Dark** — each painting a miniature workbench in the palette that mode resolves to. **Light theme** and **Dark theme** are independent dropdowns that show the swatch and the theme's name both closed and open. Twenty ship built in: Vibex Light, Catppuccin Latte, Gruvbox Light, Solarized Light, GitHub Light, Rosé Pine Dawn, Everforest Light, Ayu Light, One Light, and Kanagawa Lotus for light; Vibex Dark, Catppuccin Mocha, Gruvbox Dark, Tokyo Night, Nord, Rosé Pine, Everforest Dark, Ayu Dark, Dracula, and Kanagawa Wave for dark. You can extend the list with a JSON theme file in the `themes` folder of the runtime home; name only the colors you want to change and the rest are derived from the surface they are painted on.
 
 Fonts are listed from those installed on the system, with a fallback when one is missing.
 
@@ -47,11 +47,14 @@ Fonts are listed from those installed on the system, with a fallback when one is
 | Option | Description |
 | --- | --- |
 | **Sidebar hierarchy** | **Session view** (grouped by session) or **Workspace view** (grouped by workspace). |
-| **Default new-session location** | **Current checkout** or **Worktree**. |
+| **Default new-session location** | **Current checkout** or **New worktree**. |
+| **Preview window** | **Inline** (open in the workbench column, the default) or **Separate window** (pop out into a detached window). The preview panel header's pop-out and dock controls write the same preference. |
 | **Remember layout** | Remember the sidebar, preview, right rail, and split layouts. |
 | **Show Git change count** | Show the number of pending changes on the Git icon. |
 | **Project overrides** | Clear per-project layout overrides. |
 | **Reset workbench layout** | Restore the workbench layout to its defaults. |
+| **Autosave** | **Manual** (the save shortcut is the only way to store changes), **After delay** (write back after a typing pause), or **On focus change** (write back when the editor or window loses focus). |
+| **Autosave delay** | How long typing must pause before a file is written, 250–5000 ms, 1000 ms by default. It appears only with **After delay**. |
 
 ## Session
 
@@ -60,6 +63,7 @@ Controls the conversation content width (Narrow / Standard / Full width), the ti
 - **Queue sending** — Automatic or Manual.
 - **Message send key** — Enter or Cmd/Ctrl+Enter.
 - **Auto-continue** — Let eligible turns advance on their own; when a turn cannot continue, it stops and waits for you.
+- **Agent notifications** — The **Agent completed**, **Agent needs input**, and **Agent failed** toggles, moved here from **General**. They are unavailable while the **System notifications** master switch is off.
 - **Remembered runtime** / **Auto-continue defaults** — Clear remembered choices.
 
 ## Terminal
@@ -95,7 +99,7 @@ Shows local storage usage broken down by category (database, sessions, terminals
 
 Shows the current **version** and **channel** (Preview / ReleaseCandidate / Stable), platform information, and license, and offers:
 
-- **Software update** — Update status and action buttons (**Check now** / **Download** / **Install update** / **Restart now** / **Open release** / **Retry**). Update manifests are signature-verified; a build that fails verification is never installed.
+- **Software update** — Update status and action buttons (**Check now** / **Download** / **Install update** / **Restart now** / **Open release** / **Retry**). Update manifests are signature-verified; a build that fails verification is never installed. The card also lists **Latest version**, **Published**, and **Download size**, and renders that release's notes as Markdown under **What's new in Vibex**; with nothing newer available it shows the installed version's notes instead.
 - **Environment summary** — Copyable, non-sensitive environment information. Include it when you report a problem.
 - **Source code** / **Release notes** — Links to the repository and release notes.
 

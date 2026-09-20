@@ -7,7 +7,7 @@ Vibex 的快捷键可以在 **Settings → Shortcuts** 中查看、修改和重�
 
 ## 可重绑定的快捷键
 
-以下 14 个动作可以在设置里重新绑定：
+以下 15 个动作可以在设置里重新绑定：
 
 | 操作 | 默认键 | 分组 |
 | --- | --- | --- |
@@ -18,6 +18,7 @@ Vibex 的快捷键可以在 **Settings → Shortcuts** 中查看、修改和重�
 | Toggle conversation / terminal | `cmd-shift-t` | Composer |
 | Find in conversation | `cmd-f` | Navigation |
 | Open settings | `cmd-,` | Navigation |
+| Global search | `cmd-k` | Navigation |
 | Navigate back | `alt-left` | Navigation |
 | Navigate forward | `alt-right` | Navigation |
 | Retry runtime | `cmd-r` | Runtime |
@@ -43,7 +44,8 @@ Vibex 的快捷键可以在 **Settings → Shortcuts** 中查看、修改和重�
 | 切换上一个 / 下一个标签 | `cmd-pageup` / `cmd-pagedown` | 非终端标签 |
 | 终端复制 / 粘贴 / 搜索 | `ctrl-shift-c` / `ctrl-shift-v` / `ctrl-shift-f` | 终端标签 |
 | Tab 补齐 | `tab` / `shift-tab` | 终端标签（发送给 shell 而非移动焦点） |
-| 关闭弹层 | `escape` | 运行时管理器、查找栏 |
+| 调取历史消息 | `up` / `down` | 会话输入框（上键只在输入框为空时开始；输入即结束翻阅；下键回到最新，越过最新则恢复草稿） |
+| 关闭弹层 | `escape` | 运行时管理器、查找栏、全局搜索（第一次清空输入，第二次关闭） |
 
 ## 鼠标操作
 
@@ -63,12 +65,12 @@ Vibex 有多个作用域不同的搜索，不要把它们的范围搞混：
 | 搜索 | 范围 | 入口 |
 | --- | --- | --- |
 | **Find in conversation** | 当前会话时间线 | `cmd-f` |
-| **Search sessions** | 全部会话标题与消息正文 | 侧栏搜索图标 |
+| **Global search** | 全部会话标题与消息正文、设置项、快捷操作 | 标题栏的搜索图标或 `cmd-k` |
 | **Search workspace files** | 当前工作区文件内容 | 文件树 |
 | **Search MCP** / **Search Skills** / **Search Agent** | 对应 Config Center 列表 | 各自列表顶部 |
 | **Search commits** | Git 提交历史 | Git 面板 Commits 标签 |
 | **Search settings** | 设置项 | Settings 顶部 |
 
 <Note>
-  目前**没有**全局命令面板或跨类型快速打开。
+  **Global search** 是唯一的跨类型入口：一次输入会同时给出会话、设置项和快捷操作三组结果，按 `cmd-k` 在任何位置都能打开。会话搜索不再挂在侧栏，入口移到了标题栏、紧挨运行时控件之前。
 </Note>

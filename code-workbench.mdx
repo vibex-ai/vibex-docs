@@ -21,12 +21,13 @@ description: "浏览、搜索、编辑和预览工作区文件。"
 
 - 在编辑器中直接修改文本。
 - 用 **Save file** 保存当前文件（`cmd-s`）。
+- 默认开启自动保存：停止输入一段时间（默认 1000 毫秒）后写回，编辑器或窗口失去焦点时也会写回；在 **Settings → Workbench** 里可以改成 **Manual**（只用 `cmd-s`）或 **On focus change**，并调整空闲延迟。
 - 工具栏可以切换 **soft wrap** 和 **whitespace** 显示。
 - 状态栏显示 `Ln N, Col N`、总行数、语言、编码（`UTF-8` / `UTF-8 BOM` / `Binary`）、行尾（`LF` / `CRLF` / `Mixed EOL`）和文件大小。
 - 标题栏状态显示 **Modified**（有未保存改动）、**Saving** 或 **Saved**。
 
 <Note>
-  编辑器**没有** Save As：保存始终写回原路径。也没有文件内查找栏——`cmd-f` 打开的是会话搜索。
+  编辑器**没有** Save As：保存始终写回原路径。也没有文件内查找栏——`cmd-f` 打开的是 **Find in conversation**（在当前会话中查找）。
 </Note>
 
 ### 大文件与只读
@@ -42,9 +43,9 @@ description: "浏览、搜索、编辑和预览工作区文件。"
 
 每个编辑缓冲区同时记录已保存内容、外部 revision 和本地 revision。保存请求使用乐观并发控制：如果磁盘上的内容已经变化，保存会失败并返回 `file_external_revision_changed`，而不是静默覆盖。
 
-有未保存改动的标签在关闭时会提示 **Save or discard the dirty editor before closing it**；切换工作区时同样会拦截。
+有未保存改动的标签在关闭时会提示 **Save or discard the dirty editor before closing it**；自动保存开启时，待写回的改动会先落盘再关闭，不再打断你；切换工作区时同样会拦截。
 
-权威运行时重启后，Vibex 会恢复未保存的缓冲区（标记为 **恢复缓冲区**）。恢复内容仍需你主动保存，不会自动覆盖磁盘文件。
+权威运行时重启后，Vibex 会恢复未保存的缓冲区，它们仍然标记为 **Modified**，仍需你主动保存，不会自动覆盖磁盘文件。文件在磁盘上已被删除时，标题栏状态显示 **Deleted - recovery buffer**。
 
 <Warning>
   删除文件会改变工作区内容。删除前查看 Git 状态，必要时先复制内容或创建提交。
@@ -100,6 +101,12 @@ PDF 预览同样只读，不支持搜索、批注和表单。
 ## 预览标签和分栏
 
 拖动标签或使用标签菜单中的 **Split right** / **Split down** 把视图分栏，分栏边界可以拖动调整。代码、差异、终端和文档都可以放在同一窗口里。
+
+预览面板标题栏的 **Pop out preview window** 按钮把整个多标签面板弹出为独立窗口，**Dock preview into the main window** 把它收回工作台。面板实体始终没有易主，所以打开的标签、编辑缓冲区和终端都会跟着走，同一时间只存在一个面板；关闭独立窗口会把面板交还工作台列，关闭面板则会关掉它的窗口。独立窗口沿用外壳同一套编辑器操作，`cmd-s` 保存和跳转到行都仍然可用。
+
+全屏把工作台列交给预览面板，侧栏和右侧栏保留各自的位置、宽度和活动栏，右侧栏也保留拖拽调整宽度的手柄。
+
+在 **Settings → Workbench** 的 **Preview window** 里选择面板默认打开的位置：**Inline**（默认，内嵌在工作台列）或 **Separate window**；标题栏的弹出和停靠按钮会写入同一项设置。
 
 关闭标签不会删除文件或终端，只关闭当前视图。
 
