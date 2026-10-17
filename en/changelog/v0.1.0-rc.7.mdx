@@ -1,0 +1,118 @@
+---
+title: "v0.1.0-rc.7"
+description: "A browser in the workbench that Agents can drive, page-to-code jumps both ways, Prompts as a first-class object, the Skill market on ClawHub, fewer idle repaints, and the GPUI kit at 0.7.0."
+---
+
+## Highlights
+
+* **A browser in the workbench, and your Agent can drive it** — A browser panel sits beside the terminal and the preview, backed by the Chrome you already have. You watch the page live while the Agent works in the same tab, so what it acts on and what you see never drift apart.
+* **Jump between the page and the code** — Alt+click an element to open the source file at the line that rendered it, and Alt+click a source line to highlight that element in the page. Both directions tell you why when they cannot answer.
+* **Browser tools reach almost every Agent** — The built-in browser server is delivered to every Agent that can host it, and each Agent's row states what it received or why it received nothing.
+* **The preview opens files from anywhere** — Files outside the project open read-only, and the tab menu's file browser now picks files as well as folders.
+* **Prompts become a first-class object** — Prompts gets its own Config Center tab with a list and a single editor, and an enabled Prompt appears in the composer as a quick phrase.
+* **The Skill market reads ClawHub** — Browse the registry's own rankings, and install a Skill as the whole folder it is, references and scripts included.
+* **Faster and quieter** — Idle repaints are cut across the sidebar, the timers and the hover effects, and a streamed turn stops paying a database round trip for every chunk.
+* **The GPUI kit moves to 0.7.0** — Dialogs, sheets and notifications are owned by the root layer, and a picked reference becomes one atomic token in the composer.
+
+## New Features
+
+**Embedded browser**
+
+* Open the browser from the right rail, from the editor header beside the terminal entry, or from the tab strip's "+" menu; it is a tool panel in the workbench, not a second application window (`8b7b7e9`, `e144dad`, `75a01fd`)
+* Full navigation: back, forward and reload buttons that disable when a tab has nowhere to go, the mouse's side buttons, and a right-click page menu with back, forward, reload, copy, paste and select all (`f625d8d`, `171c446`)
+* Tabs behave the way a browser's do: a page that opens a tab gets one of its own, a tab the page closes disappears with it, and a tab the Agent opened is marked as the Agent's while it drives (`b525944`, `66679a6`, `5fd55b6`)
+* Each tab shows the page's own title with a loading spinner, plus the site's icon and a width limit so a long title cannot crowd the strip (`66679a6`, `e1e8028`)
+* Your browser tabs come back after a restart, and if one cannot be restored the panel says why on the page instead of showing a blank tab (`ade29a4`)
+* Typing, clicking, scrolling and shortcuts all reach the page, including Ctrl/Cmd+C/X/V, F5 and Ctrl+R to reload, and Ctrl+L to focus the address bar (`5a4684a`, `ac451cf`, `a8da112`)
+* A dropdown on the page opens the panel's own menu, and a page asking for a file opens the workbench's file browser and hands your choice back to the page (`112359b`, `9a52f05`)
+* Find in page highlights every hit and scrolls to the active one, and the pointer mirrors the cursor of whatever element it is over, so a link looks like a link before you click it (`aa33e67`)
+* Downloads are denied until you allow them, then save under a safe name that never overwrites, with a progress popup, a button that opens the folder, and one announcement per save (`aa33e67`, `c9f1915`, `9a52f05`)
+* An HD toggle switches the live view to lossless images for close inspection, and your choice is remembered (`e06d4a7`)
+* The panel's activity button shows the Agent's browser operations as they happen, and a banner warns you while a recording is keeping raw form values in memory (`1f0cb32`, `a96f3da`)
+* A dev server printed by any terminal tab is detected and offered as a notification instead of navigating you away, and browser settings let you choose the new-tab page and the address-bar search engine (`1c7c1cf`, `df03fcf`)
+* Pausing is always your explicit act: a page the Agent is driving shows a play/pause button, the tab strip turns green while it drives and muted once paused, and clicking, scrolling or typing never pauses it for you (`197fef5`, `2e6e35a`)
+
+**Agent browser tools**
+
+* The built-in browser server reaches Agents over the local endpoint or a sidecar, including Agents whose CLI reads its own MCP file; `pi` and `factory-droid` receive nothing and say so instead of failing quietly (`b0f6fb2`, `4dc4a90`)
+* All 31 tools keep their coarse, fine and visual tiers, and anything read from a page is fenced off as untrusted content rather than trusted on the strength of a notice (`c81194a`)
+* Pages inside cross-origin frames can be read too, so an embedded widget is not a blind spot (`9cd20d0`)
+* Uploading a file or opening a local file in the browser asks you first, with the file names on the card and no "always allow", because being inside the project is not consent to send a file out (`9cd20d0`)
+* Navigation is gated everywhere: a new tab obeys the same policy as an address you type, a one-off approval is not remembered, and a tab in use cannot be closed underneath the Agent by cleanup (`6cde975`)
+
+**Browser and code**
+
+* Alt+click in the page opens the element's source file at the reported line, and the click never reaches the page; when there is no answer the panel says why inline (`ae3e82f`)
+* Alt+click on a source line highlights and scrolls to the element that line rendered, using the same highlight an Agent's action draws (`6aec9f4`)
+
+**Preview and files**
+
+* Files outside the project open in the preview panel read-only: the client reads them directly, a save is refused with an explanation, and the tab keeps showing you where the file really lives (`904c7be`, `3d83253`)
+* The tab menu's file browser now picks files as well as folders — a row click selects instead of descending, and the confirmed path opens in the preview (`d41d783`)
+
+**Config Center**
+
+* Prompts is a primary tab with a searchable list, one card per record, and a single editor for the selected Prompt; the list previews the Prompt's text instead of repeating its type, and leaving with unsaved edits asks before discarding them (`4d203b5`, `37a2fb7`)
+* Enabled Prompts appear in the composer's `/` popup as quick phrases, inserted exactly as written and ordered by how often you use them, then by most recently edited (`b1e0d21`)
+* The quick-phrase popup sizes itself to its rows, previews the text it would insert, and keeps a long name from collapsing that preview (`8c3dadb`)
+* The MCP market pages the whole registry rather than the first window it fetched, and the transport filter narrows the results before the page is cut, so a filtered view is never mistaken for the whole catalog (`5f575e8`)
+* The management sidebar's resource rows share one selected treatment, the result summary reads at body size, and a card description that must be cut ends with an ellipsis instead of mid-word (`f467d7d`)
+
+**Skills**
+
+* The Skill market reads ClawHub with the registry's own rankings and paging, so browsing no longer needs a stand-in search and the catalog can actually page (`3d95486`)
+* A Skill installs as a whole folder — the instructions plus the references, scripts and templates they call — unpacked for your review before it is installed, confined to its own folder, and reported per file when something is refused (`3d95486`)
+* One install reaches Claude, Codex, Cursor, Gemini, OpenCode and the default source through the native Skill export (`3d95486`)
+
+**Agent management**
+
+* A managed Agent runtime is pinned to a stable entry point, so restarting an Agent no longer rewrites your durable configuration or invalidates the sessions bound to it (`64f3c7b`)
+* A cosmetic edit to a provider profile no longer invalidates its session bindings, while a real change to an endpoint, credential or command still rebuilds them as it must (`eeb55ac`)
+* OpenCode gains an auto-accept mode you can pick per session, which also stops workspace-external reads from prompting every time (`af8a9fa`)
+* A Codex session starts on the profile model you selected, so choosing another model restarts cleanly instead of leaving the process on the old one (`b5dc05d`)
+* Claude profile models stay resolvable without editing your own Claude configuration (`9d71fcc`)
+* A queued message survives local write contention instead of reporting that it was not sent (`8530dd5`)
+
+**Composer**
+
+* A `/command`, `@file` or `$skill` you pick from the suggestion menu becomes one unit: the caret steps over it, one backspace deletes it whole, and clicking a file token opens that file — while the text sent to the Agent stays exactly what you see (`3f47e3c`)
+
+**Workbench and settings**
+
+* Find follows focus: Ctrl+F goes to the focused editor, then to the focused browser panel, and only a conversation that really holds the keyboard opens session search (`d793b4f`, `9a52f05`)
+* Dragging a session moves every row you had selected, including the current one, so what is highlighted and what moves are always the same rows (`b699a38`, `7b0c3e9`)
+* Settings rows decide stacked or inline from the page width, the value column stays shrinkable with a floor for the label, and long values wrap cleanly instead of shrinking to a character per line (`68f8be5`)
+* The developer FPS HUD opens centred in the window every time, is dragged as an offset from that middle, and never leaves the window (`87a2268`, `4b52031`)
+* The update entry and the About page were repaired: the icon uses the success colour, opening About from the update panel no longer trips over itself, and the release notes scroll without moving the panel behind them (`7581dff`)
+* The editor keeps your selection visible while a context menu, a dialog or another pane holds the keyboard (`a6c62ec`)
+* Turning off "pause animation when inactive" now really keeps a backgrounded workbench animating, including the sidebar spinners, the terminal cursor and the turn timer (`beacd98`)
+* The Chinese interface now calls the composer's `$` trigger Skill rather than 技能, consistently across the composer, the sidebar and the market (`1f51aa9`, `5f575e8`)
+
+## Fixes
+
+* Open a tab on Windows: a leftover browser endpoint can no longer point at a dead browser, and the installed Chrome is no longer probed on every launch (`a7a7289`)
+* Fix the first click on the browser entry crashing, and keep the live view running instead of freezing on the last frame when a stream ends (`9c9a00c`, `90ab6f8`)
+* Drop an inherited proxy setting that made every page fail to load, and keep the address you asked for when a page fails so the tab does not sit on an internal error page URL (`5d7d9cb`, `1f66568`)
+* Deliver the panel the events it was dropping — page dialogs, file choosers and availability changes — let only deliberate input take over from the Agent, and deny a stopped session's approval request immediately instead of waiting out its timeout (`2e6e35a`, `3079c7d`)
+* Announce each download once, fix the panel's Space, Enter, Ctrl+X and download feedback, and make dragging select text the way you expect (`c9f1915`, `9a52f05`, `65c8ab2`)
+* Remove the blocking risk notice that made the browser unusable, and drop the inspector and element picker that could not attach safely (`93ab323`, `228ec67`)
+* Keep the market's pager on screen while the cards scroll under it, give the unscrolled pane its height back, and repair the About page's release facts (`0c0d534`, `e638395`, `7581dff`)
+* Size setting rows by the page and wrap long values, keep self-driven animations running when the inactive pause is off, and keep the market's import form scrolling on its own (`68f8be5`, `beacd98`)
+* A remote panel now reports itself degraded and says that these display choices configure nothing on the machine actually running the page, instead of failing silently (`6a7d58f`)
+
+## Performance
+
+* Cut idle repaints: hover effects, sidebar status spinners, the turn timer and locale lookups no longer redraw the window when nothing changed, and the FPS HUD draws behind a cache boundary (`80f4b4d`)
+* Stop paying a database round trip, a commit and a poll for every streamed chunk, and scale the shared runtime with the host it runs on (`e934ec0`)
+* Back off instead of burning frames in the background: the selected session polls less while the window is inactive, and token usage is read off the interface thread (`80f4b4d`)
+
+## Internal, Build & Docs
+
+* Version numbers were bumped to `0.1.0-rc.7` across the workspace, the packaging inputs, the Android version fallback, the README and deployment documentation, and the reviewed asset bundles in the license policy
+* The workspace moved to the published `gpui-kit` 0.7.0 and `gpui-pre` 0.3.7, and the license SBOM and notices were regenerated for the new dependency graph
+
+## Related links
+
+* [View the full diff on GitHub](https://github.com/vibex-ai/vibex/compare/v0.1.0-rc.6...v0.1.0-rc.7)
+* [Previous release: v0.1.0-rc.6](/en/changelog/v0.1.0-rc.6)
+* [Back to the changelog](/en/changelog)

@@ -1,0 +1,227 @@
+---
+title: "v0.1.0-rc.6"
+description: "Session groups and split workspaces, MCP and Skill marketplaces, notifications you can act on, named runtimes and devices, managed Agent rollback, and camera-first mobile pairing."
+---
+
+## Highlights
+
+* **One workbench, several sessions at once** — Session groups bind a worktree's sessions into one sidebar row and one split workspace, where every pane keeps its own conversation, composer and tabs. Drag sessions in and out, drop a tab on a pane edge to split, and read a collapsed group's status at a glance.
+* **MCP and Skill marketplaces** — Browse and install MCP servers and Skills from the Config Center. The MCP catalog is indexed locally, so search is instant and covers the whole registry, and an install reaches every Agent that can host it.
+* **Notifications you can act on** — Desktop notifications use the platform channel gpui provides, stay out of the way while the window is in front, and bring the workbench back on the session that raised them when clicked.
+* **Runtimes and devices are named and manageable** — Both default to the machine's device name and can be renamed from either side. A returning phone updates its existing record, a revoked device can be restored without pairing again, and the list shows who is online right now.
+* **A managed Agent can go back to the version Vibex verified** — Rollback installs the catalog pin wherever it can complete, and DeepSeek Harness 0.4.33 now works beside 0.4.32.
+* **Faster and quieter** — A four-pane session group no longer holds the workbench in a repaint loop, the Files panel stops probing every installed editor on every frame, and repeating animations are capped at 30 fps.
+* **Pairing on mobile starts with the camera** — Scanning leads, manual entry is one field, and a QR code can be read from a screenshot in the photo library.
+
+## New Features
+
+**Session groups**
+
+* A group row stacks the group's distinct Agent avatars, shows the member count, and expands to its member sessions; its menu carries auto continue for every member, pin, rename, dissolve and delete-with-sessions (`6f3c8d7`)
+* Groups join the organization tree: they nest in folders, reorder, drag, persist in `desktop-ui-state.json` and mirror over the remote sidebar protocol; a drop from another worktree is refused with an explicit message (`6f3c8d7`)
+* A collapsed group reports the most actionable status among its members — needs input, then running, then error, then unread completion — and shows the member count only when there is nothing to report (`ae3c1a4`)
+* A group with auto-continue on is carried by the status ring turning green instead of a second glyph in the trailing column, which the user could not turn off (`4e78772`)
+* Every session owns a complete `SessionView` — timeline, projections, scroll and measurement state, runtime selection, streaming bookkeeping, expansions — and borrowing moves the whole view between the store and the renderer, so a switch cannot lose, truncate or mix a view (`9e8db4a`)
+* A pane renders its own session's timeline, agent, model cascade, auto-continue countdown and checkout, and keeps streaming while it is not focused (`c0e1161`, `9e8db4a`, `2aea6ce`)
+* Members that were never focused get a timeline fetched and parked from the authoritative items, so every pane shows the full conversation; a failed fetch leaves the summary in place and is not retried (`32713a9`)
+* Every pane renders the same `render_composer` as the main workbench, against its own session's textarea, draft, attachments, queue, history, goal and plan editing, and terminal surfaces (`3f90ce3`)
+* Only the focused pane's composer is enabled; the others render the same surface for their own session, dimmed and inert, until the pane is clicked (`02a6ea0`)
+* The pane tab strip is the editor's strip with session tabs in it: it scrolls horizontally (wheel included), reveals the tab the selection moved to, and reorders by dragging a tab onto a sibling tab (`a548784`)
+* Sessions enter and leave a group by drag: a tab dragged to the sidebar leaves the group, dropping dragged sessions on a group row or any member row joins them, and dropping them anywhere else releases them (`a548784`)
+* A shift/ctrl selection offers "Create session group (N)" in the session menu, so forming a group no longer requires batch mode first (`a548784`)
+* A tab dragged onto a pane edge splits on that axis, including a drag that stays inside its own pane; a one-tab pane splits instead of refusing, and a pane can be maximized (`a548784`, `3a0f711`)
+* The group row's disclosure chevron lands on the Agent-logo column of the session rows beside it, the avatar stack reserves the width it paints, the group context menu titles itself at the top, and "Add to session group" is a submenu (`7d79054`, `731d722`)
+* The right rail's activity buttons reorder by drag, with an insertion line and the order persisted in `right_rail.activity_order` (`c1b3a19`)
+* Group members stay ordinary session rows on mobile, which has no group row yet (`6f3c8d7`)
+
+**MCP & Skill markets**
+
+* Add MCP and Skill marketplaces to the Config Center, reachable from their settings sidebars: search, per-source failure reporting, an install form with Agent selection, MCP environment variables, and a Skill document preview that is exactly what the install writes (`ee1aca1`)
+* Fetch catalogs behind a public-network boundary: credentials-free https only, non-public addresses refused, manual redirects revalidated at every hop, bounded response bodies and one shared deadline (`ee1aca1`)
+* Expose the market over the relay protocol as provider requests, so a paired device reads and installs through the authoritative runtime, and installs inherit mutation idempotency and audit records (`ee1aca1`)
+* Index the MCP registry by walking its cursor into a process-wide index on a background thread, and answer every query by filtering it locally; the index keeps growing to thousands of entries while the market is open (`2234aab`)
+* Search matches description and publisher, not just the name, and the response reports the indexed catalog size and total match count so a capped window is never mistaken for a complete catalog (`2234aab`)
+* Raise the request ceiling above the slowest observed page and retry a dropped page, since a slow page was indistinguishable from an outage (`2234aab`)
+* Map the fields the registry actually publishes — repository, publisher, lifecycle status, `updatedAt`, `isSecret` — and prefer npm over pypi over a remote package, so an oci-first record no longer installs `npx <image>` (`2234aab`)
+* Fix launcher argument order and stop passing `-y` to `uvx`, which has no such flag (`2234aab`)
+* Deliver an installed MCP server through each selected Agent's own channel, writing the native MCP file for native-config Agents and skipping Agents with no channel with a diagnostic (`69216b2`)
+* Page both markets with the kit's Pagination, twelve cards at a time, against the window already fetched, because neither upstream can answer "show me page 5"; a new search resets to the first page and a page that no longer exists falls back to the last one (`aef87d6`)
+* Populate the Skill market without a query by resolving an empty or one-character query to a broad browse query and re-ranking it by install count (`2175224`)
+* Read each market from one fixed upstream — the official MCP registry and a public skill index — which drops the catalog source type, the source manager, the builtin pick catalogs and the invented category chips (`b25f764`)
+* Render the markets inline in the section body, lift the MCP and Skill create actions above import, and give every action its own inline pane so the list always reads as the way back to a resource (`48665c1`, `4483a47`, `c3d5196`, `00c9877`)
+* Rework the MCP and Skill management pages onto the Agent sidebar's card, control band and type scale, with the query and Search button on one taller row, transport filters beneath, the kit's progress in the Search icon slot, and the install form's homepage link on the title row (`4bed0d5`, `18d4f6f`)
+* Remove the per-page native-export card from the MCP and Skills pages, since MCP servers already reach each enabled Agent through its own channel (`35ef65d`)
+* Land the `ScrollGutter` trait the management scroll regions call, and apply it across the workbench's scroll regions so the overlay scrollbar never covers the last column (`4bed0d5`, `2e08866`)
+
+**Notifications**
+
+* Replace the per-platform notification senders with gpui's `SystemNotification` and `App::show_system_notification`, and register the Windows AppUserModelID and Linux application name at startup (`ea1952a`)
+* Route a timeline notification by window focus: an in-app hint while the window is in front, a system notification when it is not, tagged with the session id so a newer notification replaces an older one (`ea1952a`)
+* Clicking a system notification restores or rebuilds the workbench window and selects the session that raised it, silently ignoring a closed session or an unknown tag (`78a8b44`)
+* Deduplicate timeline notifications by a per-session watermark that advances on dismissal and mute too, so one completion no longer raises two identical prompts (`dd5c3a8`)
+* Make a light hint's message selectable and copyable through `gpui_ext::hint_notification`, without a drag release falling through to click-to-dismiss (`ebcc88b`)
+
+**Remote & devices**
+
+* Publish the runtime's own display name as `server_display_name` in `server_info` and `serverDisplayName` in `/api/v2/info`, defaulting to the machine's device name and following an operator rename stored in the new `runtime_identity` table (migration v56) (`9432036`)
+* Add `rename_device` and `rename_runtime` to `device_management`, both requiring `mutate_device_management`, validated through `normalize_remote_display_name`, audited, and broadcast as a device event so connected clients apply the new name without reconnecting (`9432036`)
+* A device rename leaves the grant, its revision and its status untouched, so a live device never has to pair again (`9432036`)
+* Keep one device record per client: a phone presents its stored device identity on every pairing, the existing row keeps its id and creation time, the fresh pairing replaces its grant and permission level, and the grant revision is bumped (`6c55376`)
+* Add a Delete command for every paired-device record; deleting an active record revokes its grant and disconnects the client first, and audit history is kept in both cases (`6c55376`)
+* Restore a revoked device grant so a phone that kept its credential reconnects without pairing again, with the grant revision moved so nothing negotiated before the revocation is reused; only a revoked record restores (`35be91a`)
+* Show which paired devices are online now, read from the Gateway connection registry and re-read on a short timer while the list is open, instead of the stored last-seen sentence (`35be91a`)
+* Rename runtimes and devices from the desktop runtime manager, the paired-device list, and the mobile host list, each through the runtime as the authority (`9432036`)
+
+**Agent management**
+
+* Roll a managed Agent back to the Vibex-verified catalog pin, carrying the action through the backend facade and the remote protocol and re-probing runtime options afterwards because the Adapter version decides which model catalogue the Agent advertises (`6d837e2`)
+* Scope `reject_semver_downgrade` to the channel install target, and refuse a binary archive or a `manual` catalog entry as a typed capability error instead of writing a mislabelled install (`6d837e2`)
+* Offer the rollback only where it can complete, deriving the offer from the installation state and the catalog rather than storing it (`6d837e2`)
+* Keep DeepSeek Harness model ids working across 0.4.32 and 0.4.33 by projecting the bare id and registering the qualified `route::model` spelling as a read-back alias, rejecting an alias another Model already owns (`c68814b`)
+* Split the catalog's compatibility floor from its pin, declaring 0.4.32 only for DeepSeek Harness, so an installed older runtime keeps its credential surface, model row and `session/new` (`16d5681`)
+
+**Provider import**
+
+* Import Grok Build providers from CC Switch by parsing its `config.toml`: `[models].default` and its `[model.<id>]` tables, `api_backend` onto the wire protocol, `context_window` onto the context tokens, and the credential migrated under the config's `env_key` (`12cb935`)
+* Carry per-Model declarations on the import item so a source can state wire protocols and display names, and accept the unquoted `[model.grok-4.5]` spelling CC Switch's deep-link import writes (`12cb935`)
+* Gate native import to the Agents it supports — claude, codex, gemini, hermes, opencode, pi and grok — and hide the action everywhere else (`5d10a23`)
+* Name the reason an import found nothing — CC Switch missing, no provider for this Agent, already imported, or blocked by a parse error — with a localized message that names the Agent, instead of one bare error code (`72a45b4`)
+* Report an empty import as an informational notice rather than an error alert, keeping the error code for a genuine parse failure (`b248628`)
+
+**Workbench & editor**
+
+* Scope the workbench column per project checkout or per session, chosen by a new Workbench setting, parking the live column and adopting the incoming one on a switch; scoped state covers the rail visibility, width and activity, the editor panel's visibility and width, the multi-tab editor, and the integrated panel's presentation, while loaded rows stay shared (`c3527ca`)
+* Remember the multi-tab editor layout per session, persisting parked layouts in `PreviewUiState.session_layouts`, bounded by newest tab, with fullscreen kept as panel state (`cf080d6`)
+* Call the multi-tab surface the editor everywhere, and make closing it collapse the panel while keeping every open tab, so the editor comes back exactly as it was left (`ab1580d`, `98c4654`)
+* Toggle the editor from a rail logo button that reads one `preview_panel_open` helper, so the docked flag and the narrow-window overlay cannot disagree (`4abaae0`)
+* Draw the panel toggles with the mirrored sidebar glyphs — `sidebar-left` on the title-bar toggle, `sidebar-right` on the rail's editor button — bundled as `currentColor` strokes with no literal fill (`a64eec6`)
+* Reveal nested files in the Files tree by walking the parent chain, opening the directories the tree knows, fetching the first missing one, and retrying until the file can be selected and scrolled into view (`0b4bc8f`)
+* Add a reveal control to the file, diff and commit headers and to every commit file row, opening the rail's Files tree on that file; the commit message body now starts folded (`98c4654`)
+* Highlight composer `/` commands, `@` mentions and `$` skills with a rounded chip painted over the same glyphs, wrapping per line and painting nothing once scrolled out of the viewport (`57b020f`)
+* Keep the question and answers of a settled input request as a disclosure: the header carries the outcome, the collapsed body keeps the question and recorded answer, and expanding reveals every labelled field (`c0ac5d7`)
+* Jump to the pending permission card from its alert, and put the alert away for the requests currently pending (`c4c5be3`)
+* Remember a dismissed permission alert across restarts, keyed by the pending-request set so a later request brings it back (`13a0537`)
+* Add an Agents group to global search that opens the Config Center on the matched Agent, led by catalog identity for a non-empty query (`c261f6f`)
+* Link the runtime manager and the connect-a-mobile-device dialog to their documentation through one shared help-glyph builder (`9d7a2c0`)
+
+**Settings & appearance**
+
+* Add `pauseInactiveAnimation` to the appearance state, off by default, gating the motion layer's window-inactive pause instead of applying it unconditionally, with the setting exposed beside reduced motion (`2c72ee8`)
+* Offer System, Direct and Custom network proxy modes instead of one ambiguous switch, showing the address, the bypass list and the connection test only under Custom and migrating state persisted before modes existed (`94f909a`)
+* Describe the Network proxy row by what it governs — Agent requests, Git and terminal commands, Agent installs, and updates — instead of naming an extension marketplace and a built-in browser Vibex does not have (`e79139e`)
+* Keep dialog inputs editable: the device rename, terminal rename, runtime feature value and custom shell dialogs now create their input before `open_dialog` and take focus on the next frame, and the mobile host rename sheet focuses its field and raises the keyboard (`e069446`)
+
+**Mobile**
+
+* Lead the pairing page with scanning, keep the other entries behind one "Can't scan?" group, and collapse manual entry to a single field that reveals the server address only for a bare code (`af36fa4`)
+* Decode a QR image picked from the photo library, and add an open-settings bridge on both hosts for the denied local-network case (`af36fa4`)
+* Pair under the phone's own device name (Android `Build.MODEL`) instead of a generic product name (`9432036`)
+* Render the runtime's published name in the host list, observed at connect and from the rename event (`9432036`)
+
+**Data & diagnostics**
+
+* Import release-candidate data into the stable channel from Data & Diagnostics, staging and verifying a migrated snapshot before anything replaces the live files, and swapping at the next runtime start after the home lock is held (`687494c`)
+* Ask once on a stable first launch that finds RC data next to its home, and record the answer so the prompt never returns (`687494c`)
+
+**Developer experience**
+
+* Move `gpui-kit` to the published 0.6.4 release, add the matching `gpui-base`, and bump `gpui-pre-mobile` (`c768bc9`)
+* Adopt the new kit APIs: the file search field becomes one `InputGroup`, the usage charts sample the kit's motion layer through `gpui-base`, and the runtime manager gains its add dialog, per-row meta lines, lane metrics and an error strip (`c768bc9`)
+* Report added and removed line counts per file in Git status and commit detail (`c768bc9`)
+* Record the Git path-identity and Windows `MAX_PATH` contracts in spec, and the pin-versus-floor and second-credential-gate contracts for DeepSeek Harness (`9a3a0e6`, `16d5681`)
+
+## Fixes
+
+**Desktop — session panes and focus**
+
+* Stop focus from changing what a pane shows: materialization treats the live view's session as available and parking a fetched view never replaces an existing one, and every pane renders the same conversation area and composer (`9a390f4`)
+* Keep each pane on its own conversation by parking the live view under its own session id and handing the focused session's view back explicitly (`2a418bd`)
+* Give each pane its own timeline element, built from the session the list belongs to, so panes stop sharing one measured row layout and one viewport (`3a0f711`)
+* Route the prepaint turn-height measurement and the borrowed view by session, so measurements land in the view that owns them and a pane that loses focus keeps its layout (`b97cda4`, `2aea6ce`)
+* Keep a scrolled split pane from snapping back to the bottom by borrowing the pane's view in the wheel listener and carrying that session into the resume timer (`ae9bd3d`)
+* Resolve a same-pane drop by region, and filter the shared pane drop target by `pane_id`, so a drag inside one pane splits instead of being a no-op or landing on whichever pane painted last (`3a0f711`, `4959240`)
+* Give each group pane its own composer entity, bound to the session it was created for, so one textarea is not shared by the whole workspace (`02a6ea0`)
+* Trim the per-pane textarea store to the sessions a group still holds, and drop the per-pane textarea map and session draft map (`3f90ce3`, `304ee96`)
+* Keep a multi-selection whole when dragging sessions: a range may cross the pinned band, the payload appends every selected row the sibling order does not know, and a drag no longer refuses to start when the order lacks its row (`bdc20d2`)
+* Let the landing row decide a drop's group, and take the sessions a drop applies to from the selection itself rather than a payload captured when the row was built (`c8b4873`)
+* Keep a group's panes reachable from the sidebar: selecting a member moves the group's focused pane and that pane's active tab, and a maximized workspace follows the selection (`09f3c47`)
+* Derive pane focus from the selection as well as the group layout, so a restored layout cannot disagree with it (`09f3c47`)
+* Keep a pane's timeline live while it is unfocused by borrowing its own view for row build, unit build and height recording (`2aea6ce`)
+* Keep a non-focused pane's tabs draggable by no longer stopping mouse-down propagation (`3a0f711`)
+* Paint monochrome Agent marks with the sidebar foreground so they follow the theme, while polychrome brand marks keep their embedded colours (`09f3c47`)
+* Report a group's auto-continue through the status ring, and keep a worktree row passing `false` because its sessions can disagree (`4e78772`)
+
+**Desktop — layout, chrome and readability**
+
+* Keep the user bubble's last wrapped line inside the pill by capping the body at the width the pill's content box resolves to, with a regression probe comparing the pill's height against a plain text element (`a4684c0`)
+* Keep a pinned session's state mark in the lane left of its pin mark, and yield the trailing column to the hover action cluster in every row (`2c8ba9b`)
+* Stop a dialog builder from rebuilding its inputs on every repaint, which replaced the entity being typed into (`e069446`)
+* Put the MCP and Skill controls back on the kit's type scale: medium search fields at 32px with 14px text, one 32px control band across the sidebar, and a genuinely left-aligned market label (`18d4f6f`)
+* Give the MCP market the reference density: cards may shrink to 260px so the grid fits two or three columns, the address chip leads with the transport glyph, and both market headings lead with their registry glyph (`18d4f6f`)
+* Register the terminal icon the MCP transport rows ask for, and bundle `chevrons-left.svg` with `book-open.svg` (`96133bb`, `9e8db4a`)
+* Land `ScrollGutter` across the workbench's scroll regions so the overlay scrollbar never covers the last column (`2e08866`)
+
+**Desktop — sessions, sidebar and timeline**
+
+* Drop a stale error dot once a session works again by projecting a locally pending turn as running over a stale `error` snapshot, while `needs_input` keeps winning; admission and completion now publish a session snapshot (`555ae3b`)
+* Anchor a pending turn to the moment its projection is built instead of the Unix epoch, which had flashed a header reading "worked for 497217h 12m", and fall back to the borrowed view's session so a brand-new session keeps its optimistic first message (`f7ca797`)
+* Highlight the composer's trigger tokens as ranges inside the text, so the caret can move into one and edit it like any other character (`57b020f`)
+* Show the most actionable member status on a collapsed group row, using the priority a workspace row already encodes (`ae3c1a4`)
+* Align group rows with the Agent-logo column of the session rows beside them (`7d79054`, `09f3c47`, `731d722`)
+
+**Market**
+
+* Fix the MCP registry's unusable interactive search and its single-page ceiling by indexing the catalog locally (`2234aab`)
+* Populate the Skill market without a query instead of rendering empty until the user types (`2175224`)
+* Deliver installed MCP servers to every Agent that can host them, and report the ones that cannot (`69216b2`)
+* Report an empty CC Switch import as a notice, and name why nothing was found (`b248628`, `72a45b4`)
+* Page the markets against the fetched window, and reset or clamp the page when a search changes the result set (`aef87d6`)
+* Drop the catalog source manager, builtin pick catalogs and invented category chips, so every user searches the same upstreams with the same failure modes (`b25f764`)
+
+**Git & Windows**
+
+* Resolve the mutation lock path through `repository_common_dir` instead of a comparison identity, whose verbatim prefix `CreateFileW` rejected with `ERROR_INVALID_NAME`; the same mangled value had broken the `git -C` calls made from `normalized_path` (`9930556`)
+* Strip the Windows namespace prefix before normalizing, repairing 19 of the 32 `vibex-git` tests on Windows (`9930556`)
+* Keep test temp paths and Git's own state files inside the Windows 260-character budget, and pin `core.autocrlf=false` in test repositories so byte-exact assertions do not read back CRLF (`953a3a3`)
+
+**Agent, ACP and usage**
+
+* Keep a DeepSeek Harness runtime usable across the 0.4.33 pin bump by splitting the compatibility floor from the pin and projecting the route-derived credential name (`16d5681`)
+* Keep DeepSeek Harness model ids working across adapter versions with a read-back alias for the qualified spelling (`c68814b`)
+* Launch every npm ACP adapter with `spawn(process.execPath, [adapter, ...args])` instead of importing it in-process, which had left `process.argv[1]` pointing at the launcher and silently disabled CLI adapters that only start when their own entry file is invoked (`f483d54`)
+* Pre-extract the vendored DeepSeek Harness runtime with symlink entries skipped and the `.dsh-acp-runtime` marker written, because Windows refuses to create the `node_modules/.bin` symlinks without Developer Mode or elevation (`f483d54`)
+* Count turn-scoped adapters by registering DeepSeek Harness as turn-scoped with a per-request `usage_update`, so a growing reading no longer loses the previous turn's tokens a second time and a shrinking reading is not read as a counter reset (`624f2e4`)
+* Label an aggregate "API requests" only once every turn reported them, and keep naming the turn count until then (`624f2e4`)
+* Run the proxy connection test on the Tokio runtime, since the probe's first DNS or socket operation panicked a GPUI worker thread and took the workbench down (`30a31a9`)
+* Fix a Windows-only path separator assertion in the DeepSeek install manifest test (`f483d54`)
+
+**Build and quality gate**
+
+* Apply the rustfmt hunks the repository's own `check:rust` gate failed on, and collapse the `collapsible_if` clippy rejected in the market size-limit check (`8f1d0f8`, `72da172`, `73d143b`, `5fe4936`, `d49a915`)
+
+## Performance
+
+* Give every session-group pane its own `SessionGroupPaneView` behind an `Entity::cached` boundary, so one pane's animation no longer rebuilds the whole split and a notify raised inside a pane reaches only that pane (`e6f690a`)
+* Stop the agent thinking shimmer from outliving an interrupted turn by asking the session whether its turn is live, which had kept a shimmer running in every pane holding that session (`e6f690a`)
+* Drive the composer's auto-continue sync from the events that change its inputs instead of the render path, and issue one probe per revision per backoff window: per-frame probe re-entries went from 111 to 0 on a four-pane group (`e545edc`)
+* Borrow panes unweighed and hand every pane back through one weighed release, and share the runtime catalog with a memo bounded per distinct selection (`e545edc`)
+* Route the prepaint height measurement by session and weigh a stored session view once, instead of rebuilding the row-size table on every frame (`b97cda4`)
+* Cache the external-editor probe per process and warm it from a background executor, because the Files panel header probed PATH × `PATHEXT` × 16 editors on every frame — about 4600 filesystem queries and 60 ms per probe on Windows (`3a0cd61`)
+* Limit the local spinner, the startup wordmark shimmer and the mobile pairing gradient to 30 fps, so sidebar loading no longer drives a whole-window repaint (`06223cb`)
+* Launch npm-generated `.cmd`/`.bat` Node shims directly through `process.execPath`, removing one `cmd.exe` and its console host per ACP session on Windows (`06223cb`)
+* Pause the workbench's repeating animations when its window is inactive only when the new appearance setting asks for it, so a backgrounded workbench is not frozen by default (`06223cb`, `2c72ee8`)
+* Look session-view and group-load keys up borrowed instead of allocating an owned key per member per frame, and let `system_locale` hand back a `&'static str` instead of cloning on every `strings()` call (`b97cda4`)
+
+## Internal, Build & Docs
+
+* The first-party icon bundle grew from 191 to 194 files: `sidebar-left.svg` and `sidebar-right.svg` for the panel toggles and `chevrons-left.svg` for the pane tab menu, all three Lucide ISC paths, registered with their provenance, count and tree digest in the license policy (`a64eec6`, `a548784`, `9e8db4a`)
+* Version numbers were bumped to `0.1.0-rc.6` across the workspace, the packaging inputs, the Android version fallback, the README and deployment documentation, the native-content package expectations, and the reviewed first-party asset-bundle versions in the license policy
+* Spec updates: the inactive-window rendering pause is recorded as an opt-in appearance preference (`be6e01b`), the Git path identity and Windows `MAX_PATH` contracts (`9a3a0e6`), the executor boundary for async probes (`30a31a9`), and the pin-versus-floor and second-credential-gate contracts for DeepSeek Harness (`16d5681`)
+* New or extended test coverage: session-group pane views and focus routing, split and drag region resolution, the pinned-band selection scope, session group drag payloads, the MCP market index and its paging, native MCP delivery classification, the CC Switch Grok Build parser, the paired-device identity and presence, the runtime rename protocol, the manager rollback gating, the pill height against a measured text element, the rendered pill tabs of the Config Center nav, selectable hint text, the proxy mode migration, the settled elicitation disclosure, the Workbench scope re-keying and the per-session editor layouts (`2232f70`, `a4684c0`, `bdc20d2`, `c8b4873`, `e545edc`, `b97cda4`, `69216b2`, `12cb935`, `6c55376`, `35be91a`, `9432036`, `6d837e2`, `ebcc88b`, `94f909a`, `c0ac5d7`, `c3527ca`, `cf080d6`, `e069446`)
+* Dependencies moved to the published `gpui-kit` 0.6.4 with the matching `gpui-base`, and `gpui-pre-mobile` was bumped (`c768bc9`)
+
+## Related links
+
+* [View the full diff on GitHub](https://github.com/vibex-ai/vibex/compare/v0.1.0-rc.5...v0.1.0-rc.6)
+* [Previous release: v0.1.0-rc.5](/en/changelog/v0.1.0-rc.5)
+* [Back to the changelog](/en/changelog)
