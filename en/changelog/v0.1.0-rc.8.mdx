@@ -1,0 +1,180 @@
+---
+title: "v0.1.0-rc.8"
+description: "The Vibex TUI terminal client, Agents working as a team, scheduled messages, custom workbench backgrounds, Agent computer control, a rebuilt mobile app, and automatic updates on by default."
+---
+
+## Highlights
+
+* **Vibex TUI: the whole workbench fits in a terminal** — Sessions, streamed Markdown, approvals, the queue, settings and pairing all move into the terminal, laid out as one column of full-width bands that reflows with the window, so there is no minimum size. It ships with every desktop installer, works over SSH and in tmux, and can either start its own runtime or attach to the one your desktop is already running.
+* **Agents work as a team** — Delegation is no longer one question and one answer: a task can stay open after its turn ends, you follow up in the same child session, and then decide whether to accept or cancel. The sidebar's ownership tree and the session group's team status header show how far the work has moved.
+* **Scheduled messages** — Pick an hour for a message and it stays in the queue for you. The schedule survives a restart, is edited in a popup, and shows a send another client is holding.
+* **A custom workbench background** — Put your own image behind the workbench, still or animated, filled, fitted or stretched, with an adjustable scrim on top so text stays readable over anything. Images import the same way project icons do and live under the runtime home.
+* **Agent computer control** — After you authorize it, an Agent can take over the host machine's desktop. It installs and is managed in Settings, has its own floating shell and localized panels, the driver's console window never lands on your desktop, and the master switch turns it off at any time.
+* **Mobile rebuilt to match the desktop** — Mobile follows the desktop's model: session groups and the ownership tree, a right sidebar with a file tree and diffs, scheduled sends, worktrees, goals, haptics, and a rebuilt pairing and first-run flow.
+* **Automatic updates on by default** — The desktop updates itself by default and existing installs are moved to that behaviour; iOS ships an unsigned device IPA alongside the simulator build, which you re-sign with your own Apple ID.
+
+## New Features
+
+**Vibex TUI (terminal client)**
+
+* The interface is one column of full-width bands — status, conversation, turn status, composer, shortcut bar — replacing the old split grid and reflowing at any terminal size, so there is no minimum size and no more "window too small" (`1aa9e4d5`, `dedafc55`, `eb95f780`)
+* The conversation renders Markdown in place as it streams, with emphasis, code and tables drawn from real syntax and a full colour hierarchy instead of white on white (`e9b05a27`, `2acf4d03`, `10507286`)
+* A finished turn folds behind a `▸ Worked for 12s` divider that is itself the toggle; expanding re-measures row heights, and expanding mid-run does not push the reader out of place (`eb4ed877`, `f39d5163`, `13ba42e6`)
+* User messages that scroll away pin above the viewport and are drawn once, `/` search runs a smart-case regex, and scrolling to the top loads older history (`ae610ee3`, `28dda9e3`, `71fee6c1`, `f4d6e9a2`)
+* You can select conversation text with the mouse and copy it over OSC 52, over SSH and in tmux; the cells the selection covers are copied in full (`143b82fb`, `39a59f3b`)
+* The composer edits like readline — undo, kill buffer, word movement, selection and replacement inside the draft, and Shift+Enter inserts a newline instead of sending (`5897bd40`, `114b7b30`, `63b44766`)
+* A long paste collapses into a `[Pasted: 42 lines]` chip whose contents you can preview, and a sent message is recalled with the arrow keys (`864cba66`, `499a7ea5`, `9503ed2e`)
+* Clipboard images, pastes and drops all become chips, drawn at the terminal's own resolution, and you can paste an image over SSH (`260a9b6e`, `94b1a22b`, `beacbd90`)
+* `/`, `@` and `$` open the desktop's own completion panels — commands and Prompts, workspace files and the Agent delegation list, Skills; the drawer opens in the row and Enter takes the row it offers (`d5f7b041`, `f2259a44`)
+* Agent requests appear in place: a question opens on the composer band and is answered with a real form, an approval is a card on the page, and a dock panel collects Agents, plans and held messages (`2cd7cb59`, `918e8a21`, `0300847d`)
+* The turn rail ticks by turn only and lights every turn the viewport covers; scrolling to the bottom stops and resumes following (`1b5704e3`, `627bf5c3`, `6699797c`)
+* Theme, language and recent commands are remembered; the `?` cheat sheet is grouped, key bindings are edited right in the interface, and a conflict is refused (`c4d28c0e`, `4a49d297`, `4f9ef96c`)
+
+**TUI sessions, runtime and Config Center**
+
+* The session list draws the desktop sidebar's arrangement, with rename and delete controls right on the row; you can pin, group and reorder by hand, and a group section carries a summary (`b4e6b30c`, `2f7d75f2`, `b4dc89a8`)
+* When the desktop arrangement cannot be read, your own pins and order are kept in `~/.vibex/tui-sidebar.json` (`31c9e9bb`)
+* Delegated child sessions nest in the session list and are drawn as branches with tree rails, a branch stops at the child session's Agent marker, and no vertical line grows down from above where there is no session (`2faf67a7`, `42297e47`, `77f72704`)
+* A session read or deleted in another client syncs over: the read dot disappears, and the deleted row, the open page and each session's state are cleared together (`7025a3f4`, `68aa778c`, `f364a0c4`)
+* The client opens on the new-session composer for the current directory, with the directory and the last runtime already filled in; `Esc` switches between the composer and the session list, and sending the first message drops you into that session (`4c29a366`, `34dd24c2`, `d9397935`)
+* Creating a session happens on the page rather than in a dialog, `Ctrl+W` changes the workspace and the directory you picked is kept; the workspace picker opens on the directory the page already points at, and Space enters the folder under the cursor (`359be634`, `b7eaeb7c`, `bec4918c`)
+* The runtime switcher is rebuilt around grouping, search and a staged selection, a seat reads as local or remote, and attaching a remote seat connects the transport first (`46959e90`, `f6551002`, `78e34b78`, `0527d8dc`)
+* The management page is rebuilt as a desktop-style Config Center — Agent, provider profiles, Model, MCP, Skill, Prompt, pairing and remote access all live in it (`5460a842`)
+* A record's switch responds the moment it is pressed and is drawn back the way it was when the permission side refuses; a region that has not loaded draws a skeleton instead of an empty table, and a read failure stays on the region that started it with an error code and a retry key (`7e4bc14d`, `729145af`, `898fed38`, `64df2814`)
+* Provider profiles can be created, duplicated and ordered the way you keep them, with the site, request headers and per-protocol addresses editable, and you can clear a key, pin an endpoint, narrow a default, and import or export settings already held by other CLI tools (`95dea462`, `6e719bda`, `f0f9b1c2`, `259d7c37`, `7cf9bfab`, `7e1bce36`)
+* You can edit which Models a provider profile offers and the settings of a single Model, `y` offers every Model in the catalog at once, and `z` retracts them all (`a103a9ef`, `b86bb346`, `833c6599`)
+* The Agent catalog is sorted into three sections with badges, and you can discover an Agent CLI already on the machine, watch it install, and register a custom ACP Agent (`48cb6e82`, `3a311efb`, `38596fc5`)
+* The Agent account panel reads an account as a list of sign-in methods you can sign in with and open the credential page for; a terminal sign-in draws a real terminal in the panel and says what it will end before you quit (`845278ab`, `9d0e9630`, `667c6aa5`)
+
+**TUI notifications, Skills and pairing**
+
+* Notifications are delivered through terminal escapes, and the channel is chosen by runtime: attaching to the desktop yields to the desktop, and one event arrives on one channel only (`bdeb8126`, `3adac8f0`, `905bcd4e`)
+* The Skill market pages and narrows, and a card states its own condition (an installed entry offers "Reinstall", a withdrawn entry comes first); before installing you read the instructions, the file list and the files that will not be written, then choose which Agents receive it (`eef35bb4`, `e4cd2c08`, `2591dddd`)
+* The pairing page and device management merge into one page, the QR code is drawn as an image rather than half-block characters, a pairing offer lists the routes it carries for you to choose, and closing hands the one-time code back (`5fdb096c`, `8ed48f1a`, `3c2c075e`)
+* The client ships with every desktop installer — `/usr/bin/vibex`, beside the macOS `.app`, `vibex.exe` — and in a container you run `docker exec -it <container> vibex-server tui` (`24654f20`)
+
+**Agent teams**
+
+* A delegated task can stay open after its turn ends, with follow-ups appended to the same child session and then accepted or cancelled, and the old single-turn path is unaffected (`019d4f14`, `021d6324`)
+* A retry lands on the original acceptance instead of overwriting earlier work, a changed intent is rejected outright, and only a turn that really ended is accepted and only a task that really ran is followed up (`642b655e`)
+* A delegated session receives exactly the context the caller declared, no more and no less (`019d4f14`)
+* A forwarded child Agent title no longer leaks onto the root session, and an Agent publishes a settled turn before compacting its streamed rows (`b4fd32ef`, `96d6c7ea`)
+* The `@` reference menu splits into file and Agent delegation tabs, and each Agent configuration carries its name, so whether a reference names a file or an Agent is plain at a glance (`46c4f918`, `85bd90e4`)
+
+**Desktop**
+
+* Put your own image behind the workbench: a still image, a GIF or an animated WebP, filled, fitted or stretched, with an adjustable scrim; in the light appearance the background is treated as glass, and the start-up loading page stays opaque (`e322e5e8`, `0b854ba1`, `83a21940`, `50bf639d`)
+* Messages can be scheduled: pick an hour, the schedule survives a restart, it is edited in a popup, and Enter confirms from the time field; a send another client is holding is shown too (`89785005`, `91c826be`, `b25c1cbb`, `979810f3`, `1e45d7f3`)
+* Each Agent's built-in tool panel can be switched on or off from the Agent list, and an enabled tool's icon lights green (`5bf529f9`, `692dd6d0`, `a7537272`)
+* The project menu offers a temporary session, a folder row in the sidebar gains a new-session action, and a folder row's actions stay on one line (`1b8111d4`, `d9216e9a`, `dc1a0883`)
+* Failure messages and right sidebar results become one top toast, dismissed by clicking the card and copied with a button instead of by dragging (`0e948fc7`, `15510430`, `37ba9363`, `d6fdf4d0`, `e6fc6fd4`)
+* The settings dialog's navigation is regrouped, and the TUI listener switch moves from the pairing page into Settings (`caa5c067`, `9ecfabd4`)
+* The terminal in the composer now opens in the bottom panel, and the terminal grid spans the full workbench width (`3207bdb8`, `aec2c82d`)
+* The session activity indicator becomes a column of chevrons (`e89ace24`)
+* A rendered Markdown preview is searchable in place, opening spreads its work across frames, and a large file preview is virtualized (`a7119836`, `df7dd245`, `1bac0ed1`)
+* The conversation reads a bounded window and can page back through history: a cold open lands at the end of the session, paging up prepends older history without moving the reader, and the turn preview rail is pinned to the viewport (`d727fbc6`, `ae6689ac`, `ed4feab8`)
+* A running reasoning stream is shown through a fixed window (`5dd873bf`)
+* Session archiving gains a restore page and an idle window, an archived page can be restored, and the idle window says what it is doing (`a06722b6`, `61a3056f`)
+* You can import the signed-in state from your local Chrome profile into an isolated profile, so you do not sign in again in the new profile (`36a8725a`)
+* The Git interface separates pull from fetch-and-refresh, and a pull puts the fetched commits into the currently checked-out branch (`09dc17cb`, `aa4587d6`)
+* AI Souls is rebuilt: pixel guards, Boss encounters that patrol on their own, an ASCII arena, reworked guard models and encounter mechanics, a quieter Boss cadence and a combat scrim, and the DeepSeek guard becomes an orca (`7e9893cd`, `49d28e21`, `90965493`, `4666460f`, `5e762c60`, `d675fd82`)
+* The arena gains a pixel timer dial and a best clear time per guard, with the time sitting on its own bevelled base (`55046d0c`, `ad47401e`)
+* Beating a guard unlocks its companion, which patrols its own route and is drawn above every composer row (`411da42b`, `942ec01b`)
+
+**Mobile**
+
+* The client is rebuilt around the desktop's model: sidebar rows, groups and labels match the desktop, and project rows, session rows and Agent markers line up with it (`edfbbeaf`, `ca7ca90f`, `f127e9c3`, `ed74f978`, `223ff22c`)
+* Session groups can be created and kept on mobile, a collapsed group says how many it hides, and a group section starts with its members and draws the full branch (`446593ca`, `1c39695e`, `88f35234`)
+* Delegated sessions hang under the desktop's tree rails and say what the delegated session is doing (`3d71cd46`, `6f761aaa`, `a1086698`)
+* The right sidebar is rebuilt around the desktop's model: a nested file tree, paged diffs, search, copyable paths, a search bar that becomes a full band, and a file viewer that opens images and jumps to a line (`d878dea4`, `801bbda2`, `414cc09e`, `c6702cd3`, `6e40cb8d`, `56df339d`)
+* The composer has its own runtime drawer — commands, queue and terminal completion — and the queue carries a picker for which hour a waiting send moves to; the drawer pulls up for more content and is dragged up and down with a finger (`6e09e106`, `907ef249`, `5151de22`, `13b6dc00`, `21e308df`)
+* Scheduled sends: pick a later hour to queue a message, see that a session is waiting on a queued send, and a waiting send can answer a question and name its own session (`bd616ab4`, `3b1e93d7`, `3472bd3c`)
+* Unsent composer content survives a restart, and drafts and sent messages can be edited, recalled and shared (`88549c59`, `dbd15c75`)
+* A goal can be rewritten, paused, resumed or cleared on mobile (`f695b268`, `cd85c524`)
+* Worktrees: pick a worktree from a list, finish a worktree rather than only creating one, fields clear with the page, and the right sidebar reports the state of every managed worktree (`f4952468`, `d59ec18c`, `28bd17e5`, `17865e4d`)
+* Base branches, temporary sessions and chip shortcuts all work, and you can start a session from a folder and mark a suspended session (`162ae20b`, `5660ba0e`)
+* A folder's archive window is selectable on mobile, and a suspended session can be restored (`75065cd4`)
+* Pairing and runtime switching merge into one first screen built around saved runtimes: it lists saved runtimes and whether they are reachable, and pairing falls back to a sheet (`4e49e469`, `35f9d99d`, `5ee86a8d`)
+* Notifications are on by default and existing installs are upgraded to on; gestures gain haptics, and a long press opens a row's own actions (`9bde8cac`, `d6e00c0d`, `b1f8d038`, `c8ddf107`)
+* The type scale moves to one scaled rem base and gains a smaller step, and a new install starts at the smallest step (`7160b1d2`, `4da16fee`, `266b1226`)
+* Android installs signed updates from the release manifest, and iOS ships an unsigned device IPA alongside the simulator build (`c3deb637`, `e1127c66`)
+* The session page's header, conversation and composer settle on the platform's own fonts and line heights (`7ce9adc1`, `e77fd5f6`)
+* You can search inside an open session, and a single control switches the file search mode (`06e34299`, `34895e0f`, `dd5fd65d`)
+
+**Agent, provider profiles and remote**
+
+* Reviewed Agent versions move forward: DeepSeek Harness `0.4.37`, Codex on `codex-acp` `2.0.1`, zcode `0.54.0`, Kimi moved to the Kimi Code CLI successor; Grok picks up the documented root-level no-auto-update flag, and the bundled updater is pinned outside the managed overlay (`25099062`, `39f07725`, `31cbc6a8`, `56b3dcb3`, `dee437ae`, `117bb4b1`, `f22bc54c`)
+* An account with no credit now reports itself as such instead of failing the model list, and an Agent's own Model names stay unchanged (`d8c74c60`)
+* Images an Agent generates appear in the session, and terminal output streams out of the reserved client capability as it is produced (`6bf50013`, `1749a038`)
+* CodeBuddy can be steered mid-turn through the bare `session/steer` method, and terminal authentication is advertised under a reserved `_meta` key (`426e1f76`, `4d5a38a6`)
+* A provider profile can be read back and edited as a whole, models can be fetched from an unsaved draft, and request headers can be overridden using session variables (`2e726b47`, `b4a0b396`, `291e9588`)
+* Computer control installs and is managed in Settings, with a floating shell and localized panels, and an Agent can drive the desktop of the machine the runtime runs on (`debcaa1a`, `e2d7f735`, `b3d10fec`, `4737d8a5`)
+* Computer control's master switch requires an installed driver, and a session started right after the switch is turned on still receives the desktop tools (`fb06f9ab`, `0cc1dbbb`)
+* The driver's console window never lands on your desktop and the Windows driver installs past the default script policy; a headless runtime can offer the helper too, and a standalone client gains a computer-control command line (`f9d8ea65`, `e0a6ead7`, `8b4956d4`, `e82abfab`)
+* One desktop can serve clients on the same machine, which is what lets the TUI attach locally (`0d0816b5`)
+* The pairing window opens on a LAN with no advertised routes, and a paired client can restore or forget a device (`82d8142f`, `671fc662`)
+* Remote publishes the state of every managed worktree, what a scheduled send will carry, a folder's archive window, a session's suspended state, and the name the runtime publishes for itself (`07a60b56`, `46ab88b8`, `43f10451`, `341b6c4c`)
+* A client can queue a message for a later hour, and an oversized session list response is no longer produced (`9cc507a7`, `82100f1c`)
+
+**Workbench and sidebar**
+
+* Hold Shift/Ctrl to select several rows and right-click, and the menu reads the whole selection: auto-continue is set to one value, pin and fork apply to every row, and delete confirms the count first (`3eef716b`)
+* A folder row gains a checkbox in batch mode, so one click selects or clears every session it governs, including nested ones and group members, while delegated child sessions stay excluded (`2bac920e`)
+* Archive is no longer buried in the title bar: the session row menu, the multi-select menu and the batch bar can all archive, no confirmation appears because it is reversible, and a mistaken archive is undone on the archive page (`c43ec865`)
+* A session row's context menu forks that session directly, landing at the source session's current position instead of first asking you to pick a spot in the conversation (`b2ce63b7`)
+* Delegated sessions expand their branch with a toggle that appears on hover at the end of the row, the toggle holds its place so a title does not reflow on hover, and parent and child rows share one height, corner radius and status column (`65834757`, `41a073d8`)
+* A session group drags as a whole: into a folder, into another group's place, or back to the workspace root; dragging a member reorders it inside the group, and dropping it outside moves that session out of the group (`e9ef0bbe`)
+* A workspace row shows how many sessions are running, a running session shows activity with a dot animation, and the title carries a shimmer (`6d2f9c49`, `83a9b179`, `8aa5f9f1`)
+* The turn preview rail lights every slot the viewport covers, and two turns light at once across a turn boundary (`b55b81f0`, `c545d89c`)
+* A cold open lands at the end of the session: with no cursor it reads the newest window, paging cuts at turn boundaries so one turn is not fed in piecemeal, and a turn header no longer shows a duration that keeps growing (`0f7b88b8`, `27c7c38d`, `2f355bbd`)
+
+## Fixes
+
+* Fix sidebar session state: a session created in another client appears, a restored session stays in the sidebar, a deleted session stops reappearing, an archived session leaves the sidebar, and a loading row no longer flickers (`eb9744d4`, `6d2a39ab`, `c50bfb87`, `a3e62674`, `d75c0be6`, `6ada8ed5`, `5b7de0eb`)
+* Fix the pre-send queue: it keeps its own order, a client write no longer re-enters the workbench, it keeps advancing after a turn ends, and editing a queued message keeps its attachments (`bd2a8d76`, `5d839a2a`, `02e72344`, `3e5d5d25`, `6d69abe0`)
+* Auto-continue starts even with no session selected, a finished turn lets a queued auto-send through, and an optimistic dispatch ends when the authority settles the turn (`cdc06217`, `b6b1086a`, `3ac5dfef`)
+* Fix the conversation's reader position: an older page no longer jumps when a turn is renamed, an expired range is rebuilt on resume, a read counts only toward the view that started it, the pane reflows when it is resized, and a just-sent message lands on its turn (`d8734bf2`, `79a05048`, `183c6351`, `c8d7a7dd`, `33f2eea3`)
+* Fix the model picker and provider profiles: clicking the whole row switches, a selected model stays ticked, the post-sign-in model refresh follows the committed revision, and only re-authentication the client can really drive is offered (`41c4bf2f`, `4c5029c4`, `f3342163`, `dc906e7b`, `472d21c4`)
+* Fix splits and panels: the composer surface stays in its own pane, the preview gap moves with the panel's real width, and an embedded browser tab fills the window size and keeps its native resolution (`378c0f4c`, `c296dfee`, `9d623c8b`, `0897b545`)
+* Fix the management page marking a saved Prompt as unsaved, and leave a new Prompt's fields empty with only placeholder hints (`259989e4`, `6856efa6`)
+* Fix composer drafts, images and the queue: an unsent draft survives switching sessions, an image pasted in another client opens, and a row cut off by the composer still carries its image chip (`0fd87dd2`, `727bb47a`, `c6a69598`)
+* Fix the archive settings page crashing on open, size the mobile pairing dialog to its content, and open the browser sign-in import dialog above Settings (`e5247e6b`, `4de2d8f5`, `8e583254`, `55145a15`)
+* Fix odds and ends: the developer FPS HUD's drag expectations, Skill market search running on Enter, and the embedded browser's quality toggle saying what it switched to (`543042a5`, `5f597a89`, `7486337e`)
+* Fix mobile system gestures and pages: the left edge no longer falls into the system back gesture, a side page is no longer pulled away by the back gesture, and a right swipe no longer leaves the app; a half-filled question survives switching sessions, and the question panel stays collapsed after it is flung away with a finger (`5e72c3fe`, `1e96120a`, `76feabd5`, `aa375079`, `33516f9d`)
+* Fix the mobile conversation and composer: the reader's history and position survive a refresh, a turn header lays out from the Agent marker, sent text no longer returns to the composer, and the composer's row height fits the space available (`6ad651bd`, `95e2b335`, `cb0dc4dc`, `148fda66`)
+* Fix the mobile terminal: Tab and Return key behaviour, touch-drag text selection versus dragging the app, mouse events forwarded to the app, and find results not lost after the grid is resized (`b48e0dda`, `05ed7733`, `076ffecd`, `db843417`)
+* Fix mobile pairing and runtimes: a failed connection restore returns to the pairing page, saved runtimes are kept when the connection drops, and the client no longer quits after pairing (`db3e17f6`, `7f2b2323`, `26827a32`)
+* Fix Agent session state: an interrupted session no longer rests on an abandoned request, resolving a permission mid-way does not settle the session, and a created session is announced to every client (`060a5053`, `6548da7c`, `10ab3bc3`)
+* Fix provider profiles and MCP: updating an MCP server keeps its environment variables and request headers, and each session config field is judged by the option that really takes effect (`df80b0b9`, `99f27933`, `370117bc`)
+* Fix computer control: it no longer reports the driver missing when it is in place, and it speaks the protocol the engine really uses (`7f9faab4`, `3e7e7bcf`)
+
+## Performance
+
+* The TUI repaints only the face the reader is looking at: an expanded process group is windowed by row, the window carries its own overscan, and a whole group is no longer laid out every frame (`eac6def7`, `768c97e7`)
+* Each process cell keeps its own element tree, a finished cell reuses it, and it is no longer rebuilt every frame (`e45b5288`, `fb567d07`)
+* A tool activity group's summary reads a bounded projection table keyed by row version and language instead of re-projecting every member row and re-parsing tool input each frame (`7299a056`)
+* The live label measures the gap between two conversation frames, falls back to static text when frames drop, and resumes its sweep once the display is back in cadence (`7299a056`)
+* Opening a session no longer pages the whole archive: it reads a bounded window by turn and by byte, a page carries only the fields collapsed activity needs, tool details are read separately when expanded, and a finished turn merges adjacent stream chunks into one row (`ca7a1d62`, `e6295130`)
+* The view keeps growing its window while the conversation does not fill the viewport, instead of stopping at less than a screenful and waiting for a scroll (`e6295130`)
+* The sidebar skips the session query when a heading collapses or expands and reads the arrangement it already has (`f164c9fe`)
+* Multi-select resolves once per frame: one scope map and one drag payload per item, with a row's batch menu reading from the same slice (`48055044`)
+* The sidebar's running indicator now draws a six-dot ring point by point on a fixed 20px canvas with a sweeping highlight, sampled to the conversation's 30fps budget — no longer replaying the TUI's braille frames at 10fps, and no longer falling back to replacement boxes when a font lacks the block (`828749ed`, `aa705410`, `5642cf83`)
+* A child Agent's conversation no longer folds every frame, and the child Agent side rail gets its own render boundary and a per-session Markdown retention table (`2e89866e`, `92a7e905`)
+* A retained cell is rebuilt only when its render key changes, expanding or collapsing triggers one re-render, and a notification alone no longer causes a rebuild (`1ee6f666`)
+* Every row has its own id, so two rows no longer share one element and one retained text view, and a streamed answer is not left as a bare background block (`5d11e308`)
+* The desktop narrows repaints to the sidebar and the conversation, virtualizes the Markdown file preview, and spreads its work across frames when it opens (`e3e0f5f2`, `1bac0ed1`, `df7dd245`)
+
+## Internal, Build & Docs
+
+* Version numbers were bumped to `0.1.0-rc.8` across the workspace members, the desktop packaging inputs, the Android versionName fallback, the README, the deployment documentation, and the reviewed asset bundle versions in the license policy
+* The license SBOM and third-party notices were regenerated for the current dependency graph: 1084 third-party Cargo packages (plus the Vibex application root), 9 asset and font packages and 5 native and installer inputs, all approved
+* The workspace gains four members: `apps/tui` and `crates/vibex-tui` (the terminal client), `crates/computer` (computer control) and `crates/vibex-brands` (shared brand marks); `crates/vibex-markdown` merges into the TUI, and the desktop renders Markdown with `gpui-component`
+* The workspace moved to `gpui-kit` `0.7.3` and `gpui-pre` `0.3.9`, and the core protocol gains a `before` cursor so conversation history can page further back
+* macOS and Windows packaging still count as build and packaging evidence, and the PDFium distribution approval still covers linux-x86_64 only
+* TUI and specification docs were filled in as a batch: Markdown rendering and the colour hierarchy, the band layout, the queue and paste chips, mouse regions and the sidebar, and contracts such as conversation paging and preset anchors
+
+## Related links
+
+* [View the full diff on GitHub](https://github.com/vibex-ai/vibex/compare/v0.1.0-rc.7...v0.1.0-rc.8)
+* [Previous release: v0.1.0-rc.7](/en/changelog/v0.1.0-rc.7)
+* [Back to the changelog](/en/changelog)
