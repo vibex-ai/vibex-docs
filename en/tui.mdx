@@ -1,0 +1,143 @@
+---
+title: "Vibex TUI"
+description: "Use the same Vibex runtime from a terminal: sessions, approvals, queue, settings, and pairing."
+---
+
+Vibex TUI is a character-grid client in the same family as the desktop and mobile apps: it renders projections from the authoritative runtime and sends typed mutations. It does not open the database, the browser runtime, or the media stack itself. It is built for SSH, tmux, servers, and people who do not want to leave the terminal.
+
+The TUI ships inside every desktop package:
+
+| Platform | Entry point |
+| --- | --- |
+| Linux | `/usr/bin/vibex` from the `.deb` / AppImage |
+| macOS | `vibex` next to the `.app`; the installer links it onto `PATH` |
+| Windows | `vibex.exe` from the NSIS installer |
+| Containers | `docker exec -it <container> vibex-server tui` |
+
+## Start
+
+```bash
+cd /path/to/your/project
+vibex
+```
+
+It attaches to the runtime for that home, starting one if needed. Common commands:
+
+| Command | What it does |
+| --- | --- |
+| `vibex` | Attach to (or start) the runtime for this home. |
+| `vibex connect vibex://…` | Pair with a remote runtime and attach. |
+| `vibex status` | Report the home, mode, endpoint, and reason without attaching. |
+| `vibex --home <dir>` | Use another home. |
+| `vibex-server tui` | Start the client from the server binary. |
+
+Run `vibex status` first when something is wrong: it prints the home, flavour, mode, endpoint, and reason.
+
+### Local and remote modes
+
+| Mode | When | Notes |
+| --- | --- | --- |
+| **Local mode** | Nothing else owns the home | The client starts and owns the runtime; native steering is available. |
+| **Remote mode** | Another runtime owns the home, or you used `vibex connect` | The client is a network peer; steering degrades to interrupt and resend. |
+
+If the home is locked and the desktop has not allowed TUI attachment, the client prints the endpoints it tried and three ways out: enable **Settings → General → Vibex TUI** in the desktop, quit the desktop, or connect to another runtime with `vibex connect`.
+
+## The screen
+
+The interface is one stack of full-width bands: status, transcript, turn status, composer, and a shortcut bar. When the terminal narrows, decoration, the queue, and status bands give way first; the transcript and composer remain. There is no minimum size and no "window too small" notice.
+
+- A settled turn folds behind `▸ Worked for 12s`; click it or press `e` to expand.
+- A prompt that scrolls away stays pinned above the viewport.
+- `/` searches the transcript with smart-case regular expressions; `n` / `p` step through matches.
+- Drag-selecting text copies it over OSC 52, which works over SSH and inside tmux.
+- Long pastes collapse into a `[Pasted: 42 lines]` chip; images attach from the clipboard, a paste, or a dropped file.
+- The status band shows the workspace, connection state, and mode; the turn status row shows running tools, elapsed time, and approval count.
+
+## Composer
+
+| Prefix / key | What it does |
+| --- | --- |
+| `/` | Open Agent commands and reusable Prompts. |
+| `@` | Open workspace files and the Agent delegation list; `←` / `→` switch panels. |
+| `$` | Insert an enabled Skill. |
+| `Enter` | Send. |
+| `Shift+Enter` / `Ctrl+J` | Insert a newline; use `Ctrl+J` when the terminal cannot report extended keys. |
+| `↑` | Recall the previous message in an empty composer. |
+| `Ctrl+O` | Hand the draft to `$EDITOR`. |
+| `Ctrl+S` | Steer the running turn. |
+| `Ctrl+C` | Clear the draft, then interrupt the turn, then offer to quit. |
+
+A message written while a turn is running is held in the queue and sent when the turn ends. The queue belongs to the session it was written for: leave and come back, and it is still there.
+
+## Sessions
+
+`vibex` opens on the new-session page for the current directory, with the directory and last-used runtime already filled in. Type the first message to create the session; the title comes from that message.
+
+- `n` creates a session, `Ctrl+W` changes the workspace, and `Ctrl+G` opens Agent setup.
+- `Ctrl+L` or `1` opens the session list; `Esc` switches between the composer and the list.
+- The list mirrors the desktop's arrangement and supports pins, rename, fork, archive, groups, and drag ordering.
+- Delegated child sessions appear as branches; the control at the end of a row expands the branch.
+- `e` opens the selected row's details, `c` closes every detail card, and `y` copies session information.
+
+## Approvals, questions, and the queue
+
+Agent requests appear in place:
+
+- Approvals are cards on the page: `a` allows, `d` denies, `Ctrl+A` allows for the session.
+- Questions use the composer band; `Tab` moves between fields and `Enter` submits.
+- Auto-continue keeps the desktop's five-second countdown; `t` stops the current continuation.
+- In the queue, `Alt+↑↓` selects a row, `Alt+E` pulls it back into the draft, `Alt+X` drops it, `Alt+J/K` reorders it, and `Alt+Enter` interrupts the turn and sends it now.
+- `Alt+D` opens the Dock, which collects running child Agents, the plan, and held messages.
+
+## Management, pairing, and settings
+
+Management is a desktop-style configuration centre: **Agents**, **Providers**, **Model**, **MCP**, **Skills**, **Prompts**, and **Pairing & remote access**. Only operations the runtime can actually serve are shown; an operation this device's grant does not permit explains itself instead of disappearing.
+
+The pairing page puts **Pair**, **Paired devices**, and **Remote access** on one tab strip:
+
+- QR code, one-time code, and link are generated in the panel.
+- An offer carries every route the runtime publishes; `[` / `]` switch routes.
+- Local-network pairing uses `a` to allow and `r` to refuse.
+- Paired devices can be revoked and the remote-protocol audit can be inspected.
+
+Settings include theme and light/dark mode (20 themes), language (`en` / `zh-CN` / `zh-TW`), icon set, landing logo, motion, reasoning display, default workspace, and key bindings. Choices are written to `~/.vibex/tui-interface.json`; bindings to `~/.vibex/tui-keys.toml`.
+
+## Shortcuts
+
+| Key | Action |
+| --- | --- |
+| `?` | Open the shortcut cheatsheet, grouped by category. |
+| `Ctrl+P` | Command palette; recently used commands lead the list. |
+| `/` | Search the transcript, a list, or the cheatsheet, depending on focus. |
+| `Tab` | Switch focus between the transcript and composer. |
+| `F2` | Expand or fold every block. |
+| `F9` | Reload the key-binding file. |
+| `Esc` | Close an overlay; switch between the composer and session list. |
+
+Bindings can be edited in Settings. A chord another action already owns is refused and the owner is named. The TUI also reads `~/.vibex/tui-keys.toml`.
+
+## Notifications and terminal behaviour
+
+Notifications are delivered through terminal escape sequences. When attached to a desktop, the desktop's channel takes precedence, so one event arrives from one channel.
+
+The TUI takes ownership of the terminal's keyboard protocol: terminals that support extended keys distinguish `Enter` from `Shift+Enter`; others fall back to `Ctrl+J`. Copying uses OSC 52, so it works over SSH and tmux.
+
+## Limits
+
+The TUI focuses on sessions and runtime operations; it is not a full replacement for the desktop workbench:
+
+- No file editor, Markdown/PDF/Office preview, embedded browser, or computer-use panel.
+- Image attachments render the way the terminal can render them; complex images are better viewed on the desktop.
+- Remote mode has no native steering; `Ctrl+S` degrades to interrupt and resend.
+- The browser and computer-use live frames are not available in the TUI.
+
+## Troubleshooting
+
+| Symptom | What to do |
+| --- | --- |
+| The home is locked | Enable **Settings → General → Vibex TUI** in the desktop, quit the desktop, or `vibex connect` to another runtime. |
+| CJK text or icons are boxes | Use a terminal font with CJK and Nerd Font glyphs; some icons have ASCII fallbacks. |
+| `Shift+Enter` does not insert a newline | The terminal lacks the extended keyboard protocol; use `Ctrl+J`. |
+| Copying does not reach the system clipboard | The terminal must support OSC 52; in tmux, enable `set-clipboard`. |
+| Steering is unavailable in remote mode | This is a protocol limit; interrupt with `Ctrl+C` and resend. |
+| The key file has errors | The TUI reports the lines it could not use and keeps starting; press `F9` to reload. |

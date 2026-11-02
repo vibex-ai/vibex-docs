@@ -50,6 +50,58 @@ Vibex 的失败以**结构化错误码**返回，界面会显示为 `错误码: 
 | `release_channel_override_rejected` | 试图在运行时切换发布通道。 | 安装对应通道的版本。 |
 | `stable_channel_requires_release_build` | Stable 通道需要正式发布构建。 | 使用正式发布的安装包。 |
 
+## SSH 与 WSL
+
+| 错误码 | 含义 | 处理 |
+| --- | --- | --- |
+| `ssh_client_missing` / `ssh_spawn_failed` | 桌面端没有可用的 SSH 客户端。 | 安装 OpenSSH；Windows 使用 WSL。 |
+| `ssh_host_key_unknown` | 主机密钥不在 `known_hosts` 中。 | 先在终端连接并核对指纹。 |
+| `ssh_host_key_changed` | 主机密钥与记录不一致。 | 与主机所有者核对后再决定是否更新 `known_hosts`。 |
+| `ssh_auth_failed` | 非交互认证失败。 | 检查 Key、ssh-agent 和 IdentityFile。 |
+| `ssh_connection_refused` | 目标没有 SSH 服务。 | 安装/启动 sshd，或用 bootstrap。 |
+| `ssh_environment_glibc_too_old` / `ssh_environment_missing_glibc` | 远端 glibc 低于 2.35 或缺失。 | 换受支持的发行版；musl 主机不支持。 |
+| `ssh_environment_disk_low` | 远端 home 空间不足。 | 至少释放 512 MiB。 |
+| `ssh_environment_port_busy` | 运行时端口被占用。 | 释放端口或重试。 |
+| `ssh_runtime_start_failed` / `ssh_runtime_health_timeout` | 运行时没有启动或健康检查超时。 | 查看远端 `server.log`，修复后重试。 |
+| `ssh_tunnel_*` | 隧道建立、保持或停止失败。 | 检查本地端口和 SSH 连接，重试。 |
+| `ssh_upgrade_incompatible` | 运行时与桌面端版本不兼容。 | 按兼容性状态更新运行时或 Vibex。 |
+
+## 浏览器
+
+| 错误码 | 含义 | 处理 |
+| --- | --- | --- |
+| `browser_missing` | 找不到 Chrome、Chromium 或 Edge。 | 安装受支持的浏览器。 |
+| `browser_unavailable` | 浏览器服务不可用或正在关闭。 | 重新打开面板；检查运行时日志。 |
+| `browser_ref_stale` | 元素引用已过期。 | 重新观察页面后再操作。 |
+| `browser_element_not_found` / `browser_element_not_visible` | 目标元素不存在或不可见。 | 重新观察；必要时滚动或等待。 |
+| `browser_navigation_denied` / `browser_navigation_approval_required` | 导航被拒绝或需要批准。 | 在面板里确认；不要绕过审批。 |
+| `browser_wait_timeout` | 等待条件超时。 | 检查选择器或页面状态。 |
+| `browser_feature_disabled` | 当前运行时或平台关闭了浏览器面板。 | 检查设置和平台支持。 |
+
+## 电脑操作
+
+| 错误码 | 含义 | 处理 |
+| --- | --- | --- |
+| `computer_feature_disabled` | 总开关关闭。 | 在 **设置 → 电脑操作** 打开。 |
+| `computer_engine_missing` / `computer_driver_daemon_missing` | 驱动或 helper 未安装/未运行。 | 安装驱动并重新检测。 |
+| `computer_accessibility_bridge_missing` | Linux 上辅助功能总线不可用。 | 安装/启动 AT-SPI；X11 下仍可能降级。 |
+| `computer_credential_target_blocked` | 目标是密码管理器或安全输入框。 | 硬拒绝，不能批准。 |
+| `computer_element_reference_stale` | 元素引用已过期。 | 重新观察应用。 |
+| `computer_stopped_by_user` | 你按下了应急停止。 | 手动重新开启后才能继续。 |
+| `computer_paused_offline` | 客户端断线，操作已暂停。 | 重新连接并确认恢复。 |
+
+## 供应商与网关
+
+| 错误码 | 含义 | 处理 |
+| --- | --- | --- |
+| `provider_authentication_required` | 供应商或 Agent 需要认证。 | 登录 Agent 或补充 Provider Key。 |
+| `provider_profile_not_found` | 配置不存在或已删除。 | 刷新配置中心，重新选择。 |
+| `agent_model_interface_unsupported` | 当前 Agent 不支持所选接口协议。 | 换协议或换 Agent。 |
+| `model_gateway_port_invalid` | 网关端口低于 1024 或不可用。 | 换一个高于 1023 的空闲端口。 |
+| `model_gateway_cooldown_invalid` | 冷却时间不在 1 毫秒到 1 天之间。 | 调整冷却设置。 |
+| `model_gateway_token_limit_invalid` | Token 上限无效。 | 输入正整数或留空。 |
+| `reasoning_effort_unavailable` | 所选思考档位不被模型支持。 | 换档位或留空。 |
+
 ## 状态值
 
 这些不是错误，但经常被误读：

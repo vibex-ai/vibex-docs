@@ -14,7 +14,7 @@ git status --short
 pnpm test
 ```
 
-There is also an **embedded terminal panel** above Composer. Press `cmd-shift-t` to switch between the conversation and the terminal.
+The terminal button above the composer opens a **bottom terminal panel**. Press `cmd-shift-t` to switch between the conversation and the terminal. The panel spans the workbench width instead of being squeezed into the composer.
 
 ## Terminal actions
 
@@ -58,6 +58,12 @@ When you see `stale`, reopen the tab and trust the new snapshot — do **not** r
 ## Mobile terminals
 
 Mobile receives terminal snapshots and a permission-gated input channel. Input carries the workspace scope, generation checks, and an audit record. When the network drops, mobile does not assume a command ran; after reconnecting, trust the authoritative snapshot.
+
+## TUI and SSH
+
+The Vibex TUI is a client in the terminal, not a replacement for terminal tabs: it draws sessions, approvals, the queue, and settings on a character grid, which makes it useful over SSH or in tmux. It ships with the desktop package; run `vibex`. See [Vibex TUI](/en/tui).
+
+The TUI copies over OSC 52, so copying works over SSH and in tmux. It does not take over terminal tabs already open on the desktop; both are clients of the same runtime.
 
 <Note>
   Terminal output can contain secrets, paths, and user data. Do not paste complete terminal output into public issues, logs, or diagnostic material.

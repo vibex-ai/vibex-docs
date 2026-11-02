@@ -15,6 +15,8 @@ flowchart LR
   D --> A[ACP Agent sessions]
   D --> W[Workspace files and Git]
   D --> T[PTY, editor, previews]
+  D --> B[Browser and computer use]
+  D --> G[Shared Providers, route groups, gateway]
   D --> P[Provider profiles and credentials]
   D --> R[RemoteGateway v2]
   R -->|Direct / Tailnet / Local network| M[Native clients]
@@ -23,6 +25,7 @@ flowchart LR
   DE[apps/desktop<br/>GPUI window] --- D
   SV[apps/server<br/>daemon lifecycle] --- D
   M --- MB[apps/mobile<br/>iOS / Android]
+  M --- TUI[apps/tui<br/>character-grid client]
   M --- DKT[apps/desktop in<br/>remote-client mode]
 ```
 
@@ -43,15 +46,20 @@ flowchart LR
 | `crates/agent-acp` | ACP 适配器、目录与运行时探测。 |
 | `crates/agent-claude` / `crates/agent-codex` | 两个内建 Agent 的专用适配。 |
 | `crates/fs` / `crates/git` / `crates/terminal` / `crates/content` | 文件、Git、PTY 与内容预览服务。 |
+| `crates/browser` / `crates/computer` | 内嵌浏览器与电脑操作：运行时持有进程、权限、审计和工具面。 |
+| `crates/model-gateway` / `crates/model-catalog` | 本地模型网关、路由策略、协议转换与模型目录。 |
 | `crates/remote` / `crates/relay` | Remote v2 网关与 Relay 契约。 |
 | `crates/config-switch` | 配置导入导出、原生配置改写与密钥存储。 |
 | `crates/backup` / `crates/diagnostics` | 备份恢复与脱敏诊断。 |
 | `crates/app-update` | 签名自动更新。 |
-| `crates/vibex-markdown` / `crates/vibex-terminal-ui` | Markdown 渲染与终端仿真。 |
+| `crates/vibex-terminal-ui` / `crates/vibex-tui` | 终端仿真与 Vibex TUI 客户端。 |
 | `apps/desktop` | 原生工作台；内嵌运行时。 |
 | `apps/server` | 无头权威运行时 `vibex-server`。 |
 | `apps/mobile` | 把共享远程投影组合成 Android / iOS 原生界面。 |
+| `apps/tui` | 字符网格客户端，渲染同一套运行时投影。 |
 | `apps/relay-server` | 转发不透明的加密 WebSocket 帧。 |
+
+SSH / WSL 远程运行时由 `apps/desktop/src/ssh_connection` 配置和管理：桌面端通过 SSH 安装 `vibex-server`、打开回环隧道并配对，然后把它当作 Remote v2 运行时使用。详见 [SSH Remote Runtime](https://github.com/vibex-ai/vibex/blob/main/docs/remote/ssh-runtime.md)。
 
 ## 数据流规则
 
@@ -71,9 +79,9 @@ ProjectRecord   { id, name, root_path }
 
 ## 持久化和恢复
 
-SQLite 保存项目、工作区、会话、时间线、供应商配置、终端元数据和远程设备。
+SQLite 保存项目、工作区、会话、时间线、供应商配置、共享 Provider、路由组、网关台账、终端元数据、浏览器配置、电脑操作审计和远程设备。
 
-**只存在于内存、重启即丢失：** Agent 进程、终端会话内容、活动连接。数据库中的 `running` 只是上次观察到的状态，重启后必须重新探测，丢失的终端标记为 `stale`。
+**只存在于内存、重启即丢失：** Agent 进程、终端会话内容、浏览器标签与画面、活动连接、正在进行的电脑操作会话。数据库中的 `running` 只是上次观察到的状态，重启后必须重新探测，丢失的终端标记为 `stale`。
 
 ## 变更评审清单
 

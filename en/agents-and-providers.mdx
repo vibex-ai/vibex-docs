@@ -1,43 +1,52 @@
 ---
 title: "Agents and provider profiles"
-description: "Add Agents, install managed runtimes, sign in to accounts, and configure model providers."
+description: "Add Agents, install managed runtimes, sign in to accounts, and configure model providers for each Agent."
 ---
 
-Vibex uses the [Agent Client Protocol](https://agentclientprotocol.com/) (ACP) to connect to online Agents. The **Agent** (who does the work) and the **model provider configuration** (which model, over which route) are managed separately.
+Vibex uses the [Agent Client Protocol](https://agentclientprotocol.com/) (ACP) to connect to online Agents. The **Agent** (who does the work) and the **model provider profile** (which model, over which route) are managed separately.
 
-You work with both in the **Config Center → Agent** tab.
+An Agent can have several provider profiles; one shared Provider can serve several Agents. This page covers the Agent's own configuration. Shared Providers, route groups, and the local gateway are covered in [Providers, route groups, and the local gateway](/en/providers-and-gateway).
 
-## How the Agent tab is organized
+## How the Agents section is organized
 
-When you open **Config Center → Agent**, the Agent list is on the left and the details area for the selected Agent is on the right. The details area has three cards, from top to bottom:
+Open **Config Center → Agents**. The Agent list is on the left; the selected Agent's details are on the right:
 
 | Card | Purpose |
 | --- | --- |
-| **Agent installation** | View installation status and install, upgrade, or uninstall the managed runtime. |
+| **Agent installation** | View installation status and install, upgrade, roll back, or uninstall the managed runtime. |
 | **Native credentials** | Sign in to the Agent's own account. |
-| **Model provider configuration** | Configure model providers, models, and credentials for this Agent. |
+| **Model provider configuration** | Configure this Agent's addresses, credentials, models, and reasoning depth. |
+| **Built-in tools** | Per-Agent switches for the terminal, browser, computer use, and other tool panels. |
 
 <Note>
-  Model providers are **not** a separate tab. They hang off each Agent, because different Agents support different communication protocols and model catalogs.
+  Model Provider profiles are **not** a primary section. Each Agent's profiles live in its details; shared Providers and route groups live under **Providers**.
 </Note>
 
 ## Add an Agent
 
-The list on the left is grouped by status, and the action on each entry depends on its current state:
+The list is grouped by state: enabled, added but disabled, and not yet added. The action on each entry depends on its state:
 
 | Status | Available actions |
 | --- | --- |
 | **Not added** | Click **+** to add it. |
 | **Not installed** | Click **Install**; Vibex downloads and verifies the managed runtime. |
-| **Update available** | Click **Upgrade** to move to the new version. |
-| **Available** | Ready. Use the enablement switch to control whether it appears in the session's Agent picker. |
-| **Managed by user** | This Agent is not in the managed catalog; Vibex uses the command-line program on your `PATH`. |
-| **Disabled** | Disabled. |
+| **Update available** | Click **Upgrade**. |
+| **Ready** | The enable switch controls whether it appears in the session's Agent picker. |
+| **User-managed** | The Agent is not in the managed directory; Vibex uses the command on your `PATH`. |
+| **Disabled** | Configuration and session history are kept, but the Agent is not offered. |
 
-Vibex ships four built-in presets: **Claude Code**, **Codex**, **ZCode**, and **OpenCode**. The ACP catalog also offers integrations such as **Google Antigravity**, **Cline**, **Codebuddy Code**, **GitHub Copilot**, **Cursor**, **DeepSeek Harness**, **Devin CLI**, **Gemini CLI**, **Grok**, **Hermes**, **Kimi Code CLI**, and **Pi**.
+Vibex ships four built-in presets: **Claude Code**, **Codex**, **ZCode**, and **OpenCode**. The ACP catalog also includes **Antigravity**, **Cline**, **Codebuddy**, **GitHub Copilot**, **Cursor**, **DeepSeek Harness**, **Devin**, **Gemini CLI**, **Grok Build**, **Hermes**, **Kimi Code**, **Pi**, and more.
+
+### Managed runtimes
+
+- **Install** downloads and verifies the runtime; it cannot be cancelled midway.
+- **Check for updates** reads the Agent's release channel and pinned version.
+- **Upgrade** moves only to a compatible release.
+- **Roll back** returns the managed install to the version Vibex pins for that Agent. A rollback is not a hold: the Agent keeps tracking its channel afterwards.
+- **Uninstall** asks for confirmation, removes the managed runtime and cached versions, and keeps session history.
 
 <Warning>
-  **Install** downloads and verifies the runtime over the network and cannot be canceled. **Uninstall** shows a confirmation dialog and deletes that Agent's managed runtime and cached versions; session history is kept.
+  If a managed install fails, check whether the network can reach GitHub and the runtime's own distribution source. Do not paste full install logs or tokens into a public issue.
 </Warning>
 
 ### Add a custom ACP Agent
@@ -46,75 +55,93 @@ Click **Add custom ACP Agent** at the bottom of the list and fill in:
 
 | Field | Description |
 | --- | --- |
-| **Agent ID** | Lowercase kebab-case identifier, for example `my-acp-agent`. |
+| **Agent ID** | Lowercase kebab-case, for example `my-acp-agent`. |
 | **Display name** | The name shown in the UI. |
-| **Description** | Optional; describe what it is for. |
+| **Description** | Optional. |
 | **ACP command** | An executable, `npx`, or `uvx` command. |
 | **Arguments** | Space-separated arguments. |
-| **Environment variables** | One `KEY=value` per line. |
+| **Environment (optional)** | One `KEY=value` per line. |
 
-Custom Agents can only be created, not edited. Turning the switch off deletes one, but session history is kept.
+A custom Agent can currently be created but not edited; turning its switch off removes it, while session history is kept.
+
+### Built-in tools
+
+Each Agent's built-in tool panels can be toggled from the Agent list. Enabled tools light green:
+
+- **Terminal**: the Agent may request command execution.
+- **Browser**: the Agent may use the embedded browser tools.
+- **Computer use**: the Agent may use desktop tools (the driver must also be installed and the master switch on).
+
+A tool switch decides whether the Agent receives that tool surface; it does not change existing permission approvals. Turning a tool off does not undo actions already performed.
 
 ## Sign in to an Agent account
 
-The **Native credentials** card manages the Agent's own account. It shares the same credentials as the external CLI—the card states this explicitly: "Agent-native account · shared with the external Agent CLI".
+**Native credentials** manages the Agent's own account, shared with the external CLI—the card says "Agent-native account · shared with the external Agent CLI".
 
-- The available sign-in methods are up to the Agent. Common ones are **Sign in**, **Save and sign in**, and **Open sign-in terminal**.
-- The card provides **Refresh methods**, **Verify account**, **Refresh models**, **Re-authenticate**, and **Sign out**.
-- Re-authenticating affects Agent processes still using the old credentials; the UI warns you first.
-- **Sign out** affects both the external CLI and Vibex sessions, and shows how many sessions are affected before it runs.
+- The Agent decides which sign-in methods exist: **Sign in**, **Save and sign in**, **Open sign-in terminal**, and others.
+- The card offers **Refresh auth methods**, **Verify account**, **Refresh models**, **Re-authenticate**, and **Sign out**.
+- Re-authenticating affects Agent processes still using the old credential; the UI warns first.
+- **Sign out** affects both the external CLI and Vibex sessions, and shows how many sessions are affected.
+
+Browser-based sign-in (Cursor, Grok, Gemini, Cline, CodeBuddy, Antigravity, and others) may not advertise a logout method; Vibex recognizes the OAuth method as usable instead of treating it as unavailable.
 
 ## Configure a model provider
 
-In the **Model provider configuration** card, click **Add config**, or click an existing configuration to edit it. The editor has three parts:
+In **Model provider configuration**, click **Add configuration** or edit an existing profile. The editor has three parts:
 
 ### Basics
 
 | Field | Description |
 | --- | --- |
-| **Provider name** | Required. The display name. |
-| **Note** | Optional note. |
-| **Website URL** | Optional. |
+| **Provider name** | Required display name. |
+| **Notes** | Optional. |
+| **Website** | Optional. |
+| **Kind** | Official, relay, local, and similar source markers. |
 
-### Connection & credentials
+### Connection and credentials
 
 | Field | Description |
 | --- | --- |
-| Credentials | The selected Agent decides whether to use an API key, OAuth, or the Agent account. |
-| **Default API request URL** | The provider's API address, for example `https://provider.example/v1`. Some Agents lock this field. |
-| **Set an address per protocol** | A collapsible section; expand it when you need a separate address per protocol. |
+| Credentials | The Agent decides whether to use an API key, OAuth, or its own account. |
+| **Default API address** | For example `https://provider.example/v1`. Some Agents lock it. |
+| **Per-protocol addresses** | Expand when different protocols need different addresses. |
+| **Request headers** | Optional; literals and the built-in `session_id` variable. |
+| **Proxy** | Direct, system proxy, or a custom proxy address. |
 
-The API key field is **write-only**: it is masked by default, with an eye icon to reveal it, and shows **Saved** when a value is stored. An untouched field never rewrites the stored value, and leaving it blank keeps the current one. To remove it, click **Clear**; the state becomes **Will be cleared** and the button becomes **Keep stored key**.
+The API key field is **write-only**: masked by default, with an eye icon for a temporary reveal. A saved value is marked **Saved**. A field you did not change is not rewritten; saving it blank keeps the old value. To remove it, use **Clear**.
 
 ### Models
 
-The editor splits models into two columns: the **Available models** picker on the left and the selected model's **Model settings** on the right. The picker is the only model list — click a row and the right column shows its editable fields instead of repeating the list.
+The editor has two columns: the **available models** picker on the left and the selected model's **model settings** on the right.
 
-Vibex **does not ship a model list**:
+Vibex does **not** ship a model list:
 
-- **Fetch models** — requires an API key and address; loads the models available to that account into **Available models**. Fetching on its own configures nothing.
-- **Available models** — checking a row adds that model to the draft; unchecking releases it while keeping its declared capabilities, so re-checking restores them. **Select all** / **Enable all** handle the list in bulk; when there is nothing to fetch, type an id under **Custom model** and add it.
-- **Model ID** / **Display name** — edited in the right column. Selection follows the model id, so renaming keeps the column on the model you are editing.
-- **Model API protocol** — each model can specify its own protocol; by default it **Inherit**s the provider setting.
-- **Reasoning** / **Thinking levels** — choose whether to reason, or declare **thinking depth** levels.
-- **Context window / Max output tokens** — declare model limits in the **Advanced** collapsible section.
+- **Fetch models** needs an API key and address; it fills the picker without writing configuration.
+- **Available models**: checking a model adds it to the draft; unchecking removes it but keeps declared capabilities, so re-checking restores them. **Select all** / **Enable all** handle batches. If the endpoint offers nothing, add a model id under **Custom model**.
+- **Model ID** / **Display name**: edited on the right. Selection is tracked by model id, so renaming keeps the right model selected.
+- **Model wire protocol**: each model can override the Provider default or inherit it.
+- **Reasoning capability** / **reasoning levels**: declare whether the model reasons and which depths it supports.
+- **Context window / maximum output tokens**: declared under **Advanced**.
 
-When the provider does not offer a model, the right column offers **Add this model**, which adds it to the list.
+If the Provider does not offer a model, the right column shows **Add this model**.
 
-The available thinking depth levels come from the provider or Agent. Common values are `off`, `minimal`, `low`, `medium`, `high`, `xhigh`, and `max`.
+Reasoning levels come from the Provider or Agent declaration; common values are `off`, `minimal`, `low`, `medium`, `high`, `xhigh`, and `max`. A wrong declaration gives the Agent an option it cannot serve; leave it empty when unsure.
 
-## Use them in a session
+## Use in a session
 
-Before you send a message, choose the **Agent**, **Model provider**, **Model**, and **Thinking depth** from the cascading menus at the top of the Composer. A switch affects only later runs; existing timelines keep the Agent and model information from their original run.
+Before sending, choose **Agent**, **provider profile**, **model**, and **reasoning depth** in the composer. If the Agent is bound to a route group, the picker includes the route group's agent-facing model name.
+
+A switch only affects later runs; the existing timeline keeps its original Agent and model identity.
 
 <Warning>
-  **Test connection** and **Fetch models** make real requests to the provider's network and may consume quota. `read_only` mobile devices cannot trigger these operations.
+  **Test connection** and **Fetch models** reach the provider network and may consume quota. A `read_only` mobile device cannot trigger them.
 </Warning>
 
 ## Troubleshooting
 
 - **The Agent is not in the list**: confirm the executable is on `PATH`, or check the custom command and arguments.
-- **A model cannot be selected**: run **Refresh models** first, then check whether that model is enabled.
-- **Authentication fails**: check the account state and sign in again; do not paste response headers or tokens into an issue.
-- **Remote clients do not see the configuration**: confirm the device permission level is `full_control` and which authoritative runtime you are connected to.
-- **A managed Agent fails to install**: check whether the network can reach GitHub and nodejs.org, then retry.
+- **A model is not selectable**: **Refresh models**, check that the model is enabled, and check whether the Agent is bound to a Provider or route group that includes it.
+- **Authentication fails**: confirm the account state and sign in again; do not paste response headers or tokens into an issue.
+- **A remote client cannot see the configuration**: confirm the device has `full_control` and check which authoritative runtime you are connected to. Local and remote configuration are separate.
+- **A managed Agent fails to install**: check network access to GitHub and the runtime's distribution source, then retry.
+- **The Agent does not receive browser or computer tools**: check the Agent's built-in tool switches, plus the computer-use master switch and driver state.

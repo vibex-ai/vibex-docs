@@ -38,24 +38,35 @@ curl -fsS http://127.0.0.1:8765/api/v2/info
 ```bash
 docker exec vibex-server vibex-server pairing-code
 docker exec vibex-server vibex-server pairing-code --permission read-only --ttl-ms 600000
+docker exec vibex-server vibex-server pairing-code --json
 ```
 
 ## 命令
 
 ```text
-Usage: vibex-server [serve|status|pairing-code|revoke|config-check]
+Usage: vibex-server [serve|status|stop|pairing-code|revoke|config-check|tui]
 
   serve [--no-pairing]                    运行权威无头运行时
-  pairing-code [--permission <level>] [--ttl-ms N]
+  status [--json]                         报告运行时与配对状态
+  stop                                    安全停止由本 home 启动的运行时
+  pairing-code [--permission <level>] [--ttl-ms N] [--json]
                                           生成一次性配对码及其连接串
   revoke DEVICE_ID [--reason TEXT]        撤销已配对设备
   config-check                            校验 VIBEX_* 部署配置
+  tui                                     在容器里启动 Vibex TUI
 ```
 
-不带参数等同于 `serve`。`--permission` 接受 `read-only`、`approve-only`、`full-control`（默认 `full-control`）。
+不带参数等同于 `serve`。`--permission` 接受 `read-only`、`approve-only`、`full-control`（默认 `full-control`）。`status --json` 适合脚本和容器健康检查；`stop` 只停止这个 home 的运行时，不会删除数据。
+
+容器里也可以直接使用 TUI：
+
+```bash
+docker exec -it vibex-server vibex-server tui
+```
+
+TUI 与桌面端、移动端是同一类客户端：它连接这个运行时，读取同一批会话，不会在容器里再启动一个后端。详见 [Vibex TUI](/tui)。
 
 ## 部署形态
-
 ### 只监听本机（默认）
 
 默认绑定 `127.0.0.1:8765`，不对外发布任何端口。适合先用 SSH 隧道或反向代理把流量引进来。

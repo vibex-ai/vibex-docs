@@ -10,7 +10,25 @@ description: "Reference for self-hosted runtime, Relay, and desktop configuratio
 | `VIBEX_HOME` | Overrides the base directory of the runtime home. Channel-specific directories (`desktop-preview` / `desktop-rc` / `desktop-stable`) are created under it. |
 | `VIBEX_PROVIDER_SECRET_STORE` | `keychain` (default) or `file`. Hosts without a usable keychain must set `file`. |
 | `VIBEX_DISABLE_REMOTE_CLIENT` | Set to `1` to force the local authoritative runtime and ignore saved remote credentials. |
+| `VIBEX_SSH_REMOTE_RUNTIME` | `1` enables SSH/WSL remote runtime entry points, `0` disables them; overrides the Developer setting and locks it in the UI. |
 | `VIBEX_CHANNEL` | A build-time variable that cannot be overridden at runtime. Trying to switch channels at runtime returns `release_channel_override_rejected`. |
+
+## Vibex TUI
+
+| Variable | Description |
+| --- | --- |
+| `VIBEX_HOME` | Runtime home; the TUI uses it to decide which runtime to attach to. |
+| `VIBEX_TUI_HOME` | Overrides the TUI's own preferences directory. |
+| `VIBEX_THEME` | Sets the theme for this run without writing the preference file. |
+| `VIBEX_TUI_ICONS` | Sets the icon set for this run. |
+| `VIBEX_TUI_KEYS` | Overrides the key-binding file path. |
+| `VIBEX_TUI_INTERFACE` | Overrides the `tui-interface.json` path. |
+
+## Computer use
+
+| Variable | Description |
+| --- | --- |
+| `CUA_DRIVER_RS_ENABLE_WAYLAND` | Set to `1` to enable the experimental Linux Wayland path. By default only X11 windows are visible; some compositors still cannot do background input. |
 
 ## Headless runtime `vibex-server`
 

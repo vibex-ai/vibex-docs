@@ -1,24 +1,28 @@
 ---
 title: "Settings"
-description: "Adjust Vibex's interface, workbench, session, terminal, shortcut, and diagnostic options."
+description: "Adjust Vibex's interface, workbench, sessions, connections, terminal, browser, computer use, and diagnostics."
 ---
 
-Open **Settings** (`cmd-,`) to change the desktop's local preferences. Settings do not replace the Agent, MCP, or Skills configuration in the Config Center.
+Open **Settings** (`cmd-,`) to change the desktop's local preferences. Settings do not replace the Agent, Provider, MCP, or Skill configuration in the Config Center.
 
-A **Search settings** field at the top of the page jumps straight to an option by name or keyword. Options you have changed show **Undo changes** next to them.
+A **Search settings** field at the top jumps straight to an option by name or keyword. Changed options show **Undo changes**.
 
 ## Sections
 
 | Section | What you can adjust |
 | --- | --- |
-| **General** | Language, startup behavior, network proxy, notifications, and updates. |
-| **Appearance** | Theme, window zoom, interface and code fonts, motion, and contrast. |
-| **Workbench** | Sidebar view, default new-session location, preview window host, layout memory, Git change count, and editor autosave. |
-| **Session** | Conversation content width, timeline display, message queue, auto-continue, and Agent notifications. |
+| **General** | Language, close to tray, Vibex TUI, network proxy, startup, launch at login, notifications, updates. |
+| **Appearance** | Theme, workbench background, window scale, interface and code fonts, motion, contrast. |
+| **Workbench** | Sidebar view, default new-session location, preview window host, layout memory, Git change count, editor autosave. |
+| **Connections** | SSH / WSL remote runtimes. Hidden by default; enable it under **Developer**. |
+| **Session** | Conversation content width, timeline display, message queue, auto-continue, Agent notifications. |
+| **Archived sessions** | Automatic archiving window, restore, and permanent delete. |
 | **Terminal** | Default shell and the starting directory for new terminals. |
+| **Browser** | Start page, search engine, frame quality, downloads, and login state. |
+| **Computer use** | Driver installation, system permissions, approval policy, panel, and timeout. |
 | **Shortcuts** | View, change, and reset keyboard shortcuts. |
-| **Data & Diagnostics** | Local storage usage and cleanup, plus diagnostics and recovery entry points. |
-| **Developer** | Instrumentation for profiling the workbench itself: the **FPS monitor** overlay. |
+| **Data & Diagnostics** | Local storage usage and cleanup, diagnostics and recovery entry points. |
+| **Developer** | FPS monitor and the SSH remote runtime switch. |
 | **About** | Version, channel, software updates, license, and platform information. |
 
 ## General
@@ -26,19 +30,26 @@ A **Search settings** field at the top of the page jumps straight to an option b
 | Option | Description |
 | --- | --- |
 | **Language** | System default / 简体中文 / 繁體中文 / English. |
-| **Keep running after closing the window** | Keep Vibex in the system tray after you close the window. |
-| **Network proxy** | Route Vibex network requests and Agent tools through a local or corporate proxy. Supports `http`, `https`, `socks5`, and `socks5h`. The address is validated before you enable it. |
-| **Startup** | Restore the workbench on launch, or open a new session directly. |
-| **Launch at login** | Start Vibex when you sign in to the system. |
+| **Keep running after closing the window** | Keep Vibex in the system tray. |
+| **Vibex TUI** | Let a TUI on this machine attach to this runtime. When off, the TUI reports the locked home and offers other ways in. |
+| **Network proxy** | Route Vibex requests and Agent tools through a local or corporate proxy. Supports `http`, `https`, `socks5`, and `socks5h`; the address is validated. |
+| **Startup** | Restore the workbench or start a new session. |
+| **Launch at login** | Start Vibex when you sign in. |
 | **System notifications** | Master switch for desktop notifications. |
-| **Automatic updates** | Download a signed release as soon as it is found. Install it now, or let Vibex install it when you quit. |
-| **Update prompts** | Show the title-bar update button and update panel. Background security checks remain enabled. |
+| **Update prompts** | Show the title-bar update button and panel. Background checks stay on. |
+| **Automatic updates** | On by default. A signed release is downloaded automatically; install it in-app or when you quit. |
+
+<Note>
+  Automatic updates only accept the same channel. RC builds see only `-rc.*`; Stable sees only stable versions. A channel never falls through to another.
+</Note>
 
 ## Appearance
 
-Controls the theme mode (System / Light / Dark), window zoom (75%–200%), the size and weight of the **Interface font** and **Code font**, **Reduced motion**, and **High contrast**. The code font also applies to code blocks, the integrated editor, and the terminal.
+Controls theme mode (system / light / dark), window scale (75%–200%), **interface font** and **code font** size and weight, **reduced motion**, **pause animation when inactive**, and **high contrast**. The code font also affects code blocks, the editor, and the terminal.
 
-**Theme** is chosen with three preview cards — **System**, **Light**, and **Dark** — each painting a miniature workbench in the palette that mode resolves to. **Light theme** and **Dark theme** are independent dropdowns that show the swatch and the theme's name both closed and open. Twenty ship built in: Vibex Light, Catppuccin Latte, Gruvbox Light, Solarized Light, GitHub Light, Rosé Pine Dawn, Everforest Light, Ayu Light, One Light, and Kanagawa Lotus for light; Vibex Dark, Catppuccin Mocha, Gruvbox Dark, Tokyo Night, Nord, Rosé Pine, Everforest Dark, Ayu Dark, Dracula, and Kanagawa Wave for dark. You can extend the list with a JSON theme file in the `themes` folder of the runtime home; name only the colors you want to change and the rest are derived from the surface they are painted on.
+**Theme** uses three preview cards for **system** / **light** / **dark**, each drawing a miniature workbench in the resolved palette. **Light theme** and **dark theme** are independent dropdowns that show a color swatch and the theme name. Twenty themes ship: light includes Vibex Light, Catppuccin Latte, Gruvbox Light, Solarized Light, GitHub Light, Rosé Pine Dawn, Everforest Light, Ayu Light, One Light, and Kanagawa Lotus; dark includes Vibex Dark, Catppuccin Mocha, Gruvbox Dark, Tokyo Night, Nord, Rosé Pine, Everforest Dark, Ayu Dark, Dracula, and Kanagawa Wave. You can add a JSON theme that only overrides the colors you want in the runtime home's `themes` folder; missing colors are resolved against the background the theme is used on.
+
+**Workbench background** places your own image behind the workbench: still, GIF, or animated WebP, with **fill**, **fit**, or **stretch** and an adjustable veil. In the light appearance the background is treated as glass; the startup loading page stays opaque. Images are imported like project icons and stored under the runtime home.
 
 Fonts are listed from those installed on the system, with a fallback when one is missing.
 
@@ -46,61 +57,120 @@ Fonts are listed from those installed on the system, with a fallback when one is
 
 | Option | Description |
 | --- | --- |
-| **Sidebar hierarchy** | **Session view** (grouped by session) or **Workspace view** (grouped by workspace). |
-| **Default new-session location** | **Current checkout** or **New worktree**. |
-| **Preview window** | **Inline** (open in the workbench column, the default) or **Separate window** (pop out into a detached window). The preview panel header's pop-out and dock controls write the same preference. |
-| **Remember layout** | Remember the sidebar, preview, right rail, and split layouts. |
-| **Show Git change count** | Show the number of pending changes on the Git icon. |
+| **Sidebar hierarchy** | **Session view** (group by session) or **Workspace view** (group by workspace). |
+| **Default new-session location** | **Current checkout** or **New Worktree**. |
+| **Editor window** | **Embedded** (default) or **separate window**. The preview panel's pop-out and dock buttons write the same setting. |
+| **Remember layout** | Remember the sidebar, preview, right rail, and split layout. |
+| **Show Git change count** | Show pending changes on the Git icon. |
 | **Project overrides** | Clear per-project layout overrides. |
-| **Reset workbench layout** | Restore the workbench layout to its defaults. |
-| **Autosave** | **Manual** (the save shortcut is the only way to store changes), **After delay** (write back after a typing pause), or **On focus change** (write back when the editor or window loses focus). |
-| **Autosave delay** | How long typing must pause before a file is written, 250–5000 ms, 1000 ms by default. It appears only with **After delay**. |
+| **Workspace state** | Clear remembered workspace choices. |
+| **Reset workbench layout** | Restore the default layout. |
+| **Autosave** | **Manual** (save shortcut only), **After delay**, or **On focus loss**. |
+| **Autosave delay** | 250–5000 ms, default 1000 ms; shown only for **After delay**. |
+
+## Connections
+
+SSH and WSL remote runtimes are **beta and off by default**. Turn on **Settings → Developer → SSH remote runtime** to show this section.
+
+When enabled, you can:
+
+- **Add SSH connection**: discover hosts from your SSH config, probe the environment, and start provisioning.
+- **Add WSL runtime**: pick a local WSL2 distro.
+- **Bootstrap SSH**: generate a one-time command for a Linux host without sshd.
+- Watch provisioning progress, diagnostics, logs, and runtime compatibility.
+- Edit or remove a connection, or uninstall the remote runtime.
+
+See [SSH and WSL remote runtimes](/en/ssh-runtime).
 
 ## Session
 
-Controls the conversation content width (Narrow / Standard / Full width), the timeline entry display (**Session preview rail**, **Agent generation status**, **Reasoning display**, **Expand reasoning by default**, **Command card rendering**, **File edit card rendering**), and message queue behavior:
+Controls conversation content width (narrow / standard / full), timeline display (**turn preview rail**, **Agent generation status**, **reasoning display**, **expand reasoning by default**, **command card rendering**, **file edit card rendering**), and queue behavior:
 
-- **Queue sending** — Automatic or Manual.
-- **Message send key** — Enter or Cmd/Ctrl+Enter.
-- **Auto-continue** — Let eligible turns advance on their own; when a turn cannot continue, it stops and waits for you.
-- **Agent notifications** — The **Agent completed**, **Agent needs input**, and **Agent failed** toggles, moved here from **General**. They are unavailable while the **System notifications** master switch is off.
-- **Remembered runtime** / **Auto-continue defaults** — Clear remembered choices.
+- **Queue sending**: automatic or manual.
+- **Message send key**: Enter or Cmd/Ctrl+Enter.
+- **Auto-continue**: let eligible turns advance on their own; stops when input is needed. On by default.
+- **Agent notifications**: **Agent completed** / **Agent needs input** / **Agent failed**. Disabled when the **System notifications** master switch is off.
+- **Remembered runtime** / **Auto-continue defaults**: clear remembered choices.
+- **Agent configuration**: open the Config Center's Agents section.
+
+## Archived sessions
+
+Archived sessions keep their full timeline and leave the sidebar. This page lets you:
+
+- Set the **automatic archiving** idle window (off, or 1–14 days). It applies per project/folder and archives only idle, settled sessions with no running turn; pinned sessions and delegated children are never archived.
+- View archived sessions and **Restore** or **Delete** them permanently.
+- **Delete all** archived sessions.
+
+Archiving is reversible; deleting is not. Undo a mistaken archive here.
 
 ## Terminal
 
 Set the default shell and the starting directory for new terminals (**Worktree** / **Project** / **Current file**).
 
-- The default shell can be picked from the shells detected on your system, or you can specify a custom path.
-- Open terminals do not move when you change this preference.
-- The scrollback buffer is fixed at 10000 lines and is not configurable.
+- The default shell can come from detected shells or a custom path.
+- Open terminals do not migrate when you change the preference.
+- Scrollback is fixed at 10,000 lines and is not configurable.
+
+## Browser
+
+Controls the embedded browser panel's own tabs:
+
+| Option | Description |
+| --- | --- |
+| **Start page** | Google, Bing, Baidu, or a custom address. Applies to your new tabs. |
+| **Search engine** | Used when the address bar holds a keyword; Google, Bing, Baidu, DuckDuckGo, or a custom template. |
+| **Lossless frames** | Sharper text, larger and slower stream; the panel's HD button toggles the same setting. |
+| **Allow downloads** | Off by default. When on, pages may save files into the runtime downloads directory. |
+| **Import browser login state** | Copy cookies and localStorage from Chrome, Edge, or Brave into the isolated profile. The source is only read. |
+| **Clear browser data** | Delete cookies, localStorage, caches, and imported logins; open tabs close. |
+
+See [Embedded browser](/en/browser).
+
+## Computer use
+
+Computer use is off by default. This page lets you:
+
+- Install and detect the desktop driver.
+- Review operating-system permissions (Accessibility, Screen Recording).
+- Set the approval policy (**Allow** / **Ask** / **Deny**) and whether the Agent may operate Vibex's own windows.
+- Open the computer-use panel in **Window** or **Floating** mode.
+- Set the timeout for one desktop call.
+- See the platform's capabilities and the experimental Wayland path.
+
+See [Computer use](/en/computer-use).
 
 ## Shortcuts
 
-All rebindable shortcuts, their default keys, and their groups are listed in the [shortcuts reference](/en/reference/shortcuts). Here you can change them one by one, **Reset** a single shortcut, or **Reset all** to restore every default. Conflicting key bindings are rejected with **Shortcut is invalid or already in use**.
+Every rebindable shortcut, its default, and its group are listed in the [shortcut reference](/en/reference/shortcuts). Change one here, or **Reset** one / **Reset all**. A conflicting chord is refused with **Shortcut is invalid or already in use**.
 
 ## Data & Diagnostics
 
-Shows local storage usage broken down by category (database, sessions, terminals, attachments, diagnostics, Agent installations) and offers a cleanup entry point for each:
+Shows local storage usage (database, sessions, terminals, attachments, diagnostics, Agent installs) and offers per-category cleanup:
 
 | Action | Effect |
 | --- | --- |
-| **Clear sessions and attachments** | Deletes session and attachment records. |
-| **Clear terminal data** | Deletes terminal metadata. |
-| **Clear diagnostic data** | Deletes diagnostic data. |
-| **Open data directory** | Opens the data directory in your file manager. |
-| **Open Usage** | Jumps to usage statistics. |
-| **Open Management Center** | Jumps to the Config Center. |
+| **Sessions and attachments** | Delete sessions and attachment records. |
+| **Terminal data** | Delete terminal metadata. |
+| **Diagnostic data** | Delete diagnostic data. |
+| **Data directory** | Open the data directory in the file manager. |
+| **Open Usage** | Jump to usage statistics. |
+| **Diagnostics & recovery** | Open the management center's diagnostics and recovery entry point. |
 
 <Warning>
-  These cleanup operations are **destructive** and cannot be rolled back. Read [Privacy and recovery](/en/privacy-and-recovery) before you run them.
+  These cleanup actions are **destructive** and cannot be rolled back. Read [Privacy and recovery](/en/privacy-and-recovery) first.
 </Warning>
+
+## Developer
+
+- **FPS monitor**: show frame rate and repaint information for diagnosing performance.
+- **SSH remote runtime**: show or hide the SSH / WSL Connections section. `VIBEX_SSH_REMOTE_RUNTIME` overrides this switch and locks it in the UI.
 
 ## About
 
-Shows the current **version** and **channel** (Preview / ReleaseCandidate / Stable), platform information, and license, and offers:
+Shows the current **version** and **channel** (Preview / ReleaseCandidate / Stable), platform information, and license, plus:
 
-- **Software update** — Update status and action buttons (**Check now** / **Download** / **Install update** / **Restart now** / **Open release** / **Retry**). Update manifests are signature-verified; a build that fails verification is never installed. The card also lists **Latest version**, **Published**, and **Download size**, and renders that release's notes as Markdown under **What's new in Vibex**; with nothing newer available it shows the installed version's notes instead.
-- **Environment summary** — Copyable, non-sensitive environment information. Include it when you report a problem.
-- **Source code** / **Release notes** — Links to the repository and release notes.
+- **Software update**: state and actions (**Check now** / **Download update** / **Install update** / **Restart now** / **Open release** / **Retry**). The manifest is signature-verified; a failed check never installs. The card shows the **latest version**, **publication time**, and **download size**, and renders the release notes as Markdown (**What's new in Vibex**); with no update it shows the installed version's notes.
+- **Environment summary**: copyable, non-sensitive environment information to attach to a report.
+- **Source code** / **Changelog**: open the repository and release notes.
 
-When you report a problem, include the version, channel, platform, and structured error code, but not full logs.
+When reporting a problem, include the version, channel, platform, and structured error code—not a full log.

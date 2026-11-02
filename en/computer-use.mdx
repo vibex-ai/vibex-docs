@@ -1,0 +1,98 @@
+---
+title: "Computer use"
+description: "Let an Agent read this machine's screen and act on desktop applications, with your approval."
+---
+
+Computer use lets an Agent use **the desktop of the machine the runtime runs on** the way it already uses the terminal and the browser: launch applications, read windows, click, type, press keys, and scroll. It is a **tool panel**, not a remote-desktop product and not a second session system.
+
+It is also the highest-risk tool: the Agent acts on your real desktop and real accounts, while you may be using the same machine. Vibex constrains it with an install gate, per-action approvals, hard denies, an emergency stop, and a redacted ledger.
+
+<Warning>
+  Computer use is off by default. Once on, a wrong click can send a message, complete a purchase, or delete a file. Enable it only when you can watch it and are ready to stop it.
+</Warning>
+
+## Enable computer use
+
+1. Open **Settings → Computer use**.
+2. Click **Install** to install the desktop driver. The driver runs in its own helper process and owns the operating-system grants.
+3. Grant the required permissions in the OS. macOS usually needs **Accessibility** and **Screen Recording**; some systems require a restart.
+4. Turn on the **Computer use** master switch.
+
+The switch requires an installed driver. When the driver is missing, the switch is unavailable and says what is missing. Sessions started after the switch is on receive the desktop tools; turning it off stops new sessions from receiving them.
+
+<Note>
+  Only a local runtime can manage the driver. With a remote runtime, computer use is explicitly unavailable rather than silently empty.
+</Note>
+
+## Approvals and hard denies
+
+**Settings → Computer use → What needs approval** offers three policies:
+
+| Policy | Behaviour |
+| --- | --- |
+| **Ask** | Every action the risk model flags raises a confirmation card. |
+| **Allow** | Skips cards for ordinary actions, but never skips the hard denies or per-action approvals below. |
+| **Deny** | Refuses risky actions and tells the Agent why. |
+
+Whatever the policy, these always require a per-action decision or are refused outright:
+
+- Password managers, secure fields, and credential controls: **hard deny**, with no approval card.
+- Vibex's own windows and process: **hard deny** by default; only an explicit "operate Vibex's own windows" setting allows it, for testing automation against Vibex itself.
+- Destructive controls, file deletion, externalising data, clipboard reads, foreground takeover, and quitting an application: per-action approval, never remembered.
+- Launching an application and clipboard writes: remembered for the session, but only for reversible, non-destructive actions.
+
+"Remember for the session" is scoped to the **application**, not to the Agent. The strictest applicable class wins: an action that is both destructive and foreground is approved once.
+
+The approval card names the target application, action class, and reason; destructive and foreground actions also carry a screenshot of the target window. The screenshot is for the card and is never returned as tool content.
+
+## Panel and emergency stop
+
+Open the panel from **Settings → Computer use → Panel**:
+
+- **Window**: a separate window for longer observation.
+- **Floating**: a small strip that stays above other windows where the platform allows it.
+
+The panel shows what the Agent sees, the current action, and the redacted ledger. Its **emergency stop**:
+
+1. refuses new desktop calls;
+2. drops queued input that has not started;
+3. releases every held key and mouse button;
+4. stops the helper from accepting input;
+5. records the stop and the actions that ran;
+6. requires a human to re-enable it; the Agent cannot undo a stop.
+
+Step 3 matters most: a stuck modifier key can make the whole machine unusable.
+
+When the client disconnects, new actions are refused and pending approvals are void. A longer disconnect clears the queue and releases held keys. Recovery requires your confirmation, through the same path as the emergency stop.
+
+## Platform support
+
+| Platform | Status |
+| --- | --- |
+| macOS | Supported; requires Accessibility and Screen Recording. |
+| Windows | Supported; the driver runs as the current user. |
+| Linux X11 | Supported; background input and window capture are available. |
+| Linux Wayland | Experimental; by default only X11 windows are visible. `CUA_DRIVER_RS_ENABLE_WAYLAND=1` enables a graded path; some windows still cannot be driven in the background. |
+| Headless runtime | Unsupported; there is no desktop session to act on. |
+| Remote runtime | Live desktop hop is unsupported; the panel states why. |
+
+On Linux the helper must not run as root in a user session. A headless macOS runtime does not start the helper either, because the grants belong to the application in the launch chain.
+
+## Security boundary
+
+- **Application identity is resolved by the runtime**, never trusted from the model. An ambiguous name is an error, not a guess.
+- **Element references are short-lived**: observe again after every action. A stale reference or changed window tree is refused.
+- **Results are graded**: `verified`, `unverified`, and `failed`. Missing metadata means unverified, never success.
+- **The ledger is redacted**: no screen pixels, typed text, clipboard contents, or credentials.
+- **The emergency stop outranks everything**: only a human can re-enable it.
+
+## Troubleshooting
+
+| Symptom | What to do |
+| --- | --- |
+| The switch is unavailable | Install the driver first, then check OS permissions. |
+| Missing Accessibility or Screen Recording | Grant it in system settings; restart the app or system if needed. |
+| The Agent cannot see a window | Confirm the target application is open; on Wayland check whether the experimental path is enabled. |
+| An action is "unverified" | That is a valid result; ask the Agent to observe again and do not assume success. |
+| You cannot stop a bad action | Use the panel's emergency stop; it releases keys and blocks further input. |
+| No panel with a remote runtime | Computer use is local-runtime only; use the terminal or browser panel for a remote session. |

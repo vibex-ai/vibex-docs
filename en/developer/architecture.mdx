@@ -15,6 +15,8 @@ flowchart LR
   D --> A[ACP Agent sessions]
   D --> W[Workspace files and Git]
   D --> T[PTY, editor, previews]
+  D --> B[Browser and computer use]
+  D --> G[Shared Providers, route groups, gateway]
   D --> P[Provider profiles and credentials]
   D --> R[RemoteGateway v2]
   R -->|Direct / Tailnet / Local network| M[Native clients]
@@ -23,6 +25,7 @@ flowchart LR
   DE[apps/desktop<br/>GPUI window] --- D
   SV[apps/server<br/>daemon lifecycle] --- D
   M --- MB[apps/mobile<br/>iOS / Android]
+  M --- TUI[apps/tui<br/>character-grid client]
   M --- DKT[apps/desktop in<br/>remote-client mode]
 ```
 
@@ -43,15 +46,20 @@ The key point is that **one `DesktopRuntime` core has two frontends**: `apps/des
 | `crates/agent-acp` | ACP adapters, catalogs, and runtime probing. |
 | `crates/agent-claude` / `crates/agent-codex` | Dedicated adaptation for the two built-in Agents. |
 | `crates/fs` / `crates/git` / `crates/terminal` / `crates/content` | File, Git, PTY, and content preview services. |
+| `crates/browser` / `crates/computer` | Embedded browser and computer use: the runtime owns processes, permissions, audit, and the tool surface. |
+| `crates/model-gateway` / `crates/model-catalog` | Local model gateway, routing policy, protocol translation, and model catalog. |
 | `crates/remote` / `crates/relay` | The Remote v2 gateway and Relay contracts. |
 | `crates/config-switch` | Configuration import and export, native config rewriting, and secret storage. |
 | `crates/backup` / `crates/diagnostics` | Backup and restore, plus redacted diagnostics. |
 | `crates/app-update` | Signed automatic updates. |
-| `crates/vibex-markdown` / `crates/vibex-terminal-ui` | Markdown rendering and terminal emulation. |
+| `crates/vibex-terminal-ui` / `crates/vibex-tui` | Terminal emulation and the Vibex TUI client. |
 | `apps/desktop` | The native workbench; embeds the runtime. |
 | `apps/server` | The headless authoritative runtime `vibex-server`. |
 | `apps/mobile` | Composes shared remote projections into native Android / iOS interfaces. |
+| `apps/tui` | Character-grid client that renders the same runtime projections. |
 | `apps/relay-server` | Forwards opaque encrypted WebSocket frames. |
+
+SSH and WSL remote runtimes are provisioned and managed by `apps/desktop/src/ssh_connection`: the desktop installs `vibex-server` over SSH, opens a loopback tunnel, pairs, and then uses it as a Remote v2 runtime. See [SSH Remote Runtime](https://github.com/vibex-ai/vibex/blob/main/docs/remote/ssh-runtime.md).
 
 ## Data flow rules
 
@@ -71,9 +79,9 @@ A project maps to multiple workspaces. A `VibexWorktree` workspace is not "anoth
 
 ## Persistence and recovery
 
-SQLite stores projects, workspaces, sessions, timelines, provider profiles, terminal metadata, and remote devices.
+SQLite stores projects, workspaces, sessions, timelines, provider profiles, shared Providers, route groups, gateway ledgers, terminal metadata, browser profiles, computer-use audit records, and remote devices.
 
-**In memory only, lost on restart:** Agent processes, terminal session contents, and active connections. A `running` row in the database only reflects the last observed state; re-probe after a restart, and mark lost terminals as `stale`.
+**In memory only, lost on restart:** Agent processes, terminal session contents, browser tabs and frames, active connections, and an in-progress computer-use session. A `running` row in the database only reflects the last observed state; re-probe after a restart, and mark lost terminals as `stale`.
 
 ## Change review checklist
 

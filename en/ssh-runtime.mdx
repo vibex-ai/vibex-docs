@@ -1,0 +1,142 @@
+---
+title: "SSH and WSL remote runtimes"
+description: "Let Vibex install and run the authoritative runtime on another Linux or macOS machine, or inside WSL2 on this PC."
+---
+
+The desktop can install `vibex-server` on another machine, drive it over SSH, and connect through Remote v2. Code, Agents, Git, and terminals run on the remote host; the desktop, phone, and TUI remain clients.
+
+You do not need Docker, a public port, an HTTPS certificate, or a manually copied pairing code. You need SSH access to the host. If a Linux host has no sshd, Vibex can generate a one-time bootstrap command. A WSL2 distro on Windows works as a local Linux environment without sshd.
+
+<Warning>
+  **Beta, off by default.** Turn it on in **Settings → Developer → SSH remote runtime**, or set `VIBEX_SSH_REMOTE_RUNTIME=1` for one launch. Turning it off only hides entry points; it never deletes connections, credentials, or the remote runtime.
+</Warning>
+
+## Before you start
+
+The desktop needs:
+
+- `ssh` and `ssh-keygen` on `PATH`.
+- A host entry in `~/.ssh/config` (or the file you point Vibex at) that logs in **non-interactively**. Vibex runs every command with `BatchMode=yes`; it never answers a password or keyboard-interactive prompt.
+- The host key already in `known_hosts`. Vibex never accepts an unknown key on your behalf; connect once from a terminal and compare the fingerprint.
+
+The remote host needs:
+
+- Linux x86_64 / aarch64 with glibc 2.35+ (Ubuntu 22.04+, Debian 12+, RHEL 9+), or a supported macOS.
+- `tar`, `sha256sum` (or `shasum`), a writable home, and at least 512 MiB free.
+- No root; everything lives in your home directory.
+
+## Quick start (Linux over SSH)
+
+1. Open **Settings → Connections → Add SSH connection**. Vibex lists hosts it finds in your SSH config.
+2. Pick a host and choose **Probe and add**. The probe checks OS, architecture, glibc, disk, tools, and the runtime port, then saves the connection and starts provisioning.
+3. Provisioning walks through resolve → check environment → upload → install → start → open tunnel → pair → connect → ready. A failure shows a diagnostics card and the next step.
+4. When ready, the runtime appears in the Runtime Manager and becomes active. Switch back to the local runtime from the same menu at any time.
+
+The remote runtime keeps running when SSH disconnects. After a dropped tunnel or an app restart, the desktop starts the runtime again if needed, reopens the tunnel, and connects with the stored pinned credential. If launch fails, the workbench falls back to the local runtime; choose **Connect** or **Fix** on the connection to provision and pair again.
+
+## macOS remote
+
+macOS hosts are supported as remote development machines (beta), on Apple silicon and Intel.
+
+1. On the Mac, turn on **System Settings → General → Sharing → Remote Login**, or run:
+
+   ```bash
+   sudo systemsetup -setremotelogin on
+   ```
+
+2. Add the Mac as in the Linux quick start.
+
+The server artifact is ad-hoc signed and uploaded over SSH, so it carries no quarantine attribute and Gatekeeper does not block it. It is not notarized.
+
+In the Runtime Manager, choose a lifecycle:
+
+- **nohup** (default): started on demand; survives SSH disconnects, not a reboot. The desktop starts it again on the next connect.
+- **At login**: a per-user LaunchAgent starts the runtime when that user logs in. LaunchAgents need a graphical login session; enable automatic login if the Mac must come back unattended.
+
+Sleep pauses the runtime and drops the tunnel; the desktop reconnects after the Mac wakes.
+
+## Windows 11 + WSL2
+
+A WSL2 distro on the same Windows machine is treated as a local Linux environment, with no sshd or SSH keys.
+
+1. Install WSL2 and at least one distro (`wsl --install`).
+2. Open **Settings → Connections → Add WSL runtime**, pick the distro, and choose **Connect WSL**.
+
+Vibex runs the Linux x86_64 artifact inside the distro through `wsl.exe`, installs it under the distro user's `~/.local/share/vibex/server`, and reaches it through WSL2 localhost forwarding. The Runtime Manager shows `WSL · <distro>`.
+
+The desktop holds the runtime as the foreground process of a `wsl.exe` child, because WSL stops a distro when its last Windows client exits. After `wsl --shutdown` or a crash, the desktop notices the child exit, starts the distro and runtime again, and reconnects.
+
+If `localhostForwarding` is disabled in `%UserProfile%\.wslconfig`, the connection fails at the forwarding check; turn it back on and run `wsl --shutdown`.
+
+Native Windows hosts are not supported as remote runtimes.
+
+## Linux without sshd (bootstrap)
+
+A fresh VM may have no SSH server. If you can reach a root shell through a cloud console, serial console, or cloud-init, Vibex can generate a one-time command that sets SSH up.
+
+1. Open **Settings → Connections → Bootstrap SSH**.
+2. Enter the **existing** Linux account Vibex will connect as (for example `ubuntu`, `debian`, `ec2-user`) and choose **Generate command**. The desktop reads `~/.ssh/id_ed25519.pub` (or `id_rsa.pub` / `id_ecdsa.pub`).
+3. Copy the command and run it in the console within 15 minutes.
+4. Add a matching entry to `~/.ssh/config`, compare and accept the printed host-key fingerprint, then choose **Recheck SSH**. Provisioning continues over SSH as usual.
+
+The command verifies the embedded payload's SHA-256 and uses a one-time `v1.<expires-ms>.<nonce>` token. It installs OpenSSH, starts sshd, appends your desktop public key to that user's `authorized_keys`, prints the host-key fingerprints, and refuses an expired or replayed token. It never changes `PasswordAuthentication`, never enables root login, and never touches the firewall. If a cloud firewall or security group blocks port 22, open it yourself.
+
+## Runtime Manager
+
+Once a connection is ready, you can:
+
+- **Switch** the desktop to the remote runtime, or back to local.
+- **Update runtime** when the remote is behind: download and verify the matching server artifact, install it into a new version directory, stop the old runtime, snapshot the database, start the new version, and wait for health. On failure it rolls back to `previous` and restores the database snapshot.
+- **Compatibility**: compatible, update available, runtime update required, update Vibex, or incompatible. Protocol range, channel, and major version are hard gates.
+- **Edit** the display name, SSH client and config path, workspace roots, and the local tunnel port while the runtime is not bound.
+- **Remove** only the local connection profile and credential; the remote runtime and its data stay.
+- **Uninstall runtime**: stop the remote process and delete installed versions; delete the runtime home only if you tick it. It refuses an install root outside the remote home and never deletes workspace files.
+
+An upgrade restarts the runtime and interrupts running turns and terminals; the desktop asks first. The runtime home (identity, TLS certificate, device grants, data) is kept, so no re-pairing is needed.
+
+## Security boundary
+
+The trust chain is **SSH host key → your SSH authentication → pinned TLS certificate → device grant**.
+
+- **Host keys**: every `ssh` call uses `StrictHostKeyChecking=yes`. Unknown and changed keys are hard failures; a change shows the old and new fingerprints.
+- **Loopback only**: the remote runtime binds `127.0.0.1:<port>`, and the tunnel binds `127.0.0.1:<local-port>` on the desktop with `ExitOnForwardFailure=yes`. Nothing listens publicly.
+- **TLS pinning**: the runtime's self-signed certificate reaches the desktop over SSH and is pinned on first use; a different certificate is rejected.
+- **Pairing code**: fetched with `pairing-code --json` and claimed directly. It is never shown in the UI, written to the server log, or included in diagnostics.
+- **Artifacts**: only from a signed release manifest; size and SHA-256 are checked on the desktop and again on the host.
+- **Remote commands**: scripts go to `sh -s` on stdin, and every argument is shell-quoted and validated.
+- **Phones**: an SSH/WSL runtime is reachable only through the desktop's tunnel; phones cannot pair with it directly.
+
+## Troubleshooting
+
+Each failure shows a classified cause, next steps, and **Copy diagnostics**. Once the runtime is installed, **View log** (last 200 lines) and **Copy log command** are also available.
+
+| Symptom | Error codes | What to do |
+| --- | --- | --- |
+| No SSH client | `ssh_client_missing` / `ssh_spawn_failed` | Install OpenSSH: `sudo apt install openssh-client` on Debian/Ubuntu, `brew install openssh` on macOS. On Windows, use WSL. |
+| No SSH server | `ssh_connection_refused` | Install/start sshd on Linux, or bootstrap. On macOS, turn on Remote Login. |
+| Authentication failed | `ssh_auth_failed` | Confirm `ssh <alias>` logs in without a prompt; check IdentityFile and ssh-agent. |
+| Host key unknown | `ssh_host_key_unknown` | Connect once in a terminal, compare and accept the fingerprint, then retry. |
+| Host key changed | `ssh_host_key_changed` | Compare with the host owner. Only after confirming a legitimate change, run `ssh-keygen -R <host>` and reconnect. |
+| Timeout or DNS | `ssh_timeout` / `ssh_dns_failed` | Check the host name, network, VPN, and firewall. |
+| Permission denied | `ssh_permission_denied` / `ssh_environment_home_not_writable` | Fix ownership and write permission of the remote home and install root. |
+| Low disk | `ssh_environment_disk_low` | Free at least 512 MiB under the remote home. |
+| glibc too old | `ssh_environment_glibc_too_old` / `ssh_environment_missing_glibc` | The host needs glibc 2.35+. musl-only hosts such as Alpine cannot run it. |
+| Port busy | `ssh_environment_port_busy` | Free the port or retry; Vibex tries the next free port. |
+| Start failed | `ssh_launch_failed` / `ssh_runtime_start_failed` / `ssh_runtime_health_timeout` | View the log, fix the cause, and retry. |
+| Version incompatible | `ssh_upgrade_incompatible` | Update the runtime or Vibex according to the compatibility state. |
+| Tunnel failed | `ssh_tunnel_*` | Usually the local port is taken or SSH dropped; retry. |
+| Pairing failed | `ssh_pairing_*` / `remote_*` | Retry. If the runtime revoked this desktop, choose **Connect** on the connection to pair again. |
+| Upgrade failed | `ssh_upgrade_*` | It rolled back to `previous`; inspect the new version's log. |
+
+## Support matrix
+
+| Platform | Status | Verified on |
+| --- | --- | --- |
+| Linux x86_64 | Beta | Ubuntu 24.04 (CI Docker E2E: provision, uninstall, upgrade + rollback); artifact smoke on Ubuntu 22.04 |
+| Linux aarch64 | Experimental | Artifact is built and published (glibc 2.35 baseline); no end-to-end run on aarch64 hardware |
+| macOS 14 arm64 | Beta | Real M1: provision, SSH disconnect, At login, sleep/wake, upgrade + rollback, uninstall |
+| macOS x86_64 | Experimental | x86_64 artifact only under Rosetta on Apple silicon; no Intel Mac run |
+| Windows 11 + WSL2 | Beta | Real Windows 11 (Arch distro): connect without sshd, recover after `wsl --shutdown` |
+| Bootstrap: Ubuntu / Debian | Beta | Docker Ubuntu 24.04, WSL2 Ubuntu without sshd |
+| Bootstrap: RHEL 9, Alpine 3.20 | Experimental | Containers / WSL2 only; Alpine bootstraps, but the runtime needs glibc |
+| Native Windows host | Unsupported | — |

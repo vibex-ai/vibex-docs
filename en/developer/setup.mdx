@@ -33,6 +33,14 @@ cargo test -p vibex-desktop --locked
 pnpm smoke:first-frame
 ```
 
+Run the TUI directly from the workspace:
+
+```bash
+cargo run -p vibex-tui -- --home /tmp/vibex-dev
+```
+
+The embedded browser needs Chrome, Chromium, or Edge on the machine; computer use needs its driver installed and enabled in Settings. Neither is a compile dependency, but their smoke and manual checks need them.
+
 ## Optional: mobile environment
 
 - **Android** — Android SDK/NDK, `cargo-ndk`, and the Rust targets for the target ABI.

@@ -11,12 +11,14 @@ description: "Artifact formats, build methods, and verification requirements for
 | Linux aarch64 | `.deb` | Vulkan; no AppImage (linuxdeploy cannot cross-build one) |
 | macOS aarch64 / x86_64 | `.dmg` | A recent macOS; **unsigned and not notarized** |
 | Windows x86_64 / aarch64 | NSIS `.exe` | **Unsigned**; installs for the current user |
-| Android arm64 | `.apk`, `.aab` | Android SDK/NDK, `cargo-ndk` |
-| iOS | `ios-simulator.app.zip`, `xcframework.zip` | macOS, Xcode, XcodeGen; **simulator only, unsigned** |
+| Android arm64 | `.apk`, `.aab` | Android SDK/NDK, `cargo-ndk`; Stable needs a fixed release key |
+| iOS | `ios-unsigned.ipa`, `ios-simulator.app.zip`, `xcframework.zip` | macOS, Xcode, XcodeGen; the device IPA is re-signed by the installer |
+| TUI | `vibex` / `vibex.exe` in the desktop package; `vibex-server tui` in containers | No extra runtime; works over SSH and tmux |
+| SSH / WSL remote runtime | Desktop provisions `vibex-server` | OpenSSH; Linux glibc 2.35+ or macOS; WSL2 |
 | Self-hosted Linux / container | `ghcr.io/vibex-ai/vibex-server`, `ghcr.io/vibex-ai/vibex-relay-server` | Docker or the Rust binary, multi-architecture amd64/arm64 |
 
 <Warning>
-  **Signing status is a known current limitation:** macOS and Windows installers are not code-signed, so users must allow them manually the first time they open them; iOS ships unsigned simulator builds only. When no repository key is configured, Android uses a throwaway CI key generated for each release, so **candidate versions cannot upgrade in place over one another**. Before a release, confirm whether any of this has changed.
+  **Signing status is a known current limitation:** macOS and Windows installers are not code-signed, so users must allow them manually the first time they open them; iOS ships an unsigned device IPA and simulator build, with the device build re-signed by the installer. When no repository key is configured, Android uses a throwaway CI key generated for each release, so RC versions cannot upgrade in place over one another; Stable requires a fixed release key. Before a release, confirm whether any of this has changed.
 </Warning>
 
 ## Desktop platform boundaries
@@ -73,9 +75,10 @@ The release workflow calls `apps/mobile/scripts/sign-android-release.sh`: APKs u
 
 ```bash
 pnpm build:mobile:ios
+pnpm package:mobile:ios   # unsigned device IPA + simulator bundle
 ```
 
-Builds `VibexFFI.xcframework` and generates the Xcode project. Signing, the bundle identifier, device / simulator selection, and distribution credentials are all decided by your local Xcode process; do not commit certificates or provisioning profiles to the repository.
+Builds `VibexFFI.xcframework` and generates the Xcode project. Signing, the bundle identifier, device / simulator selection, and distribution credentials are all decided by your local Xcode process; do not commit certificates or provisioning profiles to the repository. The release artifact is an unsigned device IPA that the installer re-signs with their own Apple ID; a free-account signature lasts seven days.
 
 ## Desktop packaging
 
@@ -102,6 +105,12 @@ Only builds with the public key compiled in check for updates automatically.
 ## Mobile lifecycle
 
 Mobile must handle backgrounding, network switches, disconnects, and reconnects. On recovery, first fetch authoritative sessions and timelines through Remote v2, then subscribe to live events; do not overwrite authoritative state with a stale projection.
+
+## TUI and remote runtimes
+
+The TUI ships as a second binary in the desktop package: `/usr/bin/vibex` on Linux, `vibex` next to the macOS `.app`, `vibex.exe` on Windows, and `vibex-server tui` in containers. It is a client of the same runtime protocol; it does not link the desktop UI or open the database.
+
+SSH / WSL remote runtimes are provisioned by the desktop: upload and install `vibex-server` over SSH, open a loopback tunnel, fetch a one-time pairing code, and pair. Artifacts must come from a signed manifest, and the host re-checks SHA-256. See `docs/remote/ssh-runtime.md` and `.trellis/spec/backend/ssh-remote-runtime.md`.
 
 ## Self-hosted deployment
 

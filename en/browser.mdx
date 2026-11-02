@@ -1,0 +1,95 @@
+---
+title: "Embedded browser"
+description: "Inspect pages in an isolated browser panel and let an Agent read and operate them."
+---
+
+The embedded browser is a **tool panel**, the same rank as the terminal and the document preview. It is backed by the system Chrome, Chromium, or Edge installation and runs in the runtime's own isolated profile. It is not an application shell and not another WebUI product.
+
+You and the Agent see the same page: you watch a live frame, while the Agent works from a structured page snapshot and a set of browser tools. That is what keeps the element it clicks and the element you see from diverging.
+
+## Open the browser panel
+
+Choose **Browser** from the preview panel's **+** menu, or create a new browser tab. The address bar supports:
+
+- A full address, opened as written.
+- A keyword, searched with the engine selected in **Settings → Browser**.
+- Back, forward, reload, and opening links in a new tab.
+
+Browser tabs share the same tab strip and splits as files, diffs, and terminals. The panel can be popped out into its own window or shown full screen.
+
+<Note>
+  The embedded browser needs Chrome, Chromium, or Edge on the machine. When no browser is available, the panel says what is missing instead of showing a blank page.
+</Note>
+
+## Read and operate a page
+
+| Capability | Description |
+| --- | --- |
+| Tabs | Create, switch, and close tabs; tabs opened by the Agent appear here too. |
+| Find | `cmd-f` searches the page, shows the match count, and wraps around. |
+| Downloads | Denied by default. When allowed, files go to the runtime's own downloads directory; the page cannot choose the path. |
+| Dialogs | `alert`, `confirm`, `prompt`, and `beforeunload` appear as cards in the panel for you to answer. |
+| File choosers | A page-triggered file chooser is intercepted; you choose the file to upload. |
+| Page diagnostics | Console messages, uncaught exceptions, and failed network requests stay available to the Agent. |
+| Action ledger | Expand the tab's action ledger at the bottom of the panel to see who did what. |
+
+Page content is untrusted input. The Agent's tool descriptions tell it not to follow instructions embedded in a page; apply the same judgment when you approve navigation, uploads, or sensitive actions.
+
+## What the Agent can do
+
+The Agent uses built-in browser tools:
+
+- **Observe**: read the accessibility tree and interactive elements, returning short-lived element references.
+- **Act**: click, fill, press keys, hover, scroll, select options, drag, and upload files.
+- **Navigate and manage tabs**: open, switch, close, and wait for a condition.
+- **Read**: extract page text, read console and network diagnostics, and take screenshots.
+- **Test**: record actions and export a Playwright test; save a page baseline and compare changes.
+- **Ask for help**: hand a captcha, sign-in, or undecidable moment back to you.
+
+Element references are valid only until the next observation. After a rerender, navigation, or another observation, old references are refused and the Agent must observe again. This prevents "the click landed on whatever moved into that position".
+
+## You can always take over
+
+When the Agent is driving the current tab, the panel shows **Agent is driving** in the bottom-right corner. Press pause to take control immediately. While paused the Agent can still observe, but cannot click or type. Press play to hand the tab back; the Agent observes the page again before acting.
+
+Your own input into the page also pauses the Agent on that tab. The panel explains why and offers a hand-back action.
+
+<Warning>
+  Browser actions can submit forms, send messages, incur charges, or change external systems. Confirm the site, account, and scope before approving. Never give an Agent passwords, payment details, or one-time codes.
+</Warning>
+
+## Settings
+
+**Settings → Browser** controls the browser panel's own tabs:
+
+| Option | Description |
+| --- | --- |
+| **Start page** | Google, Bing, Baidu, or a custom address. Applies to your new tabs, not to tabs the Agent opens. |
+| **Search engine** | Used when the address bar holds a keyword; Google, Bing, Baidu, DuckDuckGo, or a custom template. |
+| **Lossless frames** | Sharper text, larger and slower stream; the panel's **HD** button toggles the same setting. |
+| **Allow downloads** | Off by default. When on, a page may save a file into the runtime's downloads directory. |
+| **Import browser login state** | Copy cookies and localStorage from this machine's Chrome, Edge, or Brave into the isolated profile. The source profile is only read. |
+| **Clear browser data** | Delete cookies, localStorage, caches, and imported logins; open tabs close. |
+
+<Note>
+  With a remote runtime, the channel that carries the panel's frames and display settings is not complete yet, so display options apply to the next local runtime. Local capabilities such as file choosers do not cross runtimes.
+</Note>
+
+## Security boundary
+
+- The browser uses its own `user-data-dir`; it does not read or write your everyday browser profile unless you explicitly import login state.
+- Downloads are denied by default and can only land in the runtime downloads directory, never in the workspace.
+- A page cannot silently open a native save dialog or file chooser.
+- Every navigation and action is written to a redacted audit ledger; cookies, tokens, and typed values are not.
+- Cross-origin navigation, loopback addresses, and uploads may require extra approval.
+
+## Troubleshooting
+
+| Symptom | What to do |
+| --- | --- |
+| The panel says no browser is installed | Install Chrome, Chromium, or Edge, then reopen the panel. |
+| The page opens but the Agent sees no elements | Ask the Agent to observe again; windows without an accessibility tree and cross-origin iframes may not be actionable. |
+| Clicks land in the wrong place | Reopen the tab after changing display scaling; coordinates are viewport CSS pixels and an old frame is stale after scaling changes. |
+| A download does not start | Turn on **Allow downloads**; a refused download is reported in the panel. |
+| Login state was not imported | Close tabs using the profile and retry; the source browser must be closed or readable. |
+| The Agent is paused | Press play in the bottom-right corner, or use **Hand back to Agent**. |

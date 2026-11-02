@@ -34,10 +34,14 @@ Add the matching script for the area you changed:
 | File service | `pnpm smoke:files` |
 | Git | `pnpm smoke:git` |
 | Terminal | `pnpm smoke:pty` |
+| Browser | `pnpm smoke:browser` |
+| Computer use | `pnpm smoke:computer` |
+| TUI | `cargo test -p vibex-tui --test contracts` |
 | Database | `pnpm smoke:db` |
 | Backup and restore | `pnpm smoke:backup` |
 | Diagnostics | `pnpm smoke:diagnostics` |
 | Relay / remote | `pnpm smoke:relay:local` |
+| SSH / WSL | `scripts/e2e-ssh-docker.sh` (needs a server artifact built from the current tree) |
 | Cross-layer regression | `pnpm e2e:regression` |
 
 <Note>

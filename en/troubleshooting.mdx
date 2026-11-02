@@ -103,6 +103,70 @@ Vibex's terminal scrollback buffer is fixed at 10000 lines; earlier output has a
 4. When `revoked` appears, you must pair again; when `resync_required` appears, wait for the authority to finish synchronizing.
 5. When using Relay, check `/health` and `/api/info`—and note that Relay has **no** `/api/v2/info`.
 
+## TUI will not start or attach
+
+| Symptom | Likely cause | What to do |
+| --- | --- | --- |
+| `home is locked` | The desktop owns the same home and has not allowed TUI attachment. | Enable **Settings → General → Vibex TUI** in the desktop, quit the desktop, or `vibex connect` to another runtime. |
+| It exits immediately | The home path's channel does not match the runtime flavour. | Run `vibex status` to see the home, flavour, and endpoint; use `--home` if needed. |
+| CJK text or icons are boxes | The terminal font lacks CJK or Nerd Font glyphs. | Change the font; some icons have ASCII fallbacks. |
+| Copying does not reach the clipboard | The terminal does not support OSC 52. | Enable clipboard forwarding in SSH/tmux, or copy on the desktop. |
+| Steering is unavailable | Remote mode has no native steering. | Interrupt with `Ctrl+C` and resend. |
+
+## The browser will not open or act
+
+| Symptom | Likely cause | What to do |
+| --- | --- | --- |
+| No browser is installed | Chrome, Chromium, or Edge is missing. | Install a supported browser and reopen the panel. |
+| The page opens but the Agent sees no elements | No accessibility tree, or the element is inside a cross-origin iframe. | Ask the Agent to observe again; use a screenshot or text extraction if needed. |
+| An element reference is stale | The page rerendered, navigated, or was observed again. | Observe again before acting. |
+| Navigation is denied | The target triggered a cross-origin or loopback approval. | Confirm the navigation in the panel; do not bypass approval. |
+| A download does not start | **Allow downloads** is off, or a save dialog was intercepted. | Enable downloads under **Settings → Browser**; check the panel's blocked notice. |
+| Login state was not imported | The source browser is running or its profile is unreadable. | Quit the source browser and retry; import only reads. |
+
+## Computer use is unavailable
+
+| Symptom | Likely cause | What to do |
+| --- | --- | --- |
+| The switch is unavailable | The driver is not installed. | Install it under **Settings → Computer use**, then check OS permissions. |
+| Missing Accessibility or Screen Recording | The OS has not granted permission. | Grant it in system settings; restart the app or system if needed. |
+| An action is "unverified" | The engine dispatched it but could not confirm the effect. | Ask the Agent to observe again; do not assume success. |
+| Wayland shows only X11 windows | The experimental path is off. | Set `CUA_DRIVER_RS_ENABLE_WAYLAND=1` and restart the runtime; some compositors still cannot do background input. |
+| No panel with a remote runtime | Computer use is local-runtime only. | Operate on the runtime host, or use the terminal/browser tools. |
+
+## SSH / WSL provisioning fails
+
+Check the diagnostics card's error code, then the runtime log. Common causes:
+
+- **Host key unknown or changed**: connect once with `ssh <alias>` and compare the fingerprint; do not blindly delete `known_hosts`.
+- **Authentication failed**: confirm non-interactive login works and ssh-agent has the right key.
+- **glibc too old**: glibc 2.35+ is required; musl-only hosts such as Alpine cannot run the runtime.
+- **Port busy**: free the port or retry; Vibex tries the next free port.
+- **Tunnel failed**: usually a taken local port or a dropped SSH connection; retry or pick another local port.
+- **Upgrade failed**: it rolled back to `previous`; inspect the new version's log and check channel/version compatibility.
+
+See [SSH and WSL remote runtimes](/en/ssh-runtime#troubleshooting).
+
+## Providers, route groups, and the gateway
+
+| Symptom | Likely cause | What to do |
+| --- | --- | --- |
+| A shared Provider is missing from the picker | It is set to "route groups only", or the Agent is not bound to it. | Edit the Provider or the Agent binding. |
+| A route group has no usable key | Member Provider keys are disabled, cooling, or invalid. | Open Gateway → Keys, check state, and test one key. |
+| The gateway is unavailable | The port failed to bind or the service stopped. | Check the port; toggle the gateway; direct Providers still work. |
+| Requests always use one member | Strategy is Manual/Ordered, or Pin a conversation is on. | Change the strategy or turn pinning off. |
+| First token is slow | First-token timeout or a slow member. | Inspect p50/p95 in the ledger; adjust timeouts and patience. |
+| Protocol or tool-call errors | The model's wire protocol is misdeclared. | Set it to inherit or the correct protocol; verify with Test. |
+
+## Market installation fails
+
+| Symptom | Likely cause | What to do |
+| --- | --- | --- |
+| Search returns nothing | The upstream catalog is unreachable, or the query is too narrow. | Clear the search and retry; check the network. |
+| Install is unavailable | The entry was removed, or the runtime has no market capability. | Reload; try another entry or import manually. |
+| A Skill install is refused | The document is too large, the file list is invalid, or the target Agent refuses it. | Read the reason in the preview; shrink the Skill or change Agents. |
+| The Agent does not load it after install | It is not enabled under **Agent enablement**. | Turn on the Agent's switch and restart the session. |
+
 ## Submitting diagnostics
 
 Please provide:

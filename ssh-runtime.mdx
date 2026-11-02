@@ -1,0 +1,142 @@
+---
+title: "SSH 与 WSL 远程运行时"
+description: "让 Vibex 在另一台 Linux 或 macOS 机器上安装并运行权威运行时，或在本机 WSL2 里运行它。"
+---
+
+桌面端可以把 `vibex-server` 安装到另一台机器，通过 SSH 驱动它，并用 Remote v2 连接。代码、Agent、Git 和终端都在远端运行；桌面端、手机和 TUI 仍然是客户端。
+
+你不需要 Docker、公网端口、HTTPS 证书或手动复制配对码。你只需要能通过 SSH 登录目标机器；如果 Linux 主机还没有 sshd，可以用一次性 bootstrap 命令初始化。Windows 上的 WSL2 发行版也可以作为本地 Linux 环境运行，不需要 sshd。
+
+<Warning>
+  **测试版，默认关闭。** 在 **设置 → 开发者 → SSH 远程运行时** 打开开关，或用 `VIBEX_SSH_REMOTE_RUNTIME=1` 为单次启动开启。关闭时只是隐藏入口，不会删除连接、凭据或远端运行时。
+</Warning>
+
+## 开始之前
+
+桌面端需要：
+
+- `ssh` 和 `ssh-keygen` 在 `PATH` 上。
+- `~/.ssh/config`（或你指定的配置文件）里有一个能**非交互登录**的主机条目。Vibex 用 `BatchMode=yes` 执行所有命令，不会替你输入密码或键盘交互认证。
+- 主机密钥已经在 `known_hosts` 里。Vibex 从不替你接受未知主机密钥；先在终端里 `ssh <alias>` 连接一次并核对指纹。
+
+远端需要：
+
+- Linux x86_64 / aarch64，glibc 2.35+（Ubuntu 22.04+、Debian 12+、RHEL 9+），或受支持的 macOS。
+- `tar`、`sha256sum`（或 `shasum`）、可写的 home，以及至少 512 MiB 空闲空间。
+- 不需要 root；所有文件都放在你的 home 下。
+
+## 快速开始（Linux over SSH）
+
+1. 打开 **设置 → 连接 → 添加 SSH 连接**。Vibex 会列出 SSH 配置里发现的主机。
+2. 选择主机，点 **探测并添加**。探测会检查 OS、架构、glibc、磁盘、工具和运行时端口，然后保存连接并开始配置。
+3. 配置流程会经过：解析主机 → 检查环境 → 上传 → 安装 → 启动 → 打开隧道 → 配对 → 连接 → 就绪。失败时会显示诊断卡和下一步。
+4. 就绪后，运行时会出现在运行时管理器里，并成为当前运行时。随时可以从同一个菜单切回本机。
+
+SSH 断开后远端运行时仍会继续运行。桌面端重启或隧道断开后，会尝试重新启动运行时、重开隧道，并用已保存的固定凭据连接。启动失败时会回退到本机运行时；在连接上点 **连接** 或 **修复** 可以重新配置和配对。
+
+## macOS 远端
+
+macOS 主机可以作为远程开发机器（测试版），支持 Apple 芯片和 Intel。
+
+1. 在 Mac 上打开 **系统设置 → 通用 → 共享 → 远程登录**，或执行：
+
+   ```bash
+   sudo systemsetup -setremotelogin on
+   ```
+
+2. 按 Linux 的步骤添加这台 Mac。
+
+macOS 的服务端产物是 ad-hoc 签名并通过 SSH 上传的，不带 quarantine 属性，Gatekeeper 不会拦截；它没有经过公证。
+
+在运行时管理器里可以选择生命周期：
+
+- **nohup**（默认）：按需启动，SSH 断开后继续运行，但重启后不会自动拉起；下次连接时桌面端会再启动它。
+- **登录时**：安装一个用户级 LaunchAgent，在该用户登录时启动运行时。LaunchAgent 需要图形登录会话；无人值守重启需要开启自动登录。
+
+睡眠会暂停运行时并断开隧道；Mac 唤醒后桌面端会重连。
+
+## Windows 11 + WSL2
+
+同一台 Windows 机器上的 WSL2 发行版被当作本地 Linux 环境，不涉及 sshd 或 SSH Key。
+
+1. 安装 WSL2 和至少一个发行版（`wsl --install`）。
+2. 打开 **设置 → 连接 → 添加 WSL 运行时**，选择发行版，点 **连接 WSL**。
+
+Vibex 通过 `wsl.exe` 在发行版里运行 Linux x86_64 产物，安装到该用户的 `~/.local/share/vibex/server`，并通过 WSL2 的 localhost 转发访问。运行时管理器会显示 `WSL · <发行版>`。
+
+桌面端把运行时作为 `wsl.exe` 子进程的前台进程持有，因为 WSL 在最后一个 Windows 客户端退出后会停止发行版。执行 `wsl --shutdown` 或崩溃后，桌面端会发现子进程退出，重新启动发行版和运行时并重连。
+
+如果 `%UserProfile%\.wslconfig` 里关闭了 `localhostForwarding`，连接会在转发检查处失败；重新打开并执行 `wsl --shutdown`。
+
+原生 Windows 主机不作为远程运行时支持。
+
+## 没有 sshd 的 Linux（bootstrap）
+
+新建 VM 可能没有 SSH 服务。如果你能通过云控制台、串口或 cloud-init 拿到 root shell，Vibex 可以生成一条一次性命令来安装 SSH。
+
+1. 打开 **设置 → 连接 → 初始化 SSH**。
+2. 输入 Vibex 将要连接的**现有** Linux 账户（例如 `ubuntu`、`debian`、`ec2-user`），点 **生成命令**。桌面端会读取 `~/.ssh/id_ed25519.pub`（或 `id_rsa.pub` / `id_ecdsa.pub`）。
+3. 在 15 分钟内把命令复制到控制台执行。
+4. 在 `~/.ssh/config` 里添加匹配的主机条目，核对并接受命令打印的主机密钥指纹，然后点 **重新检测 SSH**。之后按正常流程继续配置。
+
+命令会校验内置 payload 的 SHA-256，并使用 `v1.<expires-ms>.<nonce>` 形式的一次性 token。它会安装 OpenSSH、启动 sshd、把你的桌面公钥追加到该用户的 `authorized_keys`、打印主机密钥指纹，并拒绝过期或重复使用的 token。它不会修改 `PasswordAuthentication`、不会开启 root 登录、不会动防火墙。如果云防火墙或安全组挡住了 22 端口，需要你自己放行。
+
+## 运行时管理器
+
+连接就绪后，可以在运行时管理器里：
+
+- **切换**：把桌面端切到远端运行时，或切回本机。
+- **更新运行时**：当远端版本落后时，下载并校验匹配的服务端产物，安装到新版本目录，停止旧版本、备份数据库、启动新版本并等待健康检查；失败会回滚到 `previous` 并恢复数据库快照。
+- **兼容性**：显示兼容、可更新、需要更新运行时、需要更新 Vibex 或不兼容。协议范围、通道和主版本是硬门槛。
+- **编辑**：修改显示名称、SSH 客户端和配置路径、工作区根目录，以及尚未绑定时的本地隧道端口。
+- **移除**：只删除本机连接配置和凭据，远端运行时和数据保留。
+- **卸载运行时**：停止远端进程，删除已安装版本；只有你勾选时才会删除运行时 home。它拒绝删除远端 home 之外的安装根目录，也不会删除工作区文件。
+
+升级会重启运行时并中断正在运行的回合和终端；桌面端会先询问。运行时 home（身份、TLS 证书、设备授权、数据）会保留，因此不需要重新配对。
+
+## 安全边界
+
+信任链是：**SSH 主机密钥 → 你的 SSH 认证 → 固定的 TLS 证书 → 设备授权**。
+
+- **主机密钥**：所有 `ssh` 调用都带 `StrictHostKeyChecking=yes`。未知和变更的主机密钥都是硬失败；变更时会显示旧/新指纹。
+- **只监听回环**：远端运行时绑定 `127.0.0.1:<port>`，隧道绑定桌面端的 `127.0.0.1:<local-port>`，并带 `ExitOnForwardFailure=yes`。没有公网监听。
+- **TLS 固定**：运行时的自签证书通过 SSH 带外传到桌面端并在首次使用时固定；换证书会被拒绝。
+- **配对码**：通过 `pairing-code --json` 取得并直接认领，不显示在 UI、不写入服务端日志、不进入诊断。
+- **产物**：只从签名发布清单下载，桌面端和远端各校验一次大小和 SHA-256。
+- **远端命令**：脚本通过 stdin 传给 `sh -s`，所有参数都做 shell 引用和校验。
+- **手机**：SSH/WSL 运行时只能通过桌面端的隧道访问，手机不能直接配对。
+
+## 故障排查
+
+每个失败都会显示分类原因、下一步、**复制诊断**；运行时安装后还可以 **查看日志**（最后 200 行）和 **复制日志命令**。
+
+| 现象 | 错误码 | 处理 |
+| --- | --- | --- |
+| 没有 SSH 客户端 | `ssh_client_missing` / `ssh_spawn_failed` | 安装 OpenSSH：Debian/Ubuntu 用 `sudo apt install openssh-client`，macOS 用 `brew install openssh`。Windows 请用 WSL。 |
+| 没有 SSH 服务 | `ssh_connection_refused` | Linux 安装/启动 sshd，或用 bootstrap；macOS 打开远程登录。 |
+| 认证失败 | `ssh_auth_failed` | 确认 `ssh <alias>` 在终端里不需要输入密码；检查 IdentityFile 和 ssh-agent。 |
+| 主机密钥未知 | `ssh_host_key_unknown` | 先在终端 `ssh <alias>` 核对并接受指纹，再重试。 |
+| 主机密钥变更 | `ssh_host_key_changed` | 先与主机所有者核对；确认是合法变更后 `ssh-keygen -R <host>`，再重连。 |
+| 超时或 DNS | `ssh_timeout` / `ssh_dns_failed` | 检查主机名、网络、VPN 和防火墙。 |
+| 权限不足 | `ssh_permission_denied` / `ssh_environment_home_not_writable` | 修复远端 home 和安装根目录的属主与写权限。 |
+| 磁盘不足 | `ssh_environment_disk_low` | 在远端 home 下至少释放 512 MiB。 |
+| glibc 太旧 | `ssh_environment_glibc_too_old` / `ssh_environment_missing_glibc` | 需要 glibc 2.35+；Alpine 等 musl 主机不能运行。 |
+| 端口被占用 | `ssh_environment_port_busy` | 释放端口或重试，Vibex 会尝试下一个空闲端口。 |
+| 启动失败 | `ssh_launch_failed` / `ssh_runtime_start_failed` / `ssh_runtime_health_timeout` | 查看日志，修复原因后重试。 |
+| 版本不兼容 | `ssh_upgrade_incompatible` | 按兼容性状态更新运行时或 Vibex。 |
+| 隧道失败 | `ssh_tunnel_*` | 通常是本地端口被占用或 SSH 断开；重试。 |
+| 配对失败 | `ssh_pairing_*` / `remote_*` | 重试；如果运行时撤销了这台桌面端，在连接上点 **连接** 重新配对。 |
+| 升级失败 | `ssh_upgrade_*` | 已回滚到 `previous`；查看新版本日志。 |
+
+## 支持矩阵
+
+| 平台 | 状态 | 验证环境 |
+| --- | --- | --- |
+| Linux x86_64 | 测试版 | Ubuntu 24.04（CI Docker E2E：配置、卸载、升级 + 回滚）；Ubuntu 22.04 产物 smoke |
+| Linux aarch64 | 实验性 | 产物已构建发布（glibc 2.35 基线）；没有 aarch64 硬件端到端验证 |
+| macOS 14 arm64 | 测试版 | 真实 M1：配置、SSH 断开、登录时启动、睡眠/唤醒、升级 + 回滚、卸载 |
+| macOS x86_64 | 实验性 | 仅在 Apple 芯片上通过 Rosetta 验证产物；没有 Intel Mac 实机验证 |
+| Windows 11 + WSL2 | 测试版 | 真实 Windows 11（Arch 发行版）：无 sshd 连接、`wsl --shutdown` 后恢复 |
+| Bootstrap：Ubuntu / Debian | 测试版 | Docker Ubuntu 24.04、无 sshd 的 WSL2 Ubuntu |
+| Bootstrap：RHEL 9、Alpine 3.20 | 实验性 | 仅容器 / WSL2；Alpine 可以 bootstrap，但运行时本身需要 glibc |
+| 原生 Windows 主机 | 不支持 | — |

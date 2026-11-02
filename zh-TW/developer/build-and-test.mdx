@@ -1,39 +1,36 @@
 ---
-title: "建置與測試"
-description: "選擇合適的 Vibex 檢查、smoke test 和發佈建置命令。"
+title: "構建與測試"
+description: "選擇合適的 Vibex 檢查、smoke test 和釋出構建命令。"
 ---
 
-所有命令都在儲存庫根目錄執行。腳本定義在根 `package.json` 中，如果這裡的命令與實際不符，以 `package.json` 為準。
+所有命令都在倉庫根目錄執行。指令碼定義在根 `package.json` 中，如果這裡的命令與實際不符，以 `package.json` 為準。
 
-## 一般檢查
+## 常規檢查
 
 ```bash
 pnpm check
 ```
 
-它依序執行 `check:rust`、`check:frontend`、`check:licenses`、`check:ui-widget-layering`、`check:ui-component-ratchet` 和 `check:ui-visual`，涵蓋 Rust 品質門禁、前端型別與 lint、第三方授權、UI 分層、元件共存和視覺基線。
+它依次執行 `check:rust`、`check:frontend` 和 `check:licenses`，覆蓋 Rust 質量門禁、前端型別與 lint、第三方許可證。
 
-單一子命令：
+單個子命令：
 
 | 命令 | 作用 |
 | --- | --- |
-| `pnpm check:rust` | Rust 品質檢查並執行 UI 控制項測試。 |
-| `pnpm check:frontend` | 各套件 typecheck 加 ESLint。 |
-| `pnpm check:licenses` | 驗證相依套件授權政策。 |
-| `pnpm check:ui-visual` | 驗證視覺基線矩陣。 |
-| `pnpm check:release` | 驗證發佈身份與版本一致性。 |
-| `pnpm check:module-ownership` | 驗證模組所有權邊界。 |
-| `pnpm check:source-size` | 檢查來源檔案大小上限。 |
-| `pnpm check:native-content-package` | 檢查原生內容執行環境的封裝結果。 |
-| `pnpm check:move-only` | 驗證純移動型 diff。 |
+| `pnpm check:rust` | Rust 格式、clippy、測試和工具鏈固定檢查。 |
+| `pnpm check:frontend` | 各包 typecheck 加 ESLint。 |
+| `pnpm check:licenses` | 校驗依賴許可證策略。 |
+| `pnpm check:release` | 校驗釋出身份與版本一致性。 |
+| `pnpm check:mobile-native` | 行動端 crate 與原生專案契約。 |
+| `pnpm check:native-content-package` | 檢查原生內容執行階段的打包結果。 |
 
-## 建置門禁
+## 構建門禁
 
 ```bash
 pnpm release:build-smoke
 ```
 
-驗證桌面端、行動端和 Relay 的建置圖。它**不等於**簽章發佈套件。
+校驗桌面端、行動端和 Relay 的構建圖。它**不等於**簽名釋出包。
 
 桌面端針對性檢查：
 
@@ -46,9 +43,9 @@ pnpm check:mobile-native
 
 ## Smoke 測試
 
-儲存庫提供大量確定性 smoke 腳本：
+倉庫提供大量確定性 smoke 指令碼：
 
-| 命令 | 涵蓋範圍 |
+| 命令 | 覆蓋範圍 |
 | --- | --- |
 | `pnpm smoke:agents` | ACP 橋接契約 + Codex + Claude，等於 `smoke:acp:bridge-contract` + `smoke:codex` + `smoke:claude`。 |
 | `pnpm smoke:acp:bridge-contract` | ACP 橋接協議契約。 |
@@ -58,35 +55,40 @@ pnpm check:mobile-native
 | `pnpm smoke:pty` | 終端機 PTY。 |
 | `pnpm smoke:db` | SQLite 層。 |
 | `pnpm smoke:backup` | 備份與恢復。 |
-| `pnpm smoke:diagnostics` | 診斷包產生。 |
-| `pnpm smoke:relay:local` | 本機 Relay 端到端。 |
-| `pnpm e2e:regression` | 端到端回歸測試框架。 |
+| `pnpm smoke:browser` | 瀏覽器頁面標籤與面板工具。 |
+| `pnpm smoke:computer` | 電腦操作 helper 與平台探測。 |
+| `pnpm smoke:first-frame` | 桌面端首幀啟動探針。 |
+| `pnpm smoke:diagnostics` | 診斷包生成。 |
+| `pnpm smoke:relay:local` | 本地 Relay 端到端。 |
+| `cargo test -p vibex-tui --test contracts` | TUI 依賴邊界、鍵位表、語言覆蓋和敏感資訊複製。 |
+| `scripts/e2e-ssh-docker.sh` | SSH 配置、解除安裝、升級與回滾的 Docker 端到端驗證（需要當前原始碼構建的服務端產物）。 |
+| `pnpm e2e:regression` | 端到端迴歸 harness。 |
 | `pnpm baseline:performance` | 效能基線。 |
 
 <Note>
-  過去文件裡出現過的 `pnpm check:acp`、`pnpm check:code-workbench`、`pnpm check:terminal` 和 `pnpm check:all` **都不存在**。ACP、程式碼工作臺和終端機分別由上面的 `smoke:*` 腳本涵蓋。
+  過去文件裡出現過的 `pnpm check:acp`、`pnpm check:code-workbench`、`pnpm check:terminal` 和 `pnpm check:all` **都不存在**。ACP、程式碼工作台和終端機分別由上面的 `smoke:*` 指令碼覆蓋。
 </Note>
 
-## 發佈建置
+## 釋出構建
 
 ```bash
-pnpm release:preflight      # 驗證發佈身分，並寫出 preflight 記錄
+pnpm release:preflight      # 校驗釋出身份，並寫出 preflight 記錄
 pnpm release:build-smoke
 pnpm package:preview        # 或 package:rc / package:stable
 ```
 
-打 tag 後由 `.github/workflows/release.yml` 建置全部平台的產物。發佈前請閱讀儲存庫中的 `docs/operations/release.md` 和 `docs/operations/release-packaging-matrix.md`。
+打 tag 後由 `.github/workflows/release.yml` 構建全部平台的產物。釋出前請閱讀倉庫中的 `docs/operations/release.md` 和 `docs/operations/release-packaging-matrix.md`。
 
 ## 執行測試時關注的契約
 
-- 權限不足必須回傳結構化錯誤，不能由 UI 猜測成功。
+- 權限不足必須返回結構化錯誤，不能由 UI 猜測成功。
 - cursor / generation 間隙必須觸發 `resync_required`。
-- 檔案寫入使用內容修訂 / CAS，避免覆寫外部修改。
-- 終端機和附件串流必須在授權後建立，並在撤銷時關閉。
-- 重新啟動、斷線和 stale 狀態必須可重複驗證。
+- 檔案寫入使用內容修訂 / CAS，避免覆蓋外部修改。
+- 終端機和附件流必須在授權後建立，並在撤銷時關閉。
+- 重啟、斷線和 stale 狀態必須可重複驗證。
 
 ## 提交前
 
-命令可能產生本機證據或擷取檔案。檢查 `.gitignore` 和腳本說明，不要提交包含憑證、提示詞、路徑、diff 或終端機內容的產物。
+命令可能生成本地證據或捕獲檔案。檢查 `.gitignore` 和指令碼說明，不要提交包含憑據、提示詞、路徑、diff 或終端機內容的產物。
 
-安裝套件、執行環境二進位檔、Release APK 和簽章資料屬於建置或發佈產物，不要當作原始碼提交。
+安裝包、執行階段二進位制、Release APK 和簽名資料屬於構建或釋出產物，不要當作原始碼提交。

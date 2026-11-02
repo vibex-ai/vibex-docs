@@ -1,78 +1,85 @@
 ---
 title: "Core concepts"
-description: "How projects, workspaces, sessions, the authoritative runtime, and provider profiles relate to each other."
+description: "Projects, workspaces, sessions, the authoritative runtime, and providers."
 ---
 
-This page explains a handful of words that come up again and again in Vibex. Once you have read it, the other pages will be much easier to follow.
+This page explains the terms Vibex uses everywhere. Once they are clear, the rest of the documentation is easier to read.
 
-## The authoritative runtime
+## Authoritative runtime
 
-The **authoritative runtime** is the only thing that holds real state: Agent processes, session timelines, workspace files, Git repositories, terminals, provider credentials, and the local database. Every client is just a projection of it.
+The **authoritative runtime** is the only thing that holds real state: Agent processes, session timelines, workspace files, Git repositories, terminals, the browser, computer use, provider credentials, and the local database. Every client is a projection of it.
 
-Vibex has two forms of authoritative runtime. They share one core and have identical capabilities:
+Vibex has three runtime forms with the same core:
 
 | Form | Description |
 | --- | --- |
-| **Runtime embedded in the desktop** | The default. Starts with the desktop app and keeps data on your machine. |
-| **Headless runtime `vibex-server`** | A standalone daemon that runs on your own server or an always-on machine. |
+| **Desktop-embedded runtime** | The default. Starts with the desktop app and stores data locally. |
+| **Headless runtime `vibex-server`** | A standalone daemon on your server or always-on machine. |
+| **SSH / WSL remote runtime** | The desktop provisions `vibex-server` on another machine over SSH, or runs it inside WSL2 on this PC (beta). |
 
-The desktop workbench and the mobile apps are both **clients**. The desktop uses its own embedded runtime by default; you can also switch it to connect to a remote runtime, at which point it is a client just like your phone. That switch is the **Runtime** button in the title bar.
+The desktop workbench, mobile apps, and TUI are **clients**. The desktop uses its embedded runtime by default; you can switch it to a remote runtime, after which it is a client like the phone and the TUI. The entry point is the **Runtime** button in the title bar.
 
 ## Project
 
-A **project** is a folder you register in Vibex: it has a name, an icon, and a permanent place in the sidebar. That is the **Projects** list in the sidebar, and its context menu offers rename, custom icon, delete, and more.
+A **project** is a folder registered in Vibex: it has a name, an icon, and a long-lived row in the sidebar. Right-click it to rename, customize the icon, create folders, import sessions, or delete it.
 
-A project can hold **several workspaces**.
+A project can contain several **workspaces**.
 
 ## Workspace
 
-A **workspace** is "using this project in a particular way". Two modes exist today:
+A **workspace** is "one way of using this project". There are three locations:
 
-| Mode | UI label | Behavior |
+| Mode | UI label | Behaviour |
 | --- | --- | --- |
-| `CurrentCheckout` | **Local** / current checkout | Work directly on the main checkout directory. |
-| `VibexWorktree` | **Worktree** | Vibex creates a managed Git worktree and isolates changes in a separate directory. |
+| `CurrentCheckout` | **Local** / current checkout | Work directly on the main checkout. |
+| `VibexWorktree` | **Worktree** | Vibex creates a managed Git worktree and isolates changes in its own directory. |
+| Temporary | **Temporary session** | Belongs to no project; useful for one-off tasks and cannot create a worktree. |
 
-One project can have a `Local` workspace and one or more `Worktree` workspaces at the same time. That is how you can keep working on the main branch while an Agent tries another approach in an isolated directory.
+A project can have one `Local` workspace and several `Worktree` workspaces at the same time. That is how you can keep working on the main branch while an Agent tries another approach in an isolated directory.
 
-A session always belongs to one specific workspace. Switching workspaces does not carry uncommitted changes across.
+A session always belongs to one workspace (or to temporary space). Switching workspaces does not carry uncommitted changes across.
 
-See [Workspaces](/en/workspaces).
+See [Projects and workspaces](/en/workspaces).
 
 ## Session
 
-A **session** is the complete record of one development task: your input, the Agent's output, tool calls, approvals, and errors, stored in order as a **timeline**. A session belongs to the workspace it was created in.
+A **session** is the complete record of one development task: your input, Agent output, tool calls, approvals, and errors, stored in order as a **timeline**. A session belongs to the workspace where it was created.
 
-**New chat** in the sidebar creates a session. You can rename, pin, fork, and bulk-delete sessions, or import them from another Agent's history.
+**New session** in the sidebar creates one. Sessions can be renamed, pinned, forked, archived, bulk-deleted, and imported from other Agents' history. Several sessions can form a **session group** under one worktree and be viewed in split panes.
 
-See [Agent sessions](/en/sessions).
+Delegation creates **child sessions**, which hang under the parent's ownership tree and have their own timeline. See [Agent sessions](/en/sessions).
 
-## Agents and provider profiles
+## Agents and Providers
 
-These are two separate concepts:
+These terms are often mixed up:
 
-- An **Agent** is the program that does the work, such as Claude Code, Codex, ZCode, OpenCode, or any ACP-compatible executable. The Agent decides **who does the work**.
-- A **provider profile** (called **Model provider configuration** in the UI) is the connection information an Agent needs in order to call a model service: endpoint, credentials, available models, and thinking depth. It decides **which model runs and over which route**.
+| Concept | Question it answers | Where to configure it |
+| --- | --- | --- |
+| **Agent** | Who does the work? | Config Center → Agents |
+| **Model Provider profile** | Which address, credentials, models, and reasoning depth does this Agent use? | Config Center → Agents → details |
+| **Shared Provider** | Which address, keys, and models can several Agents and route groups use? | Config Center → Providers |
+| **Route group** | How do several Providers or models order and fail over? | Config Center → Providers → Route groups |
+| **Local gateway** | Which loopback endpoint serves route-group requests? | Config Center → Providers → Gateway |
 
-One Agent can have several provider profiles, and you can switch between them before sending a message. The switch only affects later runs; timeline entries already written keep their original run identity.
+An Agent can use only its own model Provider profile, or bind a shared Provider or route group. A switch only affects later runs; the existing timeline keeps its original identity.
 
-See [Agents and provider profiles](/en/agents-and-providers).
+See [Agents and provider profiles](/en/agents-and-providers) and [Providers, route groups, and the local gateway](/en/providers-and-gateway).
 
 ## Scope
 
-Some resources accept a scope. The available values are usually **global**, **user**, **project**, or **workspace**; the narrower the scope, the less likely you are to disturb other projects. MCP servers currently offer only **User** and **Workspace**.
+Some resources have a scope: **global**, **user**, **project**, or **workspace**. The smaller the scope, the less likely it is to affect unrelated projects. MCP servers currently offer **user** and **workspace**.
 
 ## Channel
 
-The release channel determines the product identity and the data directory: **Preview**, **RC**, **Stable**. All three can be installed side by side, each with its own database, so they never interfere. The channel is baked into the installer and cannot be switched inside the app.
+The release channel determines product identity and data directory: **Preview**, **RC**, and **Stable**. They can be installed side by side, each with its own database. The channel is compiled into the package and cannot be changed at runtime.
 
 ## Pairing
 
-**Pairing** grants a device access to a particular authoritative runtime. There are two common paths:
+**Pairing** grants a device access to an authoritative runtime. There are two common paths:
 
-- **Desktop → phone**: the desktop generates a QR code, and the phone scans it and verifies the checksum.
-- **Server → desktop / phone**: `vibex-server` prints a one-time pairing code and connection string that the client enters.
+- **Desktop → phone / TUI**: the desktop shows a QR code or link; the phone scans it and the TUI claims it with `vibex connect`.
+- **Server → desktop / phone / TUI**: `vibex-server` prints a one-time code and connection string; the client enters them.
 
-The **permission level** you pick while pairing determines what that device may do: `read_only`, `approve_only`, `full_control`. The level is set by the initiating side, and a client cannot elevate itself.
+The **permission level** chosen when the pairing is created determines what the device can do: `read_only`, `approve_only`, or `full_control`. The initiator decides; a client cannot elevate itself.
 
 See [Remote access and mobile](/en/remote-mobile).

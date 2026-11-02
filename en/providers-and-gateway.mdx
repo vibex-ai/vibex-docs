@@ -1,0 +1,188 @@
+---
+title: "Providers, route groups, and the local gateway"
+description: "Configure a model Provider once, share it across Agents, and use route groups and the local gateway for failover."
+---
+
+Vibex separates model access into four layers. Learn the difference once and the configuration screens stop being confusing:
+
+| Layer | Question it answers | Where |
+| --- | --- | --- |
+| **Agent** | Who does the work? | Config Center → Agents |
+| **Model Provider profile** | Which provider, credentials, and models does this Agent use? | Config Center → Agents → selected Agent |
+| **Shared Provider** | Which address, keys, and models can several Agents and route groups use? | Config Center → Providers |
+| **Route group and gateway** | How do multiple Providers or models order, fail over, and translate protocols? | Config Center → Providers → Gateway / Route groups |
+
+An Agent can still use only its own Model Provider profile and never touch shared Providers. Shared Providers and route groups exist for "one set of keys should serve several Agents" and "I need failover".
+
+## Config Center → Providers
+
+The **Providers** page lists every shared Provider once and shows which Agents use it. The sidebar has two tabs:
+
+- **Providers**: shared addresses, credentials, models, and keys.
+- **Route groups**: compose several Providers or models into one name an Agent can request.
+
+The **Gateway** is a pinned row at the top of the Providers page, not a separate section. It shows listening state, address, ready keys, route groups, and request volume; open it to manage keys, routing, and timeouts.
+
+### Create a Provider
+
+Click **New Provider**. You can:
+
+1. Start from a built-in preset. Presets cover Anthropic, OpenAI, Google Gemini, DeepSeek, Moonshot Kimi, Zhipu GLM, OpenRouter, and other common vendors, with official, relay, and local sources.
+2. Choose **Custom** and fill in the name, API address, and models yourself.
+3. Import from an existing CLI configuration: Codex, Claude, or CC Switch. The preview shows which files will be read and which Provider will be created; nothing is silently overwritten.
+
+The flow asks for a source first, then for fields. A preset prefills the protocol, address, key hint, and common models. You can change them, or enrich the Provider from the `models.dev` catalogue.
+
+### Provider settings
+
+| Group | Fields |
+| --- | --- |
+| **Basics** | Name, kind (official / relay / local), icon, website, notes. |
+| **Connection** | API address, model-list address, sign-in address, proxy, request headers, models.dev id, self-signed TLS. |
+| **Models** | Enabled models, default model, wire protocol, reasoning efforts, context window, maximum output tokens. |
+| **Behaviour** | Auth header, route-groups-only, request body fields. |
+
+- **API address** is where the Agent or gateway actually sends requests. Some Agents lock it.
+- **Request headers** accept literals and the built-in `session_id` variable, filled at session launch for Providers that need a stable session header.
+- **Request body fields** are edited as rows, not raw JSON; unknown fields never silently overwrite existing configuration.
+- **Route groups only** hides the Provider from ordinary model pickers; it can still be a route-group member.
+
+### Models
+
+Each Provider has its own model list:
+
+- **Fetch models** reads the Provider's model-list endpoint without writing configuration.
+- Checking a model enables it; unchecking removes it from the draft but keeps declared capabilities, so re-checking restores them.
+- Each model can declare its **wire protocol** (inherit, OpenAI Chat, OpenAI Responses, Anthropic Messages, Gemini, Mistral, and others), **reasoning efforts**, **context window**, and **maximum output tokens**.
+- The **default model** is used when no model is named.
+- Model ids can be added by hand. A preset's model list may age, but it is never silently rewritten from the network.
+
+<Note>
+  Reasoning efforts and context windows are **declared data**, never inferred from a model id. A wrong declaration gives the Agent an option it cannot serve; leave a field empty when unsure and let the Agent use its own catalogue.
+</Note>
+
+### Keys
+
+A Provider can store several keys:
+
+- Masked by default; the eye icon reveals a value temporarily.
+- The **preferred** key is used first; after a failure the gateway cools it down and moves on.
+- Each key can have its own model scope, proxy, and token limit.
+- **Test** makes one real request to the Provider; **batch add** writes several keys at once.
+- Invalid, cooling, or exhausted keys show their state instead of a generic error.
+
+<Warning>
+  Testing, fetching models, and real sessions all reach the Provider network and may incur charges. Confirm the address, key, and model first.
+</Warning>
+
+## Route groups
+
+A route group composes members into one model name an Agent can request. Members can be:
+
+- A whole Provider (provider group), exposing the intersection of member catalogues.
+- A `(Provider, model)` pair (model group), exposing one stable model name.
+
+Open **Providers → Route groups → New route group**:
+
+1. Fill in **Name** and **Agent-facing model name**. The model name cannot contain `/`.
+2. Add members from the model palette below; each member picks a Provider and model.
+3. Adjust **Attempt order**; the gateway tries from the top down.
+4. Choose a **Strategy** (see below).
+5. Set **Pin a conversation**, **Switch on failure**, **Patience**, **First-token timeout**, **Context tokens**, and **Token ceiling** as needed.
+6. In **Agents**, click the Agents allowed to use this group.
+7. Use **Try it** to see which member would answer a request without sending one.
+8. Save.
+
+### Strategies
+
+| Strategy | How a member is chosen |
+| --- | --- |
+| **Ordered** | Configured order. |
+| **Round robin** | Advance one member per request. |
+| **Least used** | Fewest locally observed tokens. |
+| **Smart** | Exclude cooling members, then order by p50 latency, inflight requests, and usage. |
+| **Lowest latency** | p50, then p95. |
+| **Weighted** | Interleave a cycle proportional to weight instead of draining one member. |
+| **Manual** | Only the member you picked; no fallback. |
+
+Weights are 1–100 and are kept when the strategy changes.
+
+### Limits and visibility
+
+- **Pin a conversation**: keep one conversation on one member to preserve the vendor's prompt cache.
+- **Switch on failure**: move to the next member without asking; when off, ask first.
+- **First-token timeout**: how long a streaming request waits for the first byte before trying the next member.
+- **Patience**: how long to wait for a cooling member before giving up.
+- **Context tokens**: empty uses the smallest member's window.
+- **Token ceiling**: locally observed token count, per day, week, or month.
+- **Hide from pickers**: the name stays callable but is not offered in model pickers.
+- **Use as a sink**: a hidden composition other groups can fall back to.
+
+A route group owns routing policy, not keys. Deleting a Provider leaves its members marked missing; it never silently deletes the whole group.
+
+## The local gateway
+
+The gateway is an HTTP endpoint bound to `127.0.0.1`. An Agent that uses a route group points here instead of at a vendor. It:
+
+- Orders members, cools them down, retries, and fails over.
+- Translates between OpenAI Chat, OpenAI Responses, Anthropic Messages, and Gemini, including streaming responses.
+- Keeps a conversation on a key and member to preserve the prompt cache.
+- Records a token-only request ledger: tokens, latency, status, and routing decisions, never prompts, response bodies, or keys.
+
+The Gateway page has four tabs:
+
+| Tab | Contents |
+| --- | --- |
+| **Overview** | Status, address, ready keys, route groups, requests, success rate, p50/p95, input/output/cache tokens, failovers, inflight, top Providers and models. |
+| **Keys** | Upstream keys, preferred key, enable/disable, replace, batch add, token limits, cooldown state. |
+| **Routing** | Live route map, request ledger, filters, paging, replay of a request's path. |
+| **Settings** | Token ceiling, protocol translation, error-rate and latency alerts, connect/request/stream-idle timeouts, cooldown overrides. |
+
+### Gateway states
+
+| State | Meaning |
+| --- | --- |
+| **Running** | The port is bound and at least one route group can serve. |
+| **Degraded** | The port is still listening, but some route groups have stepped aside after repeated failures; others keep serving. |
+| **Unavailable** | The port could not bind or the service stopped; direct Providers are unaffected. |
+| **Disabled** | You turned the gateway off; every route group is unusable, but configuration is kept. |
+
+Turning the gateway off does not delete Providers, route groups, or keys. Turning it back on rebinds the port and restores the groups.
+
+### Request ledger and replay
+
+**Routing** records recent requests: time, requested model, matched route group, actual member, status, latency, tokens, and error. Filter by time range, status, or route group, and open a request to see its route path.
+
+**Replay** rebuilds the candidate order and decisions from that moment; it does not send another upstream request. The live route map only shows requests the gateway is handling now; direct Providers bypass the gateway and never appear there.
+
+## Use in a session
+
+Before sending, choose in the composer:
+
+- **Agent**: who does the work.
+- **Provider profile**: which configuration this Agent uses.
+- **Model**: the model, or a route group's agent-facing model name.
+- **Reasoning depth**: determined by the Agent and model declarations.
+
+If the Agent is bound to a route group, the request goes through the local gateway. If it is bound to a direct Provider, it does not. A switch only affects later runs; the existing timeline keeps its original identity.
+
+## Security and limits
+
+- The gateway binds loopback only, never the LAN or the public internet. For remote use, run the runtime on the remote machine and reach it through an SSH tunnel or Remote v2.
+- The gateway stores no prompts, response bodies, keys, or account passwords; the ledger carries token and routing metadata only.
+- A route group owns no keys; deleting a Provider does not delete keys.
+- There is no cost, balance, budget, or quota management. Token ceilings are local observations, not a vendor bill.
+- Route groups are authored on the desktop or in the TUI management page; mobile is read-only.
+- Protocol translation covers text, images, tool calls, and streaming. Vendor-specific non-standard fields may be dropped; use **Test** and the request ledger when something fails.
+
+## Troubleshooting
+
+| Symptom | What to do |
+| --- | --- |
+| A shared Provider is missing from the model picker | Check **Route groups only** and whether the Agent is bound to it. |
+| A route group has no usable key | Open Gateway → Keys and check whether member Provider keys are enabled and not cooling. |
+| The gateway says **Unavailable** | Check whether the port is taken; toggle the gateway off and on to rebind. Direct Providers still work. |
+| Requests always land on one member | Check for **Manual** / **Ordered** and whether **Pin a conversation** is on. |
+| First token is slow | Adjust the first-token timeout and patience; inspect p50/p95 in the ledger. |
+| Protocol or tool-call errors | Confirm the model's wire protocol; set it to inherit or the correct protocol in the Provider settings. |
+| A route group reports a missing Provider | A member references a deleted Provider; edit the group and remove or replace the member. |

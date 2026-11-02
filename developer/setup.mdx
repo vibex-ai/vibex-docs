@@ -33,6 +33,14 @@ cargo test -p vibex-desktop --locked
 pnpm smoke:first-frame
 ```
 
+TUI 可以直接从工作区运行：
+
+```bash
+cargo run -p vibex-tui -- --home /tmp/vibex-dev
+```
+
+内嵌浏览器需要本机安装 Chrome、Chromium 或 Edge；电脑操作需要安装驱动并在设置里开启。两者都不是编译依赖，但相关 smoke 和手动验证需要它们。
+
 ## 可选：移动端环境
 
 - **Android** —— Android SDK/NDK、`cargo-ndk`，以及目标 ABI 的 Rust targets。

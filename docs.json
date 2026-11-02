@@ -30,15 +30,15 @@
               },
               {
                 "group": "日常工作",
-                "pages": ["sessions", "code-workbench", "terminal", "git", "usage"]
+                "pages": ["sessions", "code-workbench", "terminal", "browser", "computer-use", "tui", "git", "usage"]
               },
               {
                 "group": "扩展与配置",
-                "pages": ["config-center", "agents-and-providers", "mcp-and-skills", "settings"]
+                "pages": ["config-center", "agents-and-providers", "providers-and-gateway", "mcp-and-skills", "settings"]
               },
               {
                 "group": "远程开发与自托管服务",
-                "pages": ["remote-mobile", "self-hosted-server", "relay", "privacy-and-recovery"]
+                "pages": ["remote-mobile", "ssh-runtime", "self-hosted-server", "relay", "privacy-and-recovery"]
               },
               {
                 "group": "参考",
@@ -89,15 +89,15 @@
               },
               {
                 "group": "日常工作",
-                "pages": ["zh-TW/sessions", "zh-TW/code-workbench", "zh-TW/terminal", "zh-TW/git", "zh-TW/usage"]
+                "pages": ["zh-TW/sessions", "zh-TW/code-workbench", "zh-TW/terminal", "zh-TW/browser", "zh-TW/computer-use", "zh-TW/tui", "zh-TW/git", "zh-TW/usage"]
               },
               {
                 "group": "擴充與設定",
-                "pages": ["zh-TW/config-center", "zh-TW/agents-and-providers", "zh-TW/mcp-and-skills", "zh-TW/settings"]
+                "pages": ["zh-TW/config-center", "zh-TW/agents-and-providers", "zh-TW/providers-and-gateway", "zh-TW/mcp-and-skills", "zh-TW/settings"]
               },
               {
                 "group": "遠端開發與自託管服務",
-                "pages": ["zh-TW/remote-mobile", "zh-TW/self-hosted-server", "zh-TW/relay", "zh-TW/privacy-and-recovery"]
+                "pages": ["zh-TW/remote-mobile", "zh-TW/ssh-runtime", "zh-TW/self-hosted-server", "zh-TW/relay", "zh-TW/privacy-and-recovery"]
               },
               {
                 "group": "參考",
@@ -148,15 +148,15 @@
               },
               {
                 "group": "Daily work",
-                "pages": ["en/sessions", "en/code-workbench", "en/terminal", "en/git", "en/usage"]
+                "pages": ["en/sessions", "en/code-workbench", "en/terminal", "en/browser", "en/computer-use", "en/tui", "en/git", "en/usage"]
               },
               {
                 "group": "Extensions and configuration",
-                "pages": ["en/config-center", "en/agents-and-providers", "en/mcp-and-skills", "en/settings"]
+                "pages": ["en/config-center", "en/agents-and-providers", "en/providers-and-gateway", "en/mcp-and-skills", "en/settings"]
               },
               {
                 "group": "Remote development and self-hosting",
-                "pages": ["en/remote-mobile", "en/self-hosted-server", "en/relay", "en/privacy-and-recovery"]
+                "pages": ["en/remote-mobile", "en/ssh-runtime", "en/self-hosted-server", "en/relay", "en/privacy-and-recovery"]
               },
               {
                 "group": "Reference",
@@ -208,12 +208,27 @@
     {"source": "/scheduled-automation", "destination": "/config-center"},
     {"source": "/mcp-skills-prompts-hooks", "destination": "/mcp-and-skills"},
     {"source": "/terminal-and-previews", "destination": "/terminal"},
+    {"source": "/providers", "destination": "/providers-and-gateway"},
+    {"source": "/gateway", "destination": "/providers-and-gateway"},
+    {"source": "/browser-panel", "destination": "/browser"},
+    {"source": "/computer", "destination": "/computer-use"},
+    {"source": "/ssh", "destination": "/ssh-runtime"},
     {"source": "/zh-TW/scheduled-automation", "destination": "/zh-TW/config-center"},
     {"source": "/zh-TW/mcp-skills-prompts-hooks", "destination": "/zh-TW/mcp-and-skills"},
     {"source": "/zh-TW/terminal-and-previews", "destination": "/zh-TW/terminal"},
+    {"source": "/zh-TW/providers", "destination": "/zh-TW/providers-and-gateway"},
+    {"source": "/zh-TW/gateway", "destination": "/zh-TW/providers-and-gateway"},
+    {"source": "/zh-TW/browser-panel", "destination": "/zh-TW/browser"},
+    {"source": "/zh-TW/computer", "destination": "/zh-TW/computer-use"},
+    {"source": "/zh-TW/ssh", "destination": "/zh-TW/ssh-runtime"},
     {"source": "/en/scheduled-automation", "destination": "/en/config-center"},
     {"source": "/en/mcp-skills-prompts-hooks", "destination": "/en/mcp-and-skills"},
-    {"source": "/en/terminal-and-previews", "destination": "/en/terminal"}
+    {"source": "/en/terminal-and-previews", "destination": "/en/terminal"},
+    {"source": "/en/providers", "destination": "/en/providers-and-gateway"},
+    {"source": "/en/gateway", "destination": "/en/providers-and-gateway"},
+    {"source": "/en/browser-panel", "destination": "/en/browser"},
+    {"source": "/en/computer", "destination": "/en/computer-use"},
+    {"source": "/en/ssh", "destination": "/en/ssh-runtime"}
   ],
   "logo": {
     "light": "/logo/light.svg",

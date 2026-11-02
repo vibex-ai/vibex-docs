@@ -3,52 +3,60 @@ title: "Vibex documentation"
 description: "A guide to the local-first Vibex AI coding workbench, for users and developers."
 ---
 
-Vibex puts Agent sessions, workspace files, the editor, Git, terminals, and previews into one native workbench. You can ask an Agent to change code, then inspect the plan, tool calls, and diff, and finally run and deliver the change from the same workspace.
+Vibex puts Agent sessions, workspace files, the editor, Git, terminals, an embedded browser, computer use, and previews into one native workbench. Ask an Agent to change code, inspect the plan, tool calls, and diff, then run and deliver the change from the same workspace.
 
 Vibex is built around an **authoritative runtime plus typed projections**:
 
-- The **authoritative runtime** owns Agent processes, session timelines, workspace files, Git, terminals, and provider credentials. It comes in two forms with identical capabilities:
+- The **authoritative runtime** owns Agent processes, session timelines, workspace files, Git, terminals, the browser, computer use, provider credentials, and durable state. It comes in three forms with the same core:
   - The **local runtime embedded in the desktop** (the default).
-  - The **headless runtime `vibex-server`**, running on your own server or home machine.
-- **Clients** are the desktop workbench and the iOS / Android mobile apps. They render the projections sent by the authoritative runtime and send typed operations. Mobile does not run Agents locally and does not keep a second copy of the workspace.
+  - The **headless runtime `vibex-server`**, running on your own server or always-on machine.
+  - An **SSH / WSL remote runtime**, provisioned by the desktop on another machine or inside WSL2 (beta).
+- **Clients** are the desktop workbench, the iOS / Android mobile apps, and the **Vibex TUI**. They render the runtime's projections and send typed operations. Mobile and the TUI do not run Agents locally and do not keep a second copy of the workspace.
 
-In other words, the desktop can either **act as the authoritative runtime itself** or **connect to a remote authoritative runtime**. See [Remote access and mobile](/en/remote-mobile) and [Self-hosted headless runtime](/en/self-hosted-server).
+The desktop can either **act as the authoritative runtime itself** or **connect to a remote authoritative runtime**. See [Remote access and mobile](/en/remote-mobile), [SSH and WSL remote runtimes](/en/ssh-runtime), and [Self-hosted headless runtime](/en/self-hosted-server).
 
 <Columns>
   <Card title="Start here" icon="rocket" href="/en/quickstart">
     Install the desktop and complete your first Agent task.
   </Card>
   <Card title="Core concepts" icon="book-open" href="/en/concepts">
-    Understand how projects, workspaces, sessions, the authoritative runtime, and provider profiles fit together.
+    Projects, workspaces, sessions, runtimes, and providers.
   </Card>
-  <Card title="Install" icon="download" href="/en/install">
-    Download a desktop installer, or prepare mobile and self-hosted environments.
+  <Card title="Vibex TUI" icon="terminal" href="/en/tui">
+    Use the same runtime from a terminal, over SSH, or in tmux.
   </Card>
-  <Card title="Developer guide" icon="code" href="/en/developer">
-    Learn the architecture, build, tests, and Remote v2 contracts.
+  <Card title="Providers and gateway" icon="network" href="/en/providers-and-gateway">
+    Shared Providers, route groups, and the local model gateway.
+  </Card>
+  <Card title="Changelog" icon="history" href="/en/changelog">
+    New features, fixes, and internal changes by release.
   </Card>
 </Columns>
 
 ## What you can do with Vibex
 
 - Follow Markdown replies, reasoning, plans, tool calls, process details, attachments, approvals, and elicitation forms in a structured timeline.
-- Organize Composer input with `/` commands, `@` file references, `$` Skills, and attachments.
-- Let Vibex download, upgrade, and uninstall supported Agent runtimes for you.
+- Compose input with `/` commands and Prompts, `@` files and Agents, `$` Skills, and attachments.
+- Delegate work to child Agents, keep a task open across rounds, follow up, accept or cancel, and track long turns with goals.
+- Let Vibex download, upgrade, and uninstall supported Agent runtimes, and configure model Providers per Agent.
+- Fail over across shared Providers, route groups, and the local gateway, with protocol translation.
 - Search, edit, save, rename, and preview files in the file tree and editor.
-- Review Git status, diffs, history, and blame; create branches and commit or push changes; run several tasks in parallel with isolated Git worktrees.
-- Run project commands in multiple terminal tabs on a native PTY with ANSI emulation.
-- Configure Agents, model providers, MCP, and Skills.
-- Filter usage by time, Agent, provider, model, project, and session, and tell complete, derived, partial, and unknown data apart.
-- Search across every session and message body.
-- Pair a desktop session securely with mobile to follow progress, answer questions, and handle approvals on your phone.
-- Pair the desktop or mobile with a self-hosted headless runtime and continue the same sessions from any device.
+- Inspect Git status, diffs, history, and blame; create branches, commit, and push; run parallel tasks in isolated Git worktrees.
+- Use a native PTY with ANSI emulation in multiple terminal tabs and splits.
+- Watch pages in the embedded browser and let an Agent read and operate them; with approval, let an Agent operate the local desktop.
+- Install MCP servers and Skills from in-app markets, write reusable Prompts, and scope each resource per Agent.
+- Queue follow-ups, steer a running turn, schedule a send for later, or let auto-continue carry a turn to completion.
+- Filter usage by time, Agent, Provider, model, project, and session, with explicit coverage states.
+- Search every conversation, import local Agent history, and archive and restore sessions.
+- Pair a phone with the desktop, then follow progress, answer questions, approve requests, and use the terminal remotely.
+- Continue the same sessions in a terminal with the TUI, or through SSH / WSL / a self-hosted runtime.
 
-## Next steps
+## Next
 
-<Card title="Quickstart" icon="arrow-right" href="/en/quickstart">
+<Card title="Quick start" icon="arrow-right" href="/en/quickstart">
   Install the desktop and complete your first session.
 </Card>
 
 <Card title="Changelog" icon="list" href="/en/changelog">
-  See what each release adds, fixes, and changes internally.
+  New capabilities, fixes, and internal changes by release.
 </Card>

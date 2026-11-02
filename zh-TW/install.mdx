@@ -1,60 +1,62 @@
 ---
 title: "安裝"
-description: "下載並安裝 Vibex 桌面端，準備行動端和自託管執行環境。"
+description: "下載並安裝 Vibex 桌面端、行動端和 TUI，或準備自託管執行階段。"
 ---
 
-Vibex 為桌面端、Android 和自託管伺服器端提供現成的發行產物。**一般使用者不需要安裝 Rust、Node.js 或 pnpm**：桌面端安裝套件是自包含的。
+Vibex 為桌面端、Android、iOS 和自託管服務端提供現成的釋出產物。**普通使用者不需要安裝 Rust、Node.js 或 pnpm**：桌面端安裝包是自包含的，TUI 也隨桌面安裝包一起釋出。
 
 所有產物都在同一個頁面：
 
 <Card title="下載最新版本" icon="download" href="https://github.com/vibex-ai/vibex/releases/latest">
-  開啟 GitHub Releases 的 latest 頁面，選擇與你平台相符的產物。
+  開啟 GitHub Releases 的 latest 頁面，選擇與你平台匹配的產物。
 </Card>
 
 <Tip>
-  Vibex 仍在候選階段：除穩定版外，也可能發佈形如 `-rc.N` 或 `-preview.N` 的預發佈版本。**latest 頁面會解析到目前最新的一個**；需要指定版本時請改用 [全部發行清單](https://github.com/vibex-ai/vibex/releases)。
+  Vibex 仍在候選階段：除穩定版外，也可能釋出形如 `-rc.N` 或 `-preview.N` 的預釋出版本。**latest 頁面會解析到當前最新的一個**；需要指定版本時改用 [全部發佈列表](https://github.com/vibex-ai/vibex/releases)。
 </Tip>
 
 ## 桌面端
 
 | 平台 | 產物 | 說明 |
 | --- | --- | --- |
-| Linux x86_64 | `.deb` / `.AppImage` | 需要可用的 Vulkan 驅動程式 |
-| Linux aarch64 | `.deb` | 此架構不提供 AppImage |
-| macOS（Apple 晶片 / Intel） | `.dmg` | 需要較新的 macOS 與原生圖形工作階段 |
-| Windows x86_64 / ARM64 | `.exe`（NSIS） | 依目前使用者安裝，不需要系統管理員權限 |
+| Linux x86_64 | `.deb` / `.AppImage` | 需要可用的 Vulkan 驅動 |
+| Linux aarch64 | `.deb` | 該架構不提供 AppImage |
+| macOS（Apple 晶片 / Intel） | `.dmg` | 需要較新的 macOS 與原生圖形會話 |
+| Windows x86_64 / ARM64 | `.exe`（NSIS） | 按當前使用者安裝，無需管理員權限 |
 
-Linux 的 `.deb` 相依於 `libvulkan1`、`libxcb1`、`libxcb-xkb1`、`libxkbcommon0`、`libxkbcommon-x11-0`、`libdbus-1-3`、`libfontconfig1`，以及一個 appindicator 程式庫（`libayatana-appindicator3-1` 或 `libappindicator3-1`）。發行版套件管理器通常會自動解決這些相依性。
+Linux 的 `.deb` 依賴 `libvulkan1`、`libxcb1`、`libxcb-xkb1`、`libxkbcommon0`、`libxkbcommon-x11-0`、`libdbus-1-3`、`libfontconfig1`，以及一個 appindicator 庫（`libayatana-appindicator3-1` 或 `libappindicator3-1`）。發行版包管理器通常會自動解決這些依賴。
 
 <Warning>
-  **macOS 與 Windows 的安裝套件目前沒有程式碼簽章。**
-  - macOS 首次開啟會被 Gatekeeper 攔截：在 **Finder** 裡按住 Control 點擊應用程式圖示，選擇**打開**，再確認一次；或執行 `xattr -d com.apple.quarantine /Applications/Vibex*.app`。
+  **macOS 與 Windows 的安裝包目前沒有程式碼簽名。**
+  - macOS 首次開啟會被 Gatekeeper 攔截：在 **訪達** 裡按住 Control 點選應用圖示，選擇**開啟**，再確認一次；或執行 `xattr -d com.apple.quarantine /Applications/Vibex*.app`。
   - Windows 會彈出 SmartScreen 提示：選擇**更多資訊** → **仍要執行**。
 
-  這些提示來自缺少簽章憑證，不代表安裝套件有問題。每個產物旁邊都提供了 `.sha256` 驗證檔，`SHA256SUMS` 彙總了全部驗證值。
+  這些提示來自缺少簽名證書，不代表安裝包有問題。每個產物旁邊都提供了 `.sha256` 校驗檔案，`SHA256SUMS` 彙總了全部校驗值。
 </Warning>
 
-### 發佈通道
+### 釋出通道
 
-桌面端安裝套件帶有**編譯期確定的通道標識**，通道之間可以並存安裝，互不干擾：
+桌面端安裝包帶有**編譯期確定的通道標識**，通道之間可以並存安裝，互不干擾：
 
-| 通道 | 產品名稱 | 資料目錄 |
+| 通道 | 產品名 | 資料目錄 |
 | --- | --- | --- |
 | 預覽 | Vibex 預覽 | `desktop-preview` |
 | RC | Vibex RC | `desktop-rc` |
 | Stable | Vibex | `desktop-stable` |
 
-每個通道有**獨立的 SQLite 資料庫和設定**。切換通道不會遷移資料；如果你在 RC 裡設定好 Agent 和供應商，裝了 Stable 之後需要重新設定一次。通道由安裝套件決定，不能在應用程式內切換。
+每個通道有**獨立的 SQLite 資料庫和配置**。切換通道不會遷移資料；如果你在 RC 裡配置好了 Agent 和供應商，裝 Stable 之後需要重新配置一次。通道由安裝包決定，不能在應用內切換。
 
 ### 升級
 
-桌面端內建經簽章驗證的自動更新。在 **設定 → 關於 → 軟體更新** 中：
+桌面端內建簽名自動更新，**預設開啟**。在 **設定 → 常規** 或 **設定 → 關於 → 軟體更新** 中：
 
-- 應用程式啟動約 30 秒後自動檢查一次，之後 RC / 預覽通道每 2 小時、Stable 通道每 6 小時檢查一次。
-- 更新清單經過 Ed25519 簽章驗證，產物再做 SHA-256 驗證，驗證失敗不會安裝。
-- 安裝方式取決於套件格式：**AppImage 會原地自我替換**；`.deb`、macOS `.app` 和 NSIS 會**啟動系統安裝程式**，完成後需要重新啟動應用程式。
+- 應用啟動約 30 秒後自動檢查一次，之後 RC / 預覽通道每 2 小時、Stable 通道每 6 小時檢查一次。
+- 更新清單經過 Ed25519 簽名校驗，產物再做 SHA-256 校驗，校驗失敗不會安裝。
+- 自動更新開啟時，發現新版本會自動下載；已下載的版本可以在應用內立即安裝，或在退出應用時安裝。
+- 關閉 **自動更新** 後，發現的新版本會等你確認；關閉 **更新提示** 後，標題欄按鈕和浮層不再出現，但後臺安全檢查仍然執行。
+- 安裝方式取決於包格式：**AppImage 會原地自我替換**；`.deb`、macOS `.app` 和 NSIS 會**拉起系統安裝器**，完成後需要重啟應用。
 
-只有同通道的版本會被接受：RC 安裝套件只看 `-rc.*` 版本。如果自動更新無法使用，手動下載新安裝套件覆蓋安裝即可。
+只有同通道的版本會被接受：RC 安裝包只看 `-rc.*` 版本。如果自動更新不可用，手動下載新安裝包覆蓋安裝即可。
 
 ## Android
 
@@ -62,44 +64,80 @@ Android 客戶端從 GitHub Releases 側載安裝：
 
 1. 下載 `vibex-<版本>-android-arm64.apk`。
 2. 在系統設定中允許來自該來源的安裝。
-3. 開啟 APK 完成安裝（應用程式 ID 為 `ai.vibex.mobile`）。
+3. 開啟 APK 完成安裝（應用 ID 為 `ai.vibex.mobile`）。
+
+Android 客戶端沒有應用商店，更新也走同一份釋出清單：
+
+- 客戶端只跟隨 **Stable** 通道；預釋出安裝仍會知道它之後對應的穩定版。
+- 應用會校驗釋出清單簽名和 APK 的 SHA-256，然後把已暫存的檔案交給系統安裝器；Android 再校驗簽名金鑰連續性。
+- 可以在應用內下載並安裝，也可以開啟瀏覽器裡的簽名下載連結。
+- 如果新 APK 的簽名金鑰與已安裝版本不同，系統會拒絕覆蓋安裝。RC / 預覽在未配置倉庫金鑰時使用一次性 CI 金鑰，因此 **不同 RC 之間可能需要先解除安裝再安裝**；解除安裝會清除本地配對憑據。
 
 <Warning>
-  候選版本之間**不能直接覆蓋升級**。未設定發行金鑰時，每次 RC 發佈使用一次性的 CI 簽章金鑰，因此不同 RC 的簽章不同。跨版本升級需要先解除安裝舊版，再安裝新版；解除安裝會清除本機儲存的配對憑證，需要重新配對。
+  **Stable 釋出必須配置固定的 Android 釋出金鑰**。沒有配置時釋出流水線會失敗，而不是悄悄生成一個無法覆蓋升級的包。
 </Warning>
 
 ## iOS
 
+iOS 釋出產物包括：
+
+- `vibex-<版本>-ios-unsigned.ipa`：完整的 arm64 真機構建，**未簽名**。
+- `vibex-<版本>-ios-simulator.app.zip`：未簽名模擬器構建。
+- `vibex-<版本>-ios-xcframework.zip`：供整合使用。
+
+iOS 拒絕執行未簽名的程式碼，所以真機 IPA 需要安裝者用自己的 Apple ID 重新簽名。免費 Apple ID 的簽名有效期為 7 天，到期後需要重新簽名。
+
+常見安裝方式：
+
+| 方式 | 說明 |
+| --- | --- |
+| **Sideloadly** | Windows 或 macOS，拖入 IPA，用免費 Apple ID 簽名並通過 USB 安裝。 |
+| **AltStore / SideStore** | 用免費 Apple ID 簽名並後臺重新整理；AltStore 需要一臺常開的電腦，SideStore 可以裝置內重新整理。 |
+| **Xcode 個人團隊** | 開啟工程，選擇自己的 Apple ID 和 **Automatically manage signing**，直接跑到真機。 |
+| **TrollStore** | 僅適用於 iOS 14.0–16.6.1 和 17.0；客戶端要求 iOS 17.0+，所以只覆蓋恰好 17.0 的裝置。 |
+
+從 [Unsigned iOS install guide](https://github.com/vibex-ai/vibex/blob/main/docs/operations/ios-unsigned-install.md) 可以看到完整的重簽名步驟和校驗方法。
+
 <Warning>
-  **iOS 目前沒有可分發給最終使用者的建置。** 發行產物只有未簽章的**模擬器**應用程式套件（`ios-simulator.app.zip`）和 `VibexFFI.xcframework`，兩者都需要 macOS 與 Xcode 才能執行或整合。實機安裝、TestFlight 和 App Store 發佈尚未提供。
+  重簽名會替換整個簽名，不能證明二進位制是誰構建的。只安裝來自可信來源的 IPA。
 </Warning>
 
-如果你要在模擬器裡試用，需要 macOS、Xcode、XcodeGen，以及 `aarch64-apple-ios` 和 `aarch64-apple-ios-sim` 兩個 Rust target，然後從原始碼建置：
+## TUI
 
-```bash
-pnpm build:mobile:ios
-```
+Vibex TUI 隨桌面安裝包一起釋出，不需要單獨下載：
+
+| 平台 | 入口 |
+| --- | --- |
+| Linux | `.deb` / AppImage 裡的 `/usr/bin/vibex` |
+| macOS | `.app` 旁邊的 `vibex`，安裝器會連結到 `PATH` |
+| Windows | NSIS 安裝的 `vibex.exe` |
+| 容器 | `docker exec -it <container> vibex-server tui` |
+
+在專案目錄裡執行 `vibex` 即可。詳見 [Vibex TUI](/zh-TW/tui)。
 
 ## 自託管
 
-需要跨網路使用、或不想把會話資料留在某台常開的個人電腦上時，可以自行架設伺服器端：
+跨網路使用、或不想把會話資料留在某臺常開的個人電腦上時，可以自建服務端：
 
-- **[自託管無頭執行環境](/zh-TW/self-hosted-server)** —— `vibex-server` 是與你桌面端能力相同的權威執行環境，適合放在伺服器或家用常開機器上。
-- **[自託管 Relay](/zh-TW/relay)** —— 只轉發端對端加密訊框的中繼，不做業務授權，也不儲存業務資料。
+- **[自託管無頭執行階段](/zh-TW/self-hosted-server)** —— `vibex-server` 是與你桌面端能力相同的權威執行階段，適合放在伺服器或家用常開機器上。
+- **[SSH 與 WSL 遠端執行階段](/zh-TW/ssh-runtime)** —— 讓桌面端通過 SSH 在另一臺機器上安裝執行階段，或在本機 WSL2 裡執行它。
+- **[自託管 Relay](/zh-TW/relay)** —— 只轉發端到端加密幀的中繼，不做業務授權，也不儲存業務資料。
 
-兩者都發佈了多架構容器映像（`linux/amd64`、`linux/arm64`）。
+服務端和 Relay 都發布了多架構容器映象（`linux/amd64`、`linux/arm64`）。
 
-## 從原始碼建置
+## 從原始碼構建
 
-需要改程式碼、或你的平台沒有現成產物時，見[從原始碼建置](/zh-TW/from-source)。
+需要改程式碼、或你的平台沒有現成產物時，見[從原始碼構建](/zh-TW/from-source)。
 
 ## 解除安裝
 
 | 平台 | 方式 |
 | --- | --- |
-| Linux（deb） | `sudo apt remove vibex-rc`（依通道替換套件名稱） |
+| Linux（deb） | `sudo apt remove vibex-rc`（按通道替換包名） |
 | Linux（AppImage） | 刪除 AppImage 檔案 |
-| macOS | 把應用程式拖到垃圾桶 |
-| Windows | 使用「應用程式與功能」解除安裝 |
+| macOS | 把應用拖到廢紙簍 |
+| Windows | 使用“應用和功能”解除安裝 |
+| Android | 在系統設定裡解除安裝應用；會清除本地配對憑據 |
+| iOS | 刪除應用；重簽名安裝的版本到期後需要重新簽名 |
 
 解除安裝程式**不會**刪除資料目錄。要徹底清除，請先閱讀[隱私與恢復](/zh-TW/privacy-and-recovery)，再手動刪除對應通道的資料目錄。

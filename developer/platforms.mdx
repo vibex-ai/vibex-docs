@@ -11,12 +11,14 @@ description: "各平台的产物格式、构建方式和验证要求。"
 | Linux aarch64 | `.deb` | Vulkan；不提供 AppImage（linuxdeploy 无法交叉构建） |
 | macOS aarch64 / x86_64 | `.dmg` | 较新的 macOS；**未签名、未公证** |
 | Windows x86_64 / aarch64 | NSIS `.exe` | **未签名**；按当前用户安装 |
-| Android arm64 | `.apk`、`.aab` | Android SDK/NDK、`cargo-ndk` |
-| iOS | `ios-simulator.app.zip`、`xcframework.zip` | macOS、Xcode、XcodeGen；**仅模拟器，未签名** |
+| Android arm64 | `.apk`、`.aab` | Android SDK/NDK、`cargo-ndk`；Stable 需要固定发布密钥 |
+| iOS | `ios-unsigned.ipa`、`ios-simulator.app.zip`、`xcframework.zip` | macOS、Xcode、XcodeGen；真机 IPA 由安装者重签名 |
+| TUI | 随桌面包发布的 `vibex` / `vibex.exe`；容器里 `vibex-server tui` | 无额外运行时；SSH/tmux 可用 |
+| SSH / WSL 远程运行时 | 由桌面端配置 `vibex-server` | OpenSSH；Linux glibc 2.35+ 或 macOS；WSL2 |
 | 自托管 Linux / 容器 | `ghcr.io/vibex-ai/vibex-server`、`ghcr.io/vibex-ai/vibex-relay-server` | Docker 或 Rust 二进制，多架构 amd64/arm64 |
 
 <Warning>
-  **签名状态是当前已知的限制：** macOS 与 Windows 安装包没有代码签名，用户首次打开需要手动放行；iOS 只发布未签名的模拟器构建。Android 在未配置仓库密钥时使用每次发布生成的一次性 CI 密钥，因此**候选版本之间不能覆盖升级**。发布前请确认这些状态是否已有变化。
+  **签名状态是当前已知的限制：** macOS 与 Windows 安装包没有代码签名，用户首次打开需要手动放行；iOS 发布未签名的真机 IPA 和模拟器构建，真机由安装者重签名。Android 在未配置仓库密钥时使用每次发布生成的一次性 CI 密钥，因此 RC 之间不能覆盖升级；Stable 必须配置固定发布密钥。发布前请确认这些状态是否已有变化。
 </Warning>
 
 ## 桌面平台边界
@@ -73,9 +75,10 @@ pnpm package:mobile:android    # Release（未签名）
 
 ```bash
 pnpm build:mobile:ios
+pnpm package:mobile:ios   # 未签名真机 IPA + 模拟器包
 ```
 
-构建 `VibexFFI.xcframework` 并生成 Xcode 工程。签名、Bundle identifier、真机 / 模拟器选择和分发凭据都由本机 Xcode 流程决定，不要把证书或 provisioning profile 提交到仓库。
+构建 `VibexFFI.xcframework` 并生成 Xcode 工程。签名、Bundle identifier、真机 / 模拟器选择和分发凭据都由本机 Xcode 流程决定，不要把证书或 provisioning profile 提交到仓库。发布产物是未签名的真机 IPA，安装者用自己的 Apple ID 重签名；免费账号的签名有效期为 7 天。
 
 ## 桌面打包
 
@@ -102,6 +105,12 @@ Linux 用 cargo-packager 打包，PDFium 运行时只在 **linux-x86_64** 上随
 ## 移动端生命周期
 
 移动端需要处理后台、网络切换、断线和重连。恢复时先用 Remote v2 获取权威会话和时间线，再订阅实时事件；不要用过期投影覆盖权威状态。
+
+## TUI 与远程运行时
+
+TUI 作为桌面包的第二个二进制发布：Linux `/usr/bin/vibex`、macOS `.app` 旁的 `vibex`、Windows `vibex.exe`；容器里用 `vibex-server tui`。它是同一套运行时协议的客户端，不链接桌面 UI，也不打开数据库。
+
+SSH / WSL 远程运行时由桌面端配置：通过 SSH 上传并安装 `vibex-server`，打开回环隧道，取得一次性配对码并配对。发布产物必须来自签名清单；远端会再次校验 SHA-256。完整契约见 `docs/remote/ssh-runtime.md` 和 `.trellis/spec/backend/ssh-remote-runtime.md`。
 
 ## 自托管部署
 

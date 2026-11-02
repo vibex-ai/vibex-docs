@@ -11,87 +11,125 @@ A workspace is the boundary within which Vibex reads and writes files, runs term
 
 ```text
 Project
-├── Local workspace (CurrentCheckout)   ← work directly in the main checkout
-└── Worktree workspace (VibexWorktree)  ← isolated directory, several can coexist
-        └── Session
+├── Local workspace (CurrentCheckout)   ← work directly on the main checkout
+└── Worktree workspace (VibexWorktree)  ← isolated directory; several can coexist
+        ├── Session
+        └── Session group               ← several sessions under one worktree
 ```
 
-In other words: **a worktree is not "another mode", it is a second workspace under the same project.** That is exactly why you can keep working on the main branch while an Agent tries another approach in an isolated directory.
+A worktree is not "another mode"; it is a second workspace under the same project. That is what lets you keep working on the main branch while an Agent tries another approach in an isolated directory.
 
-## The two workspace modes
+## Two workspace modes
 
-| Mode | UI label | Behavior |
+| Mode | UI label | Behaviour |
 | --- | --- | --- |
-| `CurrentCheckout` | **Local** / current checkout | Files and Git operations act directly on the main checkout directory; several sessions may see the same changes. |
+| `CurrentCheckout` | **Local** / current checkout | Files and Git operations act on the main checkout; several sessions may see the same changes. |
 | `VibexWorktree` | **Worktree** | Vibex creates a managed Git worktree and provides merge, rebase, conflict handling, and discard flows. |
 
 <Warning>
-  When several Agents run at once in a **Local** workspace, they can modify the same file. Use **Worktree** when you need parallel attempts or review.
+  Several Agents running in one **Local** workspace can edit the same file. Use a **Worktree** when you need parallel attempts or review.
 </Warning>
 
 ## Open a project
 
-1. Click **New project** in the sidebar, or use **Project directory** on the **New chat** page.
-2. In the directory browser that opens, select the repository root. (This is an in-app browser that supports `↑↓` to navigate, `Enter` to open, `⌘Enter` to select here, and `⌘D` to star the highlighted row.)
-3. The browser's **Places** rail carries a **Starred** group: starred folders are listed newest first, up to twelve, and starring again from the row or the rail removes one.
-4. Once you confirm, Vibex opens that directory in **Local** mode.
+1. Click **New project** in the sidebar, or use **Project directory** on the **New session** page.
+2. Choose the repository root in the directory browser (an in-app browser: `↑↓` to move, `Enter` to open, `⌘Enter` to choose here, `⌘D` to favorite the highlighted row).
+3. The **Locations** column has a **Favorites** group: favorites are newest first, up to twelve, and clicking again removes one.
+4. Confirm; Vibex opens the directory as a **Local** workspace.
 
-Projects stay in the sidebar permanently. Right-click a project to customize its icon, create a folder, enable **Auto continue**, import sessions, or delete it.
+Projects persist in the sidebar. Right-click one to customize its icon, create folders, enable **Auto-continue**, import sessions, or delete it.
+
+## Temporary sessions
+
+The location picker on the new-session page offers **Temporary session**. It belongs to no project:
+
+- Useful for one-off questions, prompt tests, or tasks that do not need file access.
+- Still stored by the same authoritative runtime, and can be renamed, forked, and archived.
+- Switch to a project or worktree when the Agent needs workspace files or project commands.
+- A temporary session cannot create a worktree.
 
 ## Create a workspace under a project
 
-When you create a session, the location picker above Composer offers two options:
+The location picker above the composer offers:
 
-- **Local** — work on the main checkout directory.
-- **New Worktree** — create an isolated workspace. Once selected, a **Base ref** picker appears (with searchable branches) along with the **Worktree settings** panel:
-  - **Worktree name** — the branch name `vibex/<slug>` is derived from it.
-  - **Path** — must be an absolute path.
-  - **Default to a new Worktree for this Project** — future sessions in this project create a worktree by default.
+- **Local** — work on the main checkout.
+- **New Worktree** — create an isolated workspace. It shows a **Base branch** picker (searchable) and **Worktree settings**:
+  - **Worktree name** — derives the branch name `vibex/<slug>`.
+  - **Path** — must be absolute.
+  - **Make this the project's default** — future sessions in this project create worktrees by default.
+
+The worktree appears in the sidebar's workspace view. Pick an existing worktree to continue a session there, or **Finish** one you no longer need.
 
 ## Switch workspaces
 
-When **Workbench → Sidebar hierarchy** is set to **Workspace view**, each project lists its workspaces and their branches.
+Set **Workbench → Sidebar hierarchy** to **Workspace view** to list each workspace and its branch under a project.
 
-Switching workspaces does not copy uncommitted changes anywhere else. The current session still belongs to the workspace it was created in, so save your files and check Git status before you switch.
+Switching workspaces does not copy uncommitted changes. The current session still belongs to the workspace where it was created; save files and check Git status before switching.
 
-If the editor still has unsaved buffers, Vibex blocks the switch and asks you to save or discard them. Every time you open or switch a workspace the generation advances, and stale file, terminal, and Git requests are rejected so results never land in the wrong directory.
+If an editor buffer has unsaved changes, Vibex blocks the switch and asks you to save or discard. Every open or switch bumps a generation, so stale file, terminal, and Git requests are refused instead of writing into the wrong directory.
 
 ## Worktree lifecycle
 
 | State | Main actions |
 | --- | --- |
-| **Working** | **Review changes** |
-| **Reviewing** | **Mark ready** |
-| **Ready** | **Merge** / **Rebase** (mapped to `NoFfMerge` and `RebaseAndMerge`) |
-| **Queued** | **Review merge** |
+| **Developing** | **Review changes** |
+| **Reviewing** | **Mark ready to merge** |
+| **Ready** | **Merge** / **Rebase** (`NoFfMerge` and `RebaseAndMerge`) |
+| **Queued** | **Check merge** |
 | **Archived** | Restore |
 
-1. Choose the base branch and name when you create the worktree.
-2. Start a session in the isolated directory, or edit files by hand.
-3. Review the changes in the Git panel and commit as needed.
-4. Choose **Merge** or **Rebase**. When conflicts appear, resolve them file by file (for each file you can keep the target side or the source side), then click **Mark resolved**. You can give up midway with **Abort merge**.
-5. Once you have confirmed the result, discard the worktree. **Discarding deletes the isolated directory and any uncommitted changes.**
+1. Choose a base branch and name at creation.
+2. Start a session or edit manually in the isolated directory.
+3. Review changes in the Git panel and commit as needed.
+4. Choose **Merge** or **Rebase**. Resolve conflicts file by file (keep the target or source side), then **Mark resolved**. **Abort merge** cancels the merge.
+5. Discard the worktree only after confirming the result. **Discard deletes the isolated directory and uncommitted changes.**
 
-You can also run **Rename Worktree** and **Delete Worktree** on a worktree.
+You can also **Rename worktree** and **Delete worktree**. Mobile can view each managed worktree's state, select one, and finish one; execution always happens on the authoritative side.
 
 <Info>
-  The authoritative runtime stores each worktree's path, branch, and state. Mobile can request these operations over Remote v2, but the work itself always happens on the authoritative side.
+  The worktree's path, branch, and state are stored by the authoritative runtime. Remote v2 can request these operations, but the authority always performs them.
 </Info>
 
-## File access boundaries
+## Session groups
 
-- The file tree, content search, and editor only reach the current workspace.
+A session group is a set of sessions under one worktree:
+
+- Multi-select sessions and choose **New session group**.
+- **Split pane** to view members side by side, or **Merge panes**.
+- The group header shows team state and member count; a collapsed group says how many sessions it holds.
+- Drag a group into a folder, swap it with another group, or drag it back to the workspace root.
+- Reorder members within the group; drag one out to remove it.
+- **Dissolve session group** does not delete sessions.
+
+See [Agent sessions](/en/sessions#session-groups-and-split-panes).
+
+## Archive
+
+Sessions under a project can be archived: they leave the sidebar but keep their full timeline.
+
+- Archive from a session row menu, the multi-select menu, or the bulk bar.
+- A folder row can set an automatic archiving idle window (off, or 1–14 days).
+- **Settings → Archived sessions** restores or permanently deletes.
+- Archiving is reversible; deleting is not.
+
+## File access boundary
+
+- The file tree, content search, and editor only access the current workspace.
 - The file service normalizes paths and checks symlinks, encoding, line endings, and size limits.
-- Agent tool calls are still subject to permission and capability gating — opening a workspace does not automatically authorize every operation.
-- Terminals bind to the current workspace by default, but you can also pick **Open In → Terminal** on a path in the file tree.
-- Remote requests also carry the workspace scope and generation; after a reconnect, trust the state re-read from the authoritative runtime.
+- Agent tool calls are still permission- and capability-gated; opening a workspace does not grant every operation.
+- Terminals bind to the current workspace by default; you can also choose **Open In → Terminal** for a path in the file tree.
+- Remote requests carry workspace scope and generation; after reconnect, the authority's state wins.
 
-## Common questions
+## FAQ
 
-### Why can't the Agent see the file I just created?
+### Why can't the Agent see a file I just created?
 
-Check that the file was saved inside the current workspace, then refresh the file tree or reopen the session. If the file is outside the workspace, move it inside first, or provide it as an attachment.
+Confirm it was saved inside the current workspace, then refresh the file tree or reopen the session. A file outside the workspace must be moved in or attached.
 
-### Why doesn't the Git diff show my changes?
+### Why does Git diff show no changes?
 
-Check whether you switched to another workspace or worktree — `Local` and `Worktree` are completely different directories. Confirm the file is saved, then run `git status --short` in the terminal to compare.
+Check whether you switched to another workspace or worktree—`Local` and `Worktree` are different directories. Save the file and run `git status --short` in the terminal to compare.
+
+### Why can't a session join a group?
+
+A group can only contain sessions from one worktree. Move the session to the target worktree, or create a separate group.

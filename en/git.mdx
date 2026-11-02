@@ -28,7 +28,7 @@ The **Commits** tab shows commit history and supports:
 
 ## Branches and commits
 
-The Git panel toolbar offers **Fetch**, **Push**, **Refresh Git**, branch creation and switching, and a menu of further actions.
+The Git panel toolbar offers **Fetch**, **Pull**, **Push**, **Refresh Git**, branch creation and switching, and a menu of further actions. **Fetch** only updates remote references; **Pull** puts the fetched commits into the current checkout.
 
 A typical flow:
 
@@ -37,7 +37,7 @@ A typical flow:
 3. Run **Stage** or **Unstage** on a file (whole file).
 4. Type a message into the **Commit message** field and commit.
 5. Use **Amend commit** when you need to append to the previous commit.
-6. **Fetch** updates remote references, and **Push** publishes local commits.
+6. **Fetch** updates remote references, **Pull** brings commits into the current branch, and **Push** publishes local commits.
 
 <Warning>
   **Revert**, **Checkout branch**, **Amend commit**, **Push**, **Merge worktree**, and **Discard worktree** all show a confirmation dialog, because they can change existing history or remote state. Confirm the branch, remote, and pending diff first, and create a backup branch when your team's policy requires it.
@@ -55,8 +55,9 @@ A worktree is a separate workspace under the same project — see [Projects and 
 | **Mark resolved** | Mark a file as handled after resolving its conflicts one by one. |
 | **Abort merge** | Give up the merge in progress. |
 | **Rename Worktree** / **Delete Worktree** | Rename or delete. Deleting also removes uncommitted content. |
+| **Finish worktree** | End a managed worktree when it is no longer needed; mobile can also view state and finish one. |
 
-Conflicts are handled file by file, and for each file you can keep either the target side or the source side.
+Conflicts are handled file by file, and for each file you can keep either the target side or the source side. Mobile can view each managed worktree's state, select one from the list, and finish one; execution always happens on the authoritative side.
 
 <Info>
   A **Local** workspace modifies the main checkout directory directly; a **Worktree** gives parallel tasks their own directory. Either way, the authoritative runtime's Git state is what counts.

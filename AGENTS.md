@@ -69,10 +69,22 @@ A feature may exist in the codebase yet be unreachable from the shipped
 application. Before documenting a screen, confirm the user can actually open
 it — a render function with no navigation entry point is not a feature.
 
-The desktop Config Center currently exposes exactly three tabs: **Agent**,
-**MCP** and **Skills**. Do not document Prompts, Hooks, Advanced, Scheduled,
-Automation, Relay or Recovery as Config Center sections, and do not describe
-model providers as a separate tab (they live inside the Agent detail view).
+The desktop Config Center currently exposes exactly five primary sections:
+**Agents**, **Providers**, **MCP**, **Skills**, and **Prompts**. **Providers**
+owns the pinned **Gateway** row and the **Providers** / **Route groups**
+sidebar tabs. Model Provider profiles live inside an Agent's detail view, not
+in a primary section.
+
+Do not document **Advanced**, **Scheduled**, **Automation**, or **Recovery** as
+Config Center sections: they are normalized away from the primary navigation
+and have no user-facing entry point in the current release. Scheduled *messages*
+in the composer are a separate, reachable feature and belong in the session
+guide.
+
+SSH / WSL **Connections** is reachable only after **Settings → Developer → SSH
+remote runtime** is enabled; document it as beta and off by default. Computer
+use is reachable from Settings but requires an installed driver and the master
+switch.
 
 When an entry point moves or is removed, update the page in the same change
 and add a redirect in `docs.json` for any renamed page.

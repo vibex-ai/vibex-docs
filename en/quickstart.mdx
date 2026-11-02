@@ -3,64 +3,83 @@ title: "Quickstart"
 description: "Install Vibex, connect an Agent, and complete your first session."
 ---
 
-This guide walks you through installing the desktop, adding an Agent, opening a project directory, and having the Agent finish a small, reviewable task. For your first try, use a throwaway Git repository.
+This guide installs the desktop, adds an Agent, opens a project directory, and has the Agent finish a small, reviewable task. For your first try, use a throwaway Git repository.
 
 ## 1. Install the desktop
 
-Download the installer that matches your platform from [GitHub Releases](https://github.com/vibex-ai/vibex/releases/latest) and install it. For full instructions and per-platform caveats, see [Install](/en/install).
+Download the installer for your platform from [GitHub Releases](https://github.com/vibex-ai/vibex/releases/latest) and install it. Full instructions and platform caveats are in [Install](/en/install).
 
 <Note>
-  The macOS and Windows installers are currently unsigned, so Gatekeeper or SmartScreen stops you on first launch. For how to allow the app, see [Install](/en/install).
+  macOS and Windows packages are currently unsigned, so the first launch is blocked by Gatekeeper or SmartScreen. See [Install](/en/install) for the exact steps.
 </Note>
 
 ## 2. Add an Agent
 
-On first launch, Vibex shows the **Start something new** page. When no Agent is available it tells you **No Agent has been added. Open Config Center to add one.** — click **Add Agent** to open the Config Center.
+On first launch Vibex shows the **Start something new** page. With no available Agent it says **No Agent has been added. Open Config Center to add one.** Click **Add Agent** to open the Config Center.
 
-1. Find the Agent you want in the **Agent** tab list. Built-in presets include **Claude Code**, **Codex**, **ZCode**, and **OpenCode**, plus more than a dozen ACP integrations.
-2. Click the **+** on the right of an entry to add it. Once added, the entry shows an enable toggle.
-3. If an Agent is managed by Vibex and not installed yet, its card shows **Install**. Click it and Vibex downloads and verifies the runtime. You cannot cancel during installation; when it finishes, the button becomes **Check for updates**.
-4. If an entry shows **Managed by user**, it is not in the managed directory, and Vibex uses the same-named command-line program on your `PATH` — you need to install it yourself first.
+1. Find the Agent in the **Agents** list. Built-in presets include **Claude Code**, **Codex**, **ZCode**, and **OpenCode**, plus a dozen ACP integrations.
+2. Click **+** on the right to add it. The row then shows an enable switch.
+3. If the Agent is managed by Vibex and not installed, the card shows **Install**. Click it to download and verify the runtime; it cannot be cancelled midway, and the button becomes **Check for updates** when done.
+4. If the row says **User-managed**, the Agent is not in the managed directory and Vibex uses the command on your `PATH`—install it yourself first.
 
-Next, expand the **Native credentials** card on the detail page to sign in (`Sign in` / `Open sign-in terminal`), then configure the model provider and credentials in the **Model provider configuration** card.
+Then open the **Native credentials** card to sign in (`Sign in` / `Open sign-in terminal`), or add your own address, key, and models under **Model provider configuration**.
+
+<Note>
+  An Agent can have several provider profiles. Shared Providers and route groups live under **Config Center → Providers**; see [Providers, route groups, and the local gateway](/en/providers-and-gateway).
+</Note>
 
 ## 3. Open a project directory
 
-1. Click **New project** in the sidebar, or use **Project directory** on the **New chat** page.
-2. In the directory browser that opens, select the repository root and confirm.
-3. For your first try, use a test branch or a temporary repository — the Agent really does modify files on disk.
+1. Click **New project** in the sidebar, or use **Project directory** on the **New session** page.
+2. Choose the repository root in the directory browser and confirm.
+3. For your first try, use a test branch or a temporary repository—the Agent really writes to disk.
+
+You can also choose **Temporary session** to try a prompt without binding a project.
 
 ## 4. Complete your first session
 
-1. At the top of Composer, choose the Agent, provider profile, model, and **Thinking depth**.
-2. Type a clearly scoped task, such as "add installation steps to `README.md`, and show me the plan first".
-3. Watch the plan and tool calls in the timeline. When it needs files, a terminal, or permission, Vibex shows the specific request, and you can **Approve** or **Deny** it.
-4. When the Agent finishes, open the **Git** panel and check **Changes**, confirm each modification, then decide whether to commit or keep asking questions.
+1. At the top of the composer, choose the Agent, provider profile, model, and **Thinking depth**.
+2. Enter a focused task, for example "Add install steps to `README.md`, and show the plan first".
+3. Watch the plan and tool calls in the timeline. When the Agent needs a file, a terminal, or permission, Vibex shows the request; choose **Allow** or **Deny**.
+4. When the Agent finishes, open the **Git** panel, review **Changes**, and decide whether to commit or keep asking.
 
 <Tip>
-  For a first task, ask the Agent for a plan before letting it modify files. That way you can confirm the scope and risk in the timeline.
+  For the first task, ask for a plan before allowing file changes. That lets you confirm scope and risk in the timeline.
 </Tip>
 
 <Warning>
-  **Stop** only stops the run. It does not roll back files already written or commands already executed. After stopping, verify the result in the Git diff and in the terminal.
+  **Stop** only stops the run; it does not roll back files or commands already executed. Check the Git diff and the terminal separately.
 </Warning>
 
-## Understanding Composer input
+## The composer
 
-You can combine several kinds of context in Composer:
+You can combine several kinds of context:
 
-| Input | What it does |
+| Syntax | What it does |
 | --- | --- |
-| `/` | Pick an available Prompt or slash command. |
-| `@` | Reference a file or directory from the current project. |
+| `/` | Choose a Prompt or slash command. |
+| `@` | Reference a file or directory, or an Agent delegation. |
 | `$` | Insert an enabled Skill. |
 | Attachment button | Add images and other session attachments. |
 
-Before sending, you can choose the Agent, provider profile, model, thinking depth, and conversation mode. Different Agents support different options; the interface shows what is available based on what the runtime detects.
+Before sending you can choose the Agent, provider profile, model, thinking depth, conversation mode, and the built-in tools available to this session. Different Agents expose different options; the UI shows what the runtime probe reports.
 
-## Next steps
+A message written while a turn is running goes into the queue. You can edit it, delete it, steer the running turn, or schedule it for a later hour.
 
-- [Core concepts](/en/concepts) — how projects, workspaces, sessions, and the authoritative runtime relate to each other.
-- [Workspaces](/en/workspaces) — the boundary for files and Git.
-- [Config Center](/en/config-center) — configuring Agents, MCP, and Skills.
-- [Pair mobile](/en/remote-mobile) — continue these sessions on your phone.
+## 5. Try the terminal client
+
+The TUI ships with the desktop package. From a project directory:
+
+```bash
+vibex
+```
+
+It attaches to the same runtime; `vibex status` shows which runtime it would use. See [Vibex TUI](/en/tui).
+
+## Next
+
+- [Core concepts](/en/concepts) — projects, workspaces, sessions, and the authoritative runtime.
+- [Projects and workspaces](/en/workspaces) — file and Git boundaries.
+- [Agent sessions](/en/sessions) — queue, goals, delegation, and search.
+- [Config Center](/en/config-center) — Agents, Providers, MCP, Skills, and Prompts.
+- [Pair your phone](/en/remote-mobile) — continue these sessions from mobile.

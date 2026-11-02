@@ -3,7 +3,7 @@ title: "Developer guide"
 description: "Understand Vibex engineering constraints from local development through cross-platform release."
 ---
 
-Vibex is a native application driven by a Rust workspace. `DesktopRuntime` is the single authoritative state owner; the desktop workbench, headless server, mobile app, and remote transports all reach it through shared contracts.
+Vibex is a native application driven by a Rust workspace. `DesktopRuntime` is the single authoritative state owner; the desktop workbench, headless server, mobile app, TUI, and remote transports all reach it through shared contracts.
 
 <Columns>
   <Card title="Architecture boundaries" icon="sitemap" href="/en/developer/architecture">
@@ -53,6 +53,9 @@ The public documentation site only covers what users need. More detailed design 
 | --- | --- |
 | `docs/architecture/ui-boundary.md` | The ownership boundary between the UI and the authority. |
 | `docs/remote/protocol-v2.md` | The complete Remote v2 wire protocol definition. |
+| `docs/remote/ssh-runtime.md` | The user and operations contract for SSH / WSL remote runtimes. |
+| `docs/architecture/model-routing.md` | Route groups, gateway observability, and protocol translation. |
+| `docs/tui/README.md` | TUI layout, session state, key tables, and degradation rules. |
 | `docs/platform/support-matrix.md` | Evidence requirements for platform capabilities. |
 | `docs/operations/release.md` | The release runbook. |
 | `docs/operations/release-packaging-matrix.md` | The artifact and build command matrix. |

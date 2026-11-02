@@ -53,6 +53,58 @@ Vibex reports failures as **structured error codes**, shown in the UI as `error 
 | `release_channel_override_rejected` | An attempt was made to switch the release channel at runtime. | Install the build for that channel. |
 | `stable_channel_requires_release_build` | The Stable channel requires an official release build. | Use an officially released installer. |
 
+## SSH and WSL
+
+| Error code | Meaning | What to do |
+| --- | --- | --- |
+| `ssh_client_missing` / `ssh_spawn_failed` | The desktop has no usable SSH client. | Install OpenSSH; on Windows use WSL. |
+| `ssh_host_key_unknown` | The host key is not in `known_hosts`. | Connect once in a terminal and compare the fingerprint. |
+| `ssh_host_key_changed` | The host key differs from the record. | Compare with the host owner before changing `known_hosts`. |
+| `ssh_auth_failed` | Non-interactive authentication failed. | Check the key, ssh-agent, and IdentityFile. |
+| `ssh_connection_refused` | The target has no SSH server. | Install/start sshd, or bootstrap. |
+| `ssh_environment_glibc_too_old` / `ssh_environment_missing_glibc` | Remote glibc is below 2.35 or missing. | Use a supported distribution; musl-only hosts are unsupported. |
+| `ssh_environment_disk_low` | The remote home is short on space. | Free at least 512 MiB. |
+| `ssh_environment_port_busy` | The runtime port is taken. | Free it or retry. |
+| `ssh_runtime_start_failed` / `ssh_runtime_health_timeout` | The runtime did not start or health-check in time. | Inspect the remote `server.log`, fix the cause, retry. |
+| `ssh_tunnel_*` | The tunnel could not be opened, kept, or stopped. | Check the local port and SSH connection, then retry. |
+| `ssh_upgrade_incompatible` | Desktop and runtime versions are incompatible. | Update the runtime or Vibex per the compatibility state. |
+
+## Browser
+
+| Error code | Meaning | What to do |
+| --- | --- | --- |
+| `browser_missing` | Chrome, Chromium, or Edge was not found. | Install a supported browser. |
+| `browser_unavailable` | The browser service is unavailable or shutting down. | Reopen the panel; check the runtime log. |
+| `browser_ref_stale` | The element reference expired. | Observe the page again before acting. |
+| `browser_element_not_found` / `browser_element_not_visible` | The target does not exist or is not visible. | Observe again; scroll or wait if needed. |
+| `browser_navigation_denied` / `browser_navigation_approval_required` | Navigation was denied or needs approval. | Confirm in the panel; do not bypass approval. |
+| `browser_wait_timeout` | A wait condition timed out. | Check the selector or page state. |
+| `browser_feature_disabled` | The runtime or platform disabled the browser panel. | Check settings and platform support. |
+
+## Computer use
+
+| Error code | Meaning | What to do |
+| --- | --- | --- |
+| `computer_feature_disabled` | The master switch is off. | Turn it on under **Settings → Computer use**. |
+| `computer_engine_missing` / `computer_driver_daemon_missing` | The driver or helper is missing or not running. | Install the driver and detect it again. |
+| `computer_accessibility_bridge_missing` | The Linux accessibility bus is unavailable. | Install/start AT-SPI; X11 may still degrade. |
+| `computer_credential_target_blocked` | The target is a password manager or secure field. | Hard deny; it cannot be approved. |
+| `computer_element_reference_stale` | The element reference expired. | Observe the application again. |
+| `computer_stopped_by_user` | You pressed the emergency stop. | Re-enable manually before continuing. |
+| `computer_paused_offline` | The client disconnected and actions are paused. | Reconnect and confirm recovery. |
+
+## Providers and gateway
+
+| Error code | Meaning | What to do |
+| --- | --- | --- |
+| `provider_authentication_required` | The Provider or Agent needs authentication. | Sign in to the Agent or add a Provider key. |
+| `provider_profile_not_found` | The profile is missing or deleted. | Refresh the Config Center and select it again. |
+| `agent_model_interface_unsupported` | The Agent does not support the selected wire protocol. | Change the protocol or the Agent. |
+| `model_gateway_port_invalid` | The gateway port is below 1024 or unavailable. | Pick a free port above 1023. |
+| `model_gateway_cooldown_invalid` | The cooldown is outside 1 ms–1 day. | Adjust the cooldown setting. |
+| `model_gateway_token_limit_invalid` | The token limit is invalid. | Enter a positive integer or leave it empty. |
+| `reasoning_effort_unavailable` | The selected reasoning level is not supported. | Change the level or leave it empty. |
+
 ## Status values
 
 These are not errors, but they are often misread:

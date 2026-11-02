@@ -1,69 +1,120 @@
 ---
 title: "Config Center"
-description: "Manage Agents, MCP servers, and Skills in the Config Center."
+description: "Manage Agents, shared Providers, MCP servers, Skills, and Prompts in the Config Center."
 ---
 
-**Config Center** is Vibex's configuration entry point, opened from the **Config Center** button in the sidebar or from the system tray. It brings Agent runtimes, MCP servers, and Skills together in one place, and shows status and validation results for each resource.
+**Config Center** is Vibex's configuration entry point, opened from the **Config Center** button in the sidebar or from the system tray. It brings Agent runtimes, model Providers, MCP servers, Skills, and reusable Prompts together and shows status and validation results for each resource.
 
 ## Sections
 
-The Config Center has three tabs across the top:
+The Config Center currently has five primary sections:
 
-| Tab | Purpose |
+| Section | Purpose |
 | --- | --- |
-| **Agent** | Add, install, sign in to, and manage Agent runtimes, and configure model providers inside them. |
-| **MCP** | Add MCP servers and enable them per Agent. |
-| **Skills** | Import reusable `SKILL.md` capability packages and enable them per Agent. |
+| **Agents** | Add, install, upgrade, sign in to, and manage Agent runtimes; configure each Agent's own **Model Provider profile** in its details. |
+| **Providers** | Manage shared Providers, keys, models, route groups, and the local model gateway. |
+| **MCP** | Install from the market or add MCP servers manually, then enable them per Agent. |
+| **Skills** | Install from the market or import `SKILL.md` capability packages, then enable them per Agent. |
+| **Prompts** | Write reusable Prompts and insert them with `/` in the composer. |
 
 <Note>
-  **The Config Center currently offers only these three sections.** Model providers are not a separate tab—they live in the details area of the **Agent** tab. See [Agents and provider profiles](/en/agents-and-providers).
+  A **Model Provider profile** is not a primary section. Each Agent can have its own profiles; **shared Providers** and **route groups** live under **Providers**. See [Providers, route groups, and the local gateway](/en/providers-and-gateway).
 </Note>
 
 ## Common operations
 
+### Search and filter
+
+Each section has a search field at the top of its left list. Agents match by name, id, and description; Providers by name, address, model, and key; MCP, Skills, and Prompts by name or description. The list remembers your ordering and filters until you change them.
+
 ### Save and validate
 
 1. Fill in the fields and save.
-2. Click **Validate** on the resource card to run validation. Validation is **offline**: it checks required fields, format, and scope, but starts no processes and makes no network requests.
-3. For model providers you can also run **Test connection**, which makes one real call to the model API.
+2. Click **Validate** on the resource card. MCP and Skill validation is **offline**: it checks required fields, format, and scope, but starts no processes and makes no network requests.
+3. For a model Provider you can also run **Test connection**, which makes one real call to the model API.
 
 <Warning>
-  **Test connection** and **Fetch models** reach the provider's network and may incur charges. Confirm the address, model, and permissions before you run them.
+  **Test connection**, **Fetch models**, and real sessions reach the provider's network and may incur charges. Confirm the address, model, and permissions before you run them.
 </Warning>
 
 ### Scope
 
-Some resources let you set a scope, normally **global**, **user**, **project**, or **workspace**. Scope determines which sessions and projects can see the resource.
+Some resources let you set a scope:
 
-Start with the smallest scope:
+- **User**: visible to all your projects.
+- **Workspace**: visible only to the current workspace.
+- **Project**: follows project conventions where supported.
+- **Global**: a global default; use sparingly.
 
-- Put resources that only you use across all projects in **user**.
-- Put team or repository conventions in **project**.
-- Put resources that serve only the current checkout in **workspace**.
-- Use **global** only when you need a global default.
+Start with the smallest scope. MCP servers currently offer only **User** and **Workspace**.
 
-<Info>
-  The MCP server editor currently offers only the **User** and **Workspace** scopes.
-</Info>
+### Per-Agent enablement
 
-### Enable and disable
+Resources (MCP, Skills, Prompts, Providers) relate to Agents through **per-Agent enablement**. The **Agent enablement** area below a resource card provides a switch for each added Agent; only Agents with the switch on load the resource.
 
-Resources relate to Agents through **per-Agent enablement**. The **Agent enablement** area below a resource card provides a switch for each added Agent; only Agents with the switch on load the resource.
+When you no longer need a resource, **disable** it first instead of deleting it right away—disabling keeps the record so you can restore it later. Deleting a resource removes the configuration but not files already written into an Agent's native directory; use the export preview's rollback for those.
 
-When you no longer need a resource, **disable** it first instead of deleting it right away—disabling keeps the record so you can restore it later.
+### Credentials
 
-## Credentials
+Vibex stores credentials through secret references or the operating system's secure storage. The desktop prefers the system keychain; a host without a usable keychain falls back to a file only its owner can read.
 
-Reference credentials through a secret reference or your operating system's secure storage. Do not paste tokens, private keys, full environment variables, prompts, or file contents into configuration descriptions or diagnostic logs.
+- Saved keys are masked by default; the eye icon reveals a value temporarily.
+- A field you did not change does not rewrite the saved value; saving it blank keeps the old value.
+- To remove a credential, use the explicit **Clear** action, not an empty field.
+- Never paste tokens, private keys, full environment variables, prompts, or file contents into descriptions or diagnostic logs.
 
-The desktop stores credentials in the operating system keychain. Hosts without a usable keychain fall back to writing a file that only its owner can read; see [Self-hosted headless runtime](/en/self-hosted-server).
+## Agents
+
+The list is grouped by state: enabled, added but disabled, and not yet added. An Agent's details contain:
+
+- **Agent installation**: install, check for updates, upgrade, roll back to the pinned version, or uninstall the managed runtime.
+- **Native credentials**: sign in to the Agent's own account, refresh auth methods, verify the account, refresh models, re-authenticate, or sign out.
+- **Model Provider profiles**: this Agent's own addresses, credentials, models, and reasoning depth.
+- **Built-in tools**: per-Agent switches for the terminal, browser, computer use, and other tool panels.
+
+See [Agents and provider profiles](/en/agents-and-providers).
+
+## Providers
+
+The **Providers** page lists every shared Provider once and shows which Agents use it. The pinned row at the top is the **Gateway**; the sidebar has **Providers** and **Route groups** tabs.
+
+- **Providers**: address, credentials, keys, models, request headers, proxy, and request body fields.
+- **Route groups**: compose several Providers or models into one Agent-facing name, with strategy, failover, limits, and visibility.
+- **Gateway**: the loopback endpoint that routes, translates protocols, cools down keys, retries, and records the request ledger.
+
+See [Providers, route groups, and the local gateway](/en/providers-and-gateway).
+
+## MCP and Skills
+
+Both sections open on their **market** by default:
+
+- The **MCP market** shows the transport, command, environment variables, and request headers; review the command before installing.
+- The **Skill market** shows the `SKILL.md` body, file list, install count, and source; read the full document and choose which Agents receive it.
+- Installed entries offer **Reinstall**; removed entries explain themselves first.
+- You can also **create** a resource or **import an existing** MCP server or Skill.
+
+See [MCP and Skills](/en/mcp-and-skills).
+
+## Prompts
+
+**Prompts** stores reusable prompt bodies. After saving, type `/` in the composer to search and insert one; a Prompt can also be enabled per Agent.
+
+A Prompt is a piece of text. A Skill is a capability package with files and instructions. Use a Skill when the Agent needs tools or domain knowledge; use a Prompt when you keep typing the same instruction.
 
 ## Export to Agent-native configuration
 
-On a resource card you can use **Preview export** / **Apply** / **Rollback** to write MCP or Skills from Vibex into the matching Agent's own configuration files (for example Codex's `~/.codex/config.toml`, Claude's `~/.claude/settings.json`, and each Agent's Skills directory).
+MCP, Skills, and Prompts can be written into an Agent's own configuration files so external CLIs see the same setup.
+
+On a resource card, use **Preview export** → **Apply** → **Rollback**:
+
+1. **Preview export** lists the files that will change or be created.
+2. Review them, then **Apply**.
+3. If something goes wrong, **Rollback** from the same place.
+
+The target depends on the Agent, for example Codex's `~/.codex/config.toml`, Claude's `~/.claude/settings.json`, and each Agent's Skills directory.
 
 <Warning>
-  **Always review the preview before you Apply.** By default Vibex does not rewrite an Agent's native home configuration; it writes only when you explicitly apply. After applying, you can restore from the same place with **Rollback**.
+  **Always review the preview before you Apply.** By default Vibex does not rewrite an Agent's native home configuration; it writes only when you explicitly apply. After applying, you can roll back from the same place.
 </Warning>
 
 ## When configuration goes wrong
@@ -71,5 +122,5 @@ On a resource card you can use **Preview export** / **Apply** / **Rollback** to 
 1. Confirm the resource's scope and enablement state.
 2. Run **Validate** to see whether there are structured errors.
 3. Confirm the resource is switched on in the target Agent's **Agent enablement**.
-
-If state is inconsistent after a restart, see [Troubleshooting](/en/troubleshooting). Do not delete the SQLite database directly.
+4. Check which authoritative runtime you are connected to—local and remote runtimes keep separate configuration.
+5. If state is inconsistent after a restart, see [Troubleshooting](/en/troubleshooting). Do not delete the SQLite database directly.

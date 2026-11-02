@@ -3,7 +3,7 @@ title: "开发者指南"
 description: "从本地开发到跨平台发布，了解 Vibex 的工程约束。"
 ---
 
-Vibex 是 Rust workspace 驱动的原生应用。`DesktopRuntime` 是唯一的权威状态所有者；桌面工作台、无头服务端、移动端和远程传输都通过共享契约访问它。
+Vibex 是 Rust workspace 驱动的原生应用。`DesktopRuntime` 是唯一的权威状态所有者；桌面工作台、无头服务端、移动端、TUI 和远程传输都通过共享契约访问它。
 
 <Columns>
   <Card title="架构边界" icon="sitemap" href="/developer/architecture">
@@ -53,6 +53,9 @@ Vibex 是 Rust workspace 驱动的原生应用。`DesktopRuntime` 是唯一的�
 | --- | --- |
 | `docs/architecture/ui-boundary.md` | UI 与权威端的所有权边界。 |
 | `docs/remote/protocol-v2.md` | Remote v2 线协议完整定义。 |
+| `docs/remote/ssh-runtime.md` | SSH / WSL 远程运行时的用户与运维契约。 |
+| `docs/architecture/model-routing.md` | 路由组、网关观测与协议转换。 |
+| `docs/tui/README.md` | TUI 的布局、会话状态、键位和降级规则。 |
 | `docs/platform/support-matrix.md` | 各平台能力的证据要求。 |
 | `docs/operations/release.md` | 发布 runbook。 |
 | `docs/operations/release-packaging-matrix.md` | 产物与构建命令矩阵。 |

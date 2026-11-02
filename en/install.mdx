@@ -1,42 +1,42 @@
 ---
 title: "Install"
-description: "Download and install the Vibex desktop, and prepare mobile and a self-hosted runtime."
+description: "Download and install the Vibex desktop, mobile apps, and TUI, or prepare a self-hosted runtime."
 ---
 
-Vibex ships ready-made release artifacts for the desktop, Android, and the self-hosted server. **End users do not need to install Rust, Node.js, or pnpm**: the desktop installers are self-contained.
+Vibex ships ready-made artifacts for the desktop, Android, iOS, and self-hosted services. **End users do not need Rust, Node.js, or pnpm**: the desktop installers are self-contained, and the TUI ships with them.
 
 Every artifact lives on the same page:
 
 <Card title="Download the latest release" icon="download" href="https://github.com/vibex-ai/vibex/releases/latest">
-  Open the GitHub Releases latest page and pick the artifact that matches your platform.
+  Open the GitHub Releases latest page and pick the artifact for your platform.
 </Card>
 
 <Tip>
-  Vibex is still in a candidate phase: besides stable builds, releases may be published as `-rc.N` or `-preview.N` prereleases. **The latest page always resolves to the newest one**; use the [full release list](https://github.com/vibex-ai/vibex/releases) when you need a specific version.
+  Vibex is still in a candidate phase: besides stable builds, releases may be `-rc.N` or `-preview.N` prereleases. **The latest page resolves to the newest one**; use the [full release list](https://github.com/vibex-ai/vibex/releases) for a specific version.
 </Tip>
 
 ## Desktop
 
 | Platform | Artifact | Notes |
 | --- | --- | --- |
-| Linux x86_64 | `.deb` / `.AppImage` | Requires a working Vulkan driver |
+| Linux x86_64 | `.deb` / `.AppImage` | Needs a working Vulkan driver |
 | Linux aarch64 | `.deb` | No AppImage for this architecture |
-| macOS (Apple silicon / Intel) | `.dmg` | Requires a recent macOS and a native graphical session |
-| Windows x86_64 / ARM64 | `.exe` (NSIS) | Installs per user; no administrator rights needed |
+| macOS (Apple silicon / Intel) | `.dmg` | Needs a recent macOS and a native graphical session |
+| Windows x86_64 / ARM64 | `.exe` (NSIS) | Per-user install, no administrator rights |
 
-The Linux `.deb` depends on `libvulkan1`, `libxcb1`, `libxcb-xkb1`, `libxkbcommon0`, `libxkbcommon-x11-0`, `libdbus-1-3`, `libfontconfig1`, and an appindicator library (`libayatana-appindicator3-1` or `libappindicator3-1`). Your distribution's package manager usually resolves these dependencies for you.
+The Linux `.deb` depends on `libvulkan1`, `libxcb1`, `libxcb-xkb1`, `libxkbcommon0`, `libxkbcommon-x11-0`, `libdbus-1-3`, `libfontconfig1`, and an appindicator library (`libayatana-appindicator3-1` or `libappindicator3-1`). The distribution's package manager usually resolves these.
 
 <Warning>
-  **The macOS and Windows installers are currently unsigned.**
-  - On macOS, Gatekeeper blocks the first launch: in **Finder**, hold Control and click the app icon, choose **Open**, then confirm once more. Alternatively, run `xattr -d com.apple.quarantine /Applications/Vibex*.app`.
-  - On Windows, SmartScreen shows a prompt: choose **More info** → **Run anyway**.
+  **macOS and Windows packages are currently unsigned.**
+  - macOS blocks the first launch with Gatekeeper: Control-click the app in **Finder**, choose **Open**, and confirm; or run `xattr -d com.apple.quarantine /Applications/Vibex*.app`.
+  - Windows shows a SmartScreen prompt: choose **More info** → **Run anyway**.
 
-  These prompts come from the missing signing certificate, not from a problem with the installer. Every artifact ships with a matching `.sha256` file, and `SHA256SUMS` collects all the checksums.
+  These prompts come from the missing signing certificate, not from a bad package. Each artifact has a `.sha256` sidecar, and `SHA256SUMS` lists every digest.
 </Warning>
 
 ### Release channels
 
-Desktop installers carry a **channel identity baked in at compile time**, and different channels can be installed side by side without interfering:
+Desktop packages carry a **compile-time channel identity**. Channels can be installed side by side:
 
 | Channel | Product name | Data directory |
 | --- | --- | --- |
@@ -44,62 +44,100 @@ Desktop installers carry a **channel identity baked in at compile time**, and di
 | RC | Vibex RC | `desktop-rc` |
 | Stable | Vibex | `desktop-stable` |
 
-Each channel has its **own SQLite database and configuration**. Switching channels does not migrate data, so if you configured Agents and providers on RC, you need to configure them again after installing Stable. The channel is determined by the installer and cannot be switched inside the app.
+Each channel has its own SQLite database and configuration. Switching channels does not migrate data; configure Agents and Providers again after installing a different channel. The channel is part of the package and cannot be changed in the app.
 
-### Upgrades
+### Upgrade
 
-The desktop has built-in signed automatic updates. In **Settings → About → Software update**:
+The desktop has signed automatic updates, **on by default**. In **Settings → General** or **Settings → About → Software update**:
 
-- The app checks once about 30 seconds after launch, then every 2 hours on the RC / Preview channels and every 6 hours on Stable.
-- The update manifest is verified with an Ed25519 signature, and the artifact is then verified with SHA-256. A failed check is never installed.
-- The install method depends on the package format: **AppImage replaces itself in place**; `.deb`, macOS `.app`, and NSIS **hand off to the system installer** and need an app restart afterwards.
+- The app checks about 30 seconds after launch, then every 2 hours on RC / Preview and every 6 hours on Stable.
+- The manifest is verified with Ed25519 and each artifact with SHA-256; a failed check never installs.
+- With automatic updates on, a discovered release downloads automatically; install it in-app or when you quit.
+- With **Automatic updates** off, a discovered release waits for your confirmation. With **Update prompts** off, the title-bar button and panel are hidden, but background checks still run.
+- Installation depends on the package: **AppImage replaces itself in place**; `.deb`, macOS `.app`, and NSIS launch the system installer and need a restart.
 
-Only builds from the same channel are accepted: an RC installer only looks at `-rc.*` versions. If automatic updates are unavailable, download the new installer manually and install it over the old one.
+Only same-channel versions are accepted: an RC build sees only `-rc.*`. If automatic updates are unavailable, install a newer package over the old one.
 
 ## Android
 
-The Android client is side-loaded from GitHub Releases:
+Sideload the Android client from GitHub Releases:
 
 1. Download `vibex-<version>-android-arm64.apk`.
-2. Allow installs from that source in your system settings.
-3. Open the APK to finish installing (the app ID is `ai.vibex.mobile`).
+2. Allow installs from that source in system settings.
+3. Open the APK to install (application id `ai.vibex.mobile`).
+
+Android has no app store, so updates use the same release manifest:
+
+- The client follows the **Stable** channel only; a prerelease install still learns about the stable release it leads to.
+- The app verifies the manifest signature and the APK's SHA-256, then hands the staged file to the system installer; Android enforces signing-key continuity.
+- You can download and install in the app, or open the signed download in a browser.
+- If the new APK has a different signing key, Android refuses the update. RC / Preview releases use an ephemeral CI key when no repository key is configured, so **different RCs may require uninstalling first**; uninstalling clears local pairing credentials.
 
 <Warning>
-  Candidate builds **cannot upgrade in place over one another**. When no release key is configured, every RC release uses a one-time CI signing key, so different RCs are signed differently. Upgrading across versions requires uninstalling the old build first and then installing the new one. Uninstalling clears the locally stored pairing credentials, so you need to pair again.
+  **Stable releases require a fixed Android release key.** Without it the release pipeline fails rather than publishing a build that cannot update in place.
 </Warning>
 
 ## iOS
 
+iOS artifacts include:
+
+- `vibex-<version>-ios-unsigned.ipa`: a complete arm64 device build, **unsigned**.
+- `vibex-<version>-ios-simulator.app.zip`: an unsigned simulator build.
+- `vibex-<version>-ios-xcframework.zip`: for integration.
+
+iOS refuses to run unsigned code, so the device IPA must be re-signed with the installer's own Apple ID. A free Apple ID signature lasts seven days; re-sign when it expires.
+
+Common install paths:
+
+| Method | Description |
+| --- | --- |
+| **Sideloadly** | Windows or macOS; drag in the IPA, sign with a free Apple ID, install over USB. |
+| **AltStore / SideStore** | Sign with a free Apple ID and refresh in the background; AltStore needs a computer, SideStore refreshes on-device. |
+| **Xcode personal team** | Open the project, select your Apple ID and **Automatically manage signing**, and run on the device. |
+| **TrollStore** | iOS 14.0–16.6.1 and 17.0 only; the client requires iOS 17.0+, so this covers only 17.0. |
+
+See the [Unsigned iOS install guide](https://github.com/vibex-ai/vibex/blob/main/docs/operations/ios-unsigned-install.md) for the full re-signing and verification steps.
+
 <Warning>
-  **There is currently no iOS build that can be distributed to end users.** The only release artifacts are an unsigned **simulator** app bundle (`ios-simulator.app.zip`) and `VibexFFI.xcframework`, both of which need macOS and Xcode to run or integrate. On-device installs, TestFlight, and App Store distribution are not available yet.
+  Re-signing replaces the signature entirely; it proves nothing about who built the binary. Only install an IPA from a source you trust.
 </Warning>
 
-To try it in the simulator, you need macOS, Xcode, XcodeGen, and the `aarch64-apple-ios` and `aarch64-apple-ios-sim` Rust targets, then build from source:
+## TUI
 
-```bash
-pnpm build:mobile:ios
-```
+The Vibex TUI ships inside every desktop package:
+
+| Platform | Entry point |
+| --- | --- |
+| Linux | `/usr/bin/vibex` from the `.deb` / AppImage |
+| macOS | `vibex` next to the `.app`; the installer links it onto `PATH` |
+| Windows | `vibex.exe` from the NSIS installer |
+| Containers | `docker exec -it <container> vibex-server tui` |
+
+Run `vibex` in a project directory. See [Vibex TUI](/en/tui).
 
 ## Self-hosting
 
-Build your own server when you want to work across networks, or when you would rather not keep session data on an always-on personal computer:
+When you need cross-network access, or do not want session data on an always-on personal computer, self-host the runtime:
 
-- **[Self-hosted headless runtime](/en/self-hosted-server)** — `vibex-server` is an authoritative runtime with the same capabilities as your desktop, and it suits a server or an always-on home machine.
-- **[Self-hosted Relay](/en/relay)** — a relay that only forwards end-to-end encrypted frames. It performs no business authorization and stores no business data.
+- **[Self-hosted headless runtime](/en/self-hosted-server)** — `vibex-server` has the same capabilities as the desktop runtime and is suited to a server or always-on machine.
+- **[SSH and WSL remote runtimes](/en/ssh-runtime)** — let the desktop install the runtime on another machine over SSH, or run it inside WSL2.
+- **[Self-hosted Relay](/en/relay)** — forwards end-to-end encrypted frames only; it is not an authorization or business-data boundary.
 
-Both publish multi-architecture container images (`linux/amd64`, `linux/arm64`).
+Both the server and the Relay publish multi-architecture container images (`linux/amd64`, `linux/arm64`).
 
 ## Build from source
 
-If you need to change the code, or your platform has no ready-made artifact, see [Build from source](/en/from-source).
+See [Build from source](/en/from-source) when you need to change code or your platform has no artifact.
 
 ## Uninstall
 
 | Platform | How |
 | --- | --- |
-| Linux (deb) | `sudo apt remove vibex-rc` (swap the package name for your channel) |
-| Linux (AppImage) | Delete the AppImage file |
-| macOS | Drag the app to the Trash |
-| Windows | Uninstall from "Apps & features" |
+| Linux (deb) | `sudo apt remove vibex-rc` (replace the package name per channel) |
+| Linux (AppImage) | Delete the AppImage |
+| macOS | Move the app to the Trash |
+| Windows | Use "Apps & features" |
+| Android | Uninstall in system settings; this clears local pairing credentials |
+| iOS | Delete the app; a re-signed build must be re-signed when it expires |
 
-The uninstaller does **not** delete the data directory. To remove everything, read [Privacy and recovery](/en/privacy-and-recovery) first, then delete the data directory for that channel by hand.
+Uninstalling **does not** delete the data directory. To remove everything, read [Privacy and recovery](/en/privacy-and-recovery), then delete the channel's data directory.

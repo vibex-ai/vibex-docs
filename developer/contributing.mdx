@@ -34,10 +34,14 @@ pnpm check:mobile-native
 | 文件服务 | `pnpm smoke:files` |
 | Git | `pnpm smoke:git` |
 | 终端 | `pnpm smoke:pty` |
+| 浏览器 | `pnpm smoke:browser` |
+| 电脑操作 | `pnpm smoke:computer` |
+| TUI | `cargo test -p vibex-tui --test contracts` |
 | 数据库 | `pnpm smoke:db` |
 | 备份恢复 | `pnpm smoke:backup` |
 | 诊断 | `pnpm smoke:diagnostics` |
 | Relay / 远程 | `pnpm smoke:relay:local` |
+| SSH / WSL | `scripts/e2e-ssh-docker.sh`（需要当前源码构建的服务端产物） |
 | 跨层回归 | `pnpm e2e:regression` |
 
 <Note>

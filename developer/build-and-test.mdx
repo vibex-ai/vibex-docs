@@ -11,21 +11,18 @@ description: "选择合适的 Vibex 检查、smoke test 和发布构建命令。
 pnpm check
 ```
 
-它依次运行 `check:rust`、`check:frontend`、`check:licenses`、`check:ui-widget-layering`、`check:ui-component-ratchet` 和 `check:ui-visual`，覆盖 Rust 质量门禁、前端类型与 lint、第三方许可证、UI 分层、组件共存和视觉基线。
+它依次运行 `check:rust`、`check:frontend` 和 `check:licenses`，覆盖 Rust 质量门禁、前端类型与 lint、第三方许可证。
 
 单个子命令：
 
 | 命令 | 作用 |
 | --- | --- |
-| `pnpm check:rust` | Rust 质量检查并运行 UI 控件测试。 |
+| `pnpm check:rust` | Rust 格式、clippy、测试和工具链固定检查。 |
 | `pnpm check:frontend` | 各包 typecheck 加 ESLint。 |
 | `pnpm check:licenses` | 校验依赖许可证策略。 |
-| `pnpm check:ui-visual` | 校验视觉基线矩阵。 |
 | `pnpm check:release` | 校验发布身份与版本一致性。 |
-| `pnpm check:module-ownership` | 校验模块所有权边界。 |
-| `pnpm check:source-size` | 检查源文件体积上限。 |
+| `pnpm check:mobile-native` | 移动端 crate 与原生项目契约。 |
 | `pnpm check:native-content-package` | 检查原生内容运行时的打包结果。 |
-| `pnpm check:move-only` | 校验纯移动型 diff。 |
 
 ## 构建门禁
 
@@ -58,8 +55,13 @@ pnpm check:mobile-native
 | `pnpm smoke:pty` | 终端 PTY。 |
 | `pnpm smoke:db` | SQLite 层。 |
 | `pnpm smoke:backup` | 备份与恢复。 |
+| `pnpm smoke:browser` | 浏览器页面标签与面板工具。 |
+| `pnpm smoke:computer` | 电脑操作 helper 与平台探测。 |
+| `pnpm smoke:first-frame` | 桌面端首帧启动探针。 |
 | `pnpm smoke:diagnostics` | 诊断包生成。 |
 | `pnpm smoke:relay:local` | 本地 Relay 端到端。 |
+| `cargo test -p vibex-tui --test contracts` | TUI 依赖边界、键位表、语言覆盖和敏感信息拷贝。 |
+| `scripts/e2e-ssh-docker.sh` | SSH 配置、卸载、升级与回滚的 Docker 端到端验证（需要当前源码构建的服务端产物）。 |
 | `pnpm e2e:regression` | 端到端回归 harness。 |
 | `pnpm baseline:performance` | 性能基线。 |
 

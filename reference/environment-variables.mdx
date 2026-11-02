@@ -10,7 +10,25 @@ description: "自托管运行时、Relay 和桌面端的配置项参考。"
 | `VIBEX_HOME` | 覆盖运行时 home 的基目录。通道专属目录（`desktop-preview` / `desktop-rc` / `desktop-stable`）建在它下面。 |
 | `VIBEX_PROVIDER_SECRET_STORE` | `keychain`（默认）或 `file`。没有可用钥匙串的主机需要设为 `file`。 |
 | `VIBEX_DISABLE_REMOTE_CLIENT` | 设为 `1` 时强制使用本地权威运行时，忽略已保存的远程凭据。 |
+| `VIBEX_SSH_REMOTE_RUNTIME` | `1` 打开 SSH/WSL 远程运行时入口，`0` 关闭；覆盖开发者设置并在界面上锁定。 |
 | `VIBEX_CHANNEL` | 构建期变量，不能在运行时覆盖。试图像运行时切换通道会返回 `release_channel_override_rejected`。 |
+
+## Vibex TUI
+
+| 变量 | 说明 |
+| --- | --- |
+| `VIBEX_HOME` | 运行时 home；TUI 用它决定附着到哪个运行时。 |
+| `VIBEX_TUI_HOME` | 覆盖 TUI 自己的偏好目录。 |
+| `VIBEX_THEME` | 为本次运行指定主题，不写入偏好文件。 |
+| `VIBEX_TUI_ICONS` | 为本次运行指定图标集。 |
+| `VIBEX_TUI_KEYS` | 覆盖键位文件路径。 |
+| `VIBEX_TUI_INTERFACE` | 覆盖 `tui-interface.json` 路径。 |
+
+## 电脑操作
+
+| 变量 | 说明 |
+| --- | --- |
+| `CUA_DRIVER_RS_ENABLE_WAYLAND` | 设为 `1` 时打开 Linux Wayland 实验路径。默认只看到 X11 窗口；部分合成器仍不支持后台输入。 |
 
 ## 无头运行时 `vibex-server`
 

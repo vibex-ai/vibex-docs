@@ -16,7 +16,7 @@ There are two ways to keep working when you are away from the machine that runs 
 
 Both paths establish trust with a **one-time pairing**: the first time, you need the pairing code or QR code from the machine itself. After that, long-lived credentials live on both sides and clients reconnect on their own.
 
-The steps below assume the desktop app is already installed. The Android client can be sideloaded from GitHub Releases; iOS currently ships only a simulator build. See [Install and platforms](/en/install) for both.
+The steps below assume the desktop app is already installed. The Android client can be sideloaded from GitHub Releases; iOS ships an unsigned device IPA and a simulator build, and a device install must be re-signed with your own Apple ID. See [Install and platforms](/en/install) for both.
 
 ## 1. Cloud development: run Vibex on a server
 
@@ -231,20 +231,35 @@ Your computer stays the authority: Agents, files, Git, and terminals all run on 
 
 The permission level is chosen on the desktop when it publishes the pairing offer, and the desktop asks you to confirm the device when the phone claims it. The phone then shows the desktop's session list.
 
+The desktop can also connect to an **SSH or WSL remote runtime** (beta). That runtime is reachable only through the desktop's SSH tunnel; the phone cannot pair with it directly. The phone still connects to the desktop, which forwards to the remote runtime. See [SSH and WSL remote runtimes](/en/ssh-runtime).
+
 ### Step 3: what the phone can do
 
 | Capability | Notes |
 | --- | --- |
 | Sessions | Read the timeline, send follow-up messages, rename, delete, fork, and multi-select. |
+| Session groups and ownership tree | Create and keep groups, and see delegated child sessions; a collapsed group says how many it holds. |
 | Approvals and elicitation | Approve or reject permission requests and fill in elicitation forms. |
-| Files | Browse the file tree, search by name or content, and **edit and save files**. |
-| Git | View status and diffs, stage / unstage / revert / commit, view history, fetch / push, and create worktrees. |
-| Terminal | Create, attach, resize, and send input. |
+| Files and right rail | Browse a nested file tree, search by name or content, **edit and save files**, view images and jump to a line, and read paged diffs with copyable paths. |
+| Git | View status and diffs, stage / unstage / revert / commit, view history, fetch / push, create a worktree, select one, or finish one. |
+| Terminal | Create, attach, resize, and send input; tabs, the Return key, touch text selection, and forwarded mouse events work. |
+| Queue and drafts | View the queue, move a waiting send to another hour, keep drafts across restarts, recall sent messages, edit and share. |
+| Goals | Rewrite, pause, resume, or clear a goal. |
+| Notifications and haptics | Notifications are on by default; gestures have haptic feedback; a long press opens a row's own actions. |
 | Usage | Shows only the session count, with the note "Usage details are available on the desktop host." |
 
 **Mobile has no Config Center**, so it cannot manage Agents, providers, MCP, or Skills. Its Settings contain only Connection, Session timeline, Appearance, Notifications, and About.
 
 Every write is ultimately produced by the authoritative runtime; mobile shows its projection.
+
+### Runtime switching and recovery
+
+The mobile first screen combines pairing and runtime switching: it lists saved runtimes and their reachability, and connecting is one selection. Pairing opens as a sheet from the same screen.
+
+- A failed reconnect returns to pairing instead of a blank connecting page.
+- A saved runtime survives a disconnect; the next foreground attempt retries.
+- Pairing no longer quits the client; you can switch between saved runtimes.
+- Removing a runtime deletes only local credentials; it does not revoke the device on the server or desktop.
 
 ### When direct access fails: self-hosted Relay
 

@@ -8,7 +8,7 @@ The site is organized into three locales:
 - Traditional Chinese under `/zh-TW/`
 - English under `/en/`
 
-Each locale has a User guide, a Developer guide, and a Changelog. Product behavior is documented from the current Vibex desktop, mobile, Remote v2, and Relay implementations. Pages use concise workflows, structured evidence, and redacted diagnostics without embedding workspace data.
+Each locale has a User guide, a Developer guide, and a Changelog. Product behavior is documented from the current Vibex desktop, mobile, TUI, Remote v2, SSH/WSL, and Relay implementations. Pages use concise workflows, structured evidence, and redacted diagnostics without embedding workspace data.
 
 ## Local preview
 

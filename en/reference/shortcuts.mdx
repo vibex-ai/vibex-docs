@@ -67,10 +67,30 @@ Vibex has several searches with different scopes. Do not confuse them:
 | **Find in conversation** | The current session timeline | `cmd-f` |
 | **Global search** | All session titles and message bodies, settings entries, and quick actions | The title-bar search icon or `cmd-k` |
 | **Search workspace files** | File contents in the current workspace | The file tree |
-| **Search MCP** / **Search Skills** / **Search Agent** | The matching Config Center list | The top of each list |
+| **Search MCP** / **Search Skills** / **Search Agent** / **Search Providers** / **Search route groups** | The matching Config Center list | The top of each list |
 | **Search commits** | Git commit history | The Commits tab of the Git panel |
 | **Search settings** | Settings options | The top of Settings |
 
 <Note>
   **Global search** is the only cross-type entry point: one query answers over sessions, settings entries, and quick actions at once, and `cmd-k` opens it from anywhere. Session search no longer lives in the sidebar; its trigger moved to the title bar, immediately before the runtime control.
 </Note>
+
+## Vibex TUI
+
+The TUI has its own keymap, separate from the desktop. See [Vibex TUI](/en/tui#shortcuts).
+
+| Key | Action |
+| --- | --- |
+| `?` | Open the shortcut cheatsheet. |
+| `Ctrl+P` | Command palette. |
+| `Ctrl+L` / `1` | Open the session list. |
+| `n` | New session. |
+| `Ctrl+G` | Agent setup. |
+| `Ctrl+W` | Change workspace. |
+| `Ctrl+S` | Steer the running turn. |
+| `Ctrl+C` | Clear draft / interrupt turn / offer to quit. |
+| `Alt+D` | Open the Dock (child Agents, plan, queue). |
+| `Alt+↑↓` | Select a queued message. |
+| `Alt+Enter` | Interrupt the turn and send the queued message now. |
+| `F2` | Expand or fold every block. |
+| `F9` | Reload the key-binding file. |

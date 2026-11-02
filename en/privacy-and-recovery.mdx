@@ -1,87 +1,111 @@
 ---
 title: "Privacy and recovery"
-description: "Understand Vibex's local storage, restart recovery behavior, and diagnostic data boundaries."
+description: "Understand Vibex's local storage, restart recovery, backup approach, and diagnostic data boundaries."
 ---
 
-Vibex is local-first: the authoritative runtime stores projects, workspaces, sessions, timelines, provider profiles, terminal metadata, and remote device records. Remote connections receive only authorized projections.
+Vibex is local-first: the authoritative runtime stores projects, workspaces, sessions, timelines, provider profiles, terminal metadata, browser profiles, computer-use audit data, routing ledgers, and remote device records. Remote connections receive only authorized projections.
 
 ## Where data lives
 
 | Data | Location |
 | --- | --- |
-| Authoritative metadata and session state | The SQLite database in the authoritative runtime home |
-| Project files | The local directories you choose, or Git worktrees managed by Vibex |
-| Provider credentials | The operating system keychain; on headless hosts, a fallback key file readable only by its owner |
-| Agent installations | The authoritative runtime's home directory |
-| Relay data | **None.** Relay only forwards encrypted frames; it keeps no business database |
+| Authoritative metadata and session state | SQLite database under the runtime home |
+| Project files | The local directory you chose, or a Vibex-managed Git worktree |
+| Provider credentials | The OS keychain; a headless host falls back to an owner-readable secret file |
+| Agent installations | The runtime home |
+| Browser profile | An isolated `user-data-dir` under the runtime home; imported login state lives there too |
+| Computer-use records | Redacted audit records under the runtime home; no screen pixels or typed text |
+| Gateway request ledger | The runtime database; tokens, latency, status, and routing metadata only |
+| TUI preferences | `~/.vibex/tui-interface.json`, `~/.vibex/tui-keys.toml` (or the matching home) |
+| SSH / WSL connections | `ssh-connections.json`, `wsl-connections.json`, and the remote runtime registry under the desktop home |
+| Relay data | **None**. The Relay forwards encrypted frames and stores no business database |
 
-Relay rooms and connections are ephemeral. Relay logs should contain only routing, counts, and timing metadata.
+Relay rooms and connections are transient. Relay logs should contain routing, counts, and timing metadata only.
 
 ## What survives a restart
 
-When you restart the authoritative runtime, it reloads workspaces, sessions, and configuration from persisted records. The key distinction:
+After a restart, the runtime reloads workspaces, sessions, and configuration from durable records:
 
-**Kept (written to SQLite):**
+**Kept (SQLite or runtime home):**
 - Projects, workspaces, and workspace modes
-- Sessions, timeline events, and messages
-- Provider profiles, MCP servers, and Skills
-- Terminal **metadata** (tab names and bindings)
-- Remote device authorizations
+- Sessions, timeline events, messages, goals, delegation relationships, and archive state
+- Provider profiles, shared Providers, route groups, MCP servers, Skills, and Prompts
+- Terminal **metadata** (tab names, bindings)
+- Unsent composer drafts and scheduled sends
+- Browser profile and imported login state
+- Remote device grants and SSH/WSL connection profiles
+- Workbench background, themes, and TUI preferences
 
-**Not kept (in memory only):**
+**Not kept (memory only):**
 - Running Agent processes
-- Terminal **session contents and scrollback buffers**
+- Terminal **contents and scrollback**
+- Open browser tabs and live frames
 - Active connections and live event subscriptions
+- An in-progress computer-use session
 
 <Info>
-  A `running` value in the database is only the **last observed state**; it does not mean the process is still running. If you see a session marked `running` after a restart, confirm whether the process actually exists before you decide to retry.
+  `running` in the database is only the **last observed state**, not proof that a process is alive. After a restart, verify the process before retrying.
 </Info>
 
-Lost terminals are marked `stale`. Trust the new terminal snapshot and do not repeat commands based on an old one.
+A lost terminal is marked `stale`. Use the new terminal snapshot; do not replay commands from the old one.
 
 ## Device revocation
 
-After you revoke a device in the authoritative runtime's device list, that device's active connections immediately receive `device_revoked` and close.
+Revoking a device in the authority's device list immediately closes its active connection with `device_revoked`.
 
-- Using it again requires **re-pairing**.
-- The old QR code, connection string, authorization, and ticket are all invalid and must not be reused.
-- The revocation is written to the device audit record.
+- Reuse requires **pairing again**.
+- Old QR codes, connection strings, grants, and tickets are invalid.
+- Revocation is written to the device audit record.
+- An SSH/WSL runtime is reachable only through the desktop tunnel; phones cannot pair with it directly.
 
 ## Diagnostic data
 
-**Settings → Data & Diagnostics** provides the diagnostic export entry point. Before exporting, verify the redaction:
+**Settings → Data & Diagnostics** can clear diagnostic data. The current release has no user-facing diagnostic export page; if you export a bundle through developer tooling, check the redaction first:
 
 **Must be removed:**
 - Tokens, private keys, pairing codes, and connection strings
 - Full prompts and file contents
 - Git diffs and raw terminal bytes
+- Browser cookies, localStorage, and login state
+- Computer-use typed text, clipboard contents, and screenshots
 
 **Safe to keep:**
-- Version, release channel, and platform
+- Version, channel, and platform
 - Structured error codes
 - Redacted timestamps
 - Non-sensitive resource ids
 
 <Warning>
-  A diagnostic export is **one-way**: once you post it to a public channel, you cannot take it back. Read it yourself after exporting before you decide to upload it.
+  Diagnostic export is **one-way**: once posted publicly it cannot be recalled. Read it yourself before uploading.
 </Warning>
 
 ## Backup
 
-- **Shut down** the authoritative runtime before backing up SQLite, or use the safe backup procedure the project provides.
-- After restoring, check that workspace paths, device authorizations, and provider credential references are still valid.
-- Headless runtime data lives in `/data` by default; mount it as a persistent volume so sessions survive a container rebuild.
+Vibex does not currently provide a one-click backup button. The reliable approach is to back up the entire **runtime home**:
 
-## Cleaning up data
-
-**Settings → Data & Diagnostics** lets you clean up local storage by category: sessions and attachments, terminal data, and diagnostic data. These operations **cannot be rolled back**.
+1. Stop the runtime using that home (desktop, TUI, or headless server).
+2. Copy the whole home, including `vibex.db`, `vibex.db-wal`, `vibex.db-shm`, identity keys, Agent installs, browser profile, and credential references.
+3. To restore, place the backup in an empty directory and point the runtime at it.
+4. After restoring, check workspace paths, device grants, and provider credential references.
 
 <Warning>
-  Resetting settings only affects preferences; deleting the database, the data directory, or a workspace directory are different destructive operations. Before you run any of them, make sure you really no longer need that data.
+  Copying only `vibex.db` without WAL/SHM can produce an inconsistent database. Do not copy the database while the runtime is writing to it.
 </Warning>
 
-## External service boundaries
+A headless runtime stores data under `/data` by default; mount it as a persistent volume or sessions disappear when the container is recreated. An SSH/WSL runtime stores data under `~/.local/share/vibex/server` in the remote home.
 
-Agents and MCP servers may send context you explicitly provide to providers or external services. Read the privacy policy of each service before you use it, and control the data range with the smallest scope, permission approvals, and minimal attachments.
+## Cleanup
 
-Pairing with a remote authoritative runtime means **the administrator of that runtime can see your session data**. When you self-host, that administrator is you; confirm this before you connect to someone else's runtime.
+**Settings → Data & Diagnostics** offers per-category cleanup: sessions and attachments, terminal data, and diagnostic data. These actions **cannot be rolled back**.
+
+Browser data can be cleared separately under **Settings → Browser → Clear browser data**. Computer-use records and the gateway ledger stay with the runtime data unless you clean the corresponding database.
+
+<Warning>
+  Resetting settings only affects preferences. Deleting the database, data directory, or workspace directory is a different, destructive operation. Confirm you no longer need the data first.
+</Warning>
+
+## External service boundary
+
+Agents, MCP servers, shared Providers, and browser pages may send the context you explicitly provide to a provider or external service. Read the service's privacy policy, and limit data with the smallest scope, permission approvals, and minimal attachments.
+
+Pairing with a remote authoritative runtime means **that runtime's administrator can see your session data**. When you self-host, that administrator is you; confirm this before connecting to someone else's runtime.

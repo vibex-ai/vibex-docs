@@ -11,21 +11,18 @@ Run every command from the repository root. The scripts are defined in the root 
 pnpm check
 ```
 
-It runs `check:rust`, `check:frontend`, `check:licenses`, `check:ui-widget-layering`, `check:ui-component-ratchet`, and `check:ui-visual` in order, covering Rust quality gates, frontend types and lint, third-party licenses, UI layering, component coexistence, and visual baselines.
+It runs `check:rust`, `check:frontend`, and `check:licenses`, covering Rust quality gates, frontend types and lint, and third-party licenses.
 
 Individual subcommands:
 
 | Command | What it does |
 | --- | --- |
-| `pnpm check:rust` | Rust quality checks plus UI control tests. |
+| `pnpm check:rust` | Rust formatting, clippy, tests, and toolchain pin checks. |
 | `pnpm check:frontend` | Typecheck plus ESLint for each package. |
 | `pnpm check:licenses` | Validate the dependency license policy. |
-| `pnpm check:ui-visual` | Validate the visual baseline matrix. |
 | `pnpm check:release` | Validate release identity and version consistency. |
-| `pnpm check:module-ownership` | Validate module ownership boundaries. |
-| `pnpm check:source-size` | Check source file size limits. |
+| `pnpm check:mobile-native` | Validate the mobile crate and native project contract. |
 | `pnpm check:native-content-package` | Check the packaging result of the native content runtime. |
-| `pnpm check:move-only` | Validate move-only diffs. |
 
 ## Build gates
 
@@ -58,8 +55,13 @@ The repository provides many deterministic smoke scripts:
 | `pnpm smoke:pty` | The terminal PTY. |
 | `pnpm smoke:db` | The SQLite layer. |
 | `pnpm smoke:backup` | Backup and restore. |
+| `pnpm smoke:browser` | Browser page tabs and panel tools. |
+| `pnpm smoke:computer` | Computer-use helper and platform probe. |
+| `pnpm smoke:first-frame` | Desktop first-frame startup probe. |
 | `pnpm smoke:diagnostics` | Diagnostic bundle generation. |
 | `pnpm smoke:relay:local` | Local Relay end to end. |
+| `cargo test -p vibex-tui --test contracts` | TUI dependency boundary, key tables, locale coverage, and secret-shaped copy. |
+| `scripts/e2e-ssh-docker.sh` | Docker end-to-end for SSH provisioning, uninstall, upgrade, and rollback (needs a server artifact built from the current tree). |
 | `pnpm e2e:regression` | The end-to-end regression harness. |
 | `pnpm baseline:performance` | Performance baselines. |
 

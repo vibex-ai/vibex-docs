@@ -1,126 +1,184 @@
 ---
 title: "Agent sessions"
-description: "Create, watch, pause, fork, and resume Vibex Agent sessions."
+description: "Create, watch, control, fork, and resume Vibex Agent sessions."
 ---
 
 A session stores the input, Agent output, and tool activity of one development task as a structured timeline. The **authoritative runtime** holds the authoritative timeline; other clients only display its projection.
 
 ## Create a session
 
-1. Choose the target project and location (**Local** or **New Worktree** — see [Projects and workspaces](/en/workspaces)).
-2. At the top of Composer, choose the Agent, provider profile, model, **Thinking depth**, and **Conversation mode**.
-3. Enter your task. Use `/` to pick a command, `@` to reference a workspace file, `$` to insert a Skill, or `↑` / `↓` to recall an earlier message from this session; you can also add an attachment.
+1. Choose the target project and location (**Local**, **New Worktree**, or **Temporary session**—see [Projects and workspaces](/en/workspaces)).
+2. At the top of the composer, choose the Agent, provider profile, model, **Thinking depth**, **Conversation mode**, and the built-in tools available to this session.
+3. Enter your task. Use `/` to pick a command or Prompt, `@` to reference a workspace file or an Agent, `$` to insert a Skill, or `↑` / `↓` to recall an earlier message from this session; you can also add attachments.
 4. Confirm the workspace and permission scope before sending. The Agent may need to read files, run terminal commands, or request extra authorization.
 
 Switching Agent or model only affects later runs. Messages already written to the timeline keep their original run identity.
+
+<Note>
+  A **temporary session** belongs to no project and is useful for one-off questions or prompt tests. It is still stored by the same runtime, can be archived, and cannot create a worktree.
+</Note>
 
 ## Reading the timeline
 
 | Item | What you see |
 | --- | --- |
-| User and Agent messages | Markdown text and attachments. |
-| Reasoning | A summary of the Agent's reasoning, which you expand or collapse with **Expand reasoning** / **Collapse reasoning**. |
-| Plan | Pending steps and their progress. |
-| Tool and process details | Tool names, argument summaries, processes and exit results, and the **{n} process events** count. |
-| Permission requests | Operations waiting for you to approve or deny. |
+| User and Agent messages | Markdown text, images, and attachments. |
+| Reasoning | A reasoning summary you can expand or collapse. |
+| Plan | Todo steps and their progress. |
+| Tool and process details | Tool name, argument summary, process and exit result, and a **{n} process events** count. |
+| Permission requests | Actions waiting for your approval or denial. |
 | Elicitation forms | Typed forms the Agent needs you to fill in. |
-| Delegation | The state and result of child Agents or delegated tasks. |
-| Status events | Running, queued, waiting, completed, failed, stopped, and reconnecting. |
+| Delegation | Child Agent or delegated-task state and result. |
+| Goals | Goal phase, statistics, and controls. |
+| Status events | Running, queued, waiting, completed, failed, stopped, and reconnected. |
 
-The elapsed time above a turn is shown as **Worked for**. While output is being generated you see **Thinking...** or **Waiting for confirmation...**.
+A turn shows its **Worked for** duration. While generating it shows **Thinking...** or **Waiting for confirmation...**. Settled turns fold; the transcript reads a bounded window and paging older history does not move your place.
 
-Tool arguments, terminal output, and file diffs can contain sensitive content. Review and redact them before sharing diagnostics.
+Tool arguments, terminal output, and file diffs may contain sensitive content. Review and redact before sharing diagnostics.
+
+## Session groups and split panes
+
+A session group collects several sessions under one worktree, useful for several Agents or branches of one task:
+
+- Multi-select sessions in the sidebar and choose **New session group**.
+- **Split pane** to view members side by side, or **Merge panes** to return to one view.
+- The group header shows team state: running, waiting for approval, completed, or failed.
+- **Auto continue** can be enabled for the whole group.
+- Drag a group into a folder, swap it with another group, or drag it back to the workspace root; drag a member within the group to reorder, or out to remove it.
+- **Dissolve session group** does not delete the sessions.
+
+A group can only contain sessions from one worktree. Use several groups for several worktrees.
 
 ## Goals
 
-Agents that support goals publish their state over ACP: the provider-neutral `_meta.goal` extension and Codex's legacy `_meta.codex.goal` namespace. Vibex normalizes both into one shared model and saves every change as a goal timeline item.
+Agents that support goals publish them over ACP: the generic `_meta.goal` extension and Codex's older `_meta.codex.goal` namespace. Vibex normalizes both into one model and stores every change as a goal timeline entry.
 
-The goal lives in a fixed bar above the composer, stacked directly under the queued-message bar:
+The goal bar sits above the composer, directly below the queue:
 
-- The bar shows the phase, the objective, and the provider's own stats (time used, token usage, rounds).
-- The pencil button (**Edit goal**) opens an inline editor; saving issues a goal control instead of going through the composer.
-- **Pause goal** / **Resume goal** pause or resume the goal.
-- **Clear goal** clears it; active, paused, blocked, and usage-limited goals can all be cleared.
+- It shows the phase, the goal, and the Agent's own statistics (elapsed time, token usage, turn count).
+- The pencil button (**Edit goal**) opens an in-place editor; saving goes through goal control, not the composer.
+- **Pause goal** / **Resume goal** pause or resume it.
+- **Clear goal** clears it; running, paused, blocked, and quota-limited goals can all be cleared.
 
-Each control appears only when the adapter advertises it. A message sent with `/goal` keeps its own bubble and wears a goal icon on the bubble edge.
+Buttons appear only when the adapter explicitly declares support. A `/goal` message keeps its own bubble with a goal icon at the edge.
 
-## Controlling a run
+## Delegation and Agent teams
+
+A delegated task has a lifecycle:
+
+- **Keep open**: the child session survives after the round and accepts follow-ups.
+- **Accept**: confirm the result; a retry resolves to the original acceptance instead of overwriting earlier work.
+- **Cancel**: permanent; it blocks new messages and new child work anywhere under the task.
+- **Follow up**: only a task that actually ran can be followed up; a changed intent is refused.
+
+The UI shows:
+
+- The sidebar **ownership tree**: child sessions hang under the parent with a tree guide.
+- The session group's **team status header**: how many child Agents are running, waiting, or done.
+- A **delegation card** that locates the child pane.
+- The `@` menu split into **Files** and **Agent delegation** tabs, each row saying what it names.
+
+A child Agent has its own timeline, reachable from **Child Agent timeline** in the right rail. A child's generated title never replaces the root session title.
+
+## Control a run
 
 | Action | Description |
 | --- | --- |
-| **Stop current response** | Stops the current run. Files already written or commands already executed are **not** rolled back automatically. |
-| **Continue** | Keep sending tasks in the same session. |
-| **Retry** | Re-run a failed turn according to the retry semantics the Agent supports; for external operations you are unsure about, check the result first. |
-| **Fork** | Create a branch session from the current timeline — handy for comparing two implementations. |
-| **Rename** | Change the session title. It does not change the Agent context. |
-| **Edit message** | Rewrite the last user message; timeline events that already completed are not rewritten. |
+| **Stop current reply** | Stop the run. Files and commands already executed are **not** rolled back. |
+| **Continue** | Send another task in the same session. |
+| **Retry** | Re-run a failed turn according to the Agent's retry semantics; check external side effects first. |
+| **Fork session** | Branch from the current timeline or from a sidebar row; useful for comparing two approaches. |
+| **Rename** | Change the title without changing the Agent context. |
+| **Edit message** | Rewrite the last user message; completed timeline events are not rewritten. |
+| **Archive** | Remove the session from the sidebar while keeping its timeline; restore it under **Settings → Archived sessions**. |
 
 <Warning>
-  Stopping an Agent only stops the run. It does not undo file, Git, or external service changes. Check the result in the Git diff and in the terminal.
+  Stopping an Agent stops the run; it does not undo files, Git, or external-service changes. Check the Git diff and the terminal separately.
 </Warning>
 
-## Message queue and auto-continue
+## Queue, steering, and scheduled sends
 
-Follow-up messages you send while a run is active go into a queue. The queue area above Composer gives you:
+Messages sent while a turn is running go into the queue. The queue area above the composer offers:
 
-- **Auto send** / **Manual send** — switch between automatic and manual submission of the queue.
-- **Steer** — appears only for Agents that negotiated native steering: it injects this message into the running turn instead of interrupting it first. Every other Agent still falls back to interrupt-and-resend.
-- **Send queued message**, **Edit queued message**, **Delete queued message** — act on one item at a time.
-- **Resume queued messages** / **Clear queued messages** — resume or clear the whole queue.
+- **Automatic** / **Manual** sending.
+- **Steer**: only for Agents that declare native steering; it injects the message into the running turn instead of interrupting. Other Agents fall back to interrupt and resend.
+- **Schedule send**: pick an hour and the message waits in the queue; the schedule survives restarts, can be edited in a popover, and is visible to other clients.
+- **Send queued message**, **Edit queued message**, **Delete queued message**.
+- **Resume queue** / **Clear queue**.
 
-How a queued message was delivered is recorded on the user's message and rendered as a reaction on the bubble edge: **Steered into the running turn** (primary) or **Interrupted the turn and resent** (warning). Once a later turn exists, the earlier turn is marked superseded: its live status, running duration, and streamed-row extension stop, while the rows it already produced stay visible and expanded.
+The delivery mode is recorded on the user message and rendered as a reaction at the bottom of the bubble: **Steered the running turn** (primary) or **Interrupted the previous turn and resent** (warning). When a newer turn exists, the older one is marked superseded: live state, duration, and streaming expansion stop, but rows already produced stay visible and expanded.
 
-Canceling or deleting a queue item does not undo work that already completed.
+Deleting or cancelling a queue item does not undo work already done. A scheduled send still respects session state and permissions; if the session is waiting for approval, the send waits rather than skipping it.
 
-With **Auto-continue** enabled, only turns allowed by the session settings and the Agent's capabilities advance on their own. The run stops and waits when it hits a permission request, an elicitation form, a failure, or a choice that needs you.
+## Auto-continue
 
-## Permission requests and elicitation forms
+With **Auto-continue** on, only turns that satisfy session settings and Agent capabilities advance automatically. It stops at permission requests, elicitation forms, failures, or choices that need a human.
 
-When an Agent asks for a terminal, a file write, or another protected capability, the timeline shows the reason and the scope of the request, usually including the working directory, arguments, and environment variables. Your options are **Approve**, **Deny**, and **Always allow for session**.
+- It is on by default and can be changed under **Settings → Session**.
+- A session group can enable it for the whole group.
+- During the countdown, cancel the current continuation from the UI or with `t` in the TUI.
+- Auto-continue never bypasses permission approval or answers an elicitation for you.
 
-Elicitation forms ask for structured input. Check the values and the scope before you submit; canceling a form returns a cancellation result to the Agent rather than an implicit approval.
+## Permission requests and elicitation
 
-## Global search
+When an Agent requests the terminal, a file write, browser navigation, computer use, or another protected capability, the timeline shows the reason and scope—working directory, arguments, environment. The choices are **Allow**, **Deny**, and **Always allow for this session**.
 
-`cmd-k` opens the workbench command palette (**Global search**) from anywhere; the entry point is the search icon in the title bar, immediately before the runtime control. One query answers over three groups:
+An elicitation form asks for structured input. Confirm values and scope before submitting; cancelling returns a cancellation to the Agent, not an implicit approval.
 
-| Group | Scope | Selecting a row |
+A computer-use approval card also names the target application, action class, and reason; destructive or foreground actions carry a screenshot. Password managers, secure fields, and Vibex's own windows are handled per action or hard-denied.
+
+## Global search and find
+
+`cmd-k` opens **Global search** (the workbench command palette) anywhere; the entry point is the search icon in the title bar, just before the runtime control. One query searches three groups:
+
+| Group | Scope | On selection |
 | --- | --- | --- |
-| **Recent sessions** / **Sessions** | Session titles and message bodies | Opens the session and jumps to the message that hit |
-| **Settings** | Settings entries | Opens Settings on the matching section with the row highlighted |
-| **Quick actions** | Real actions registered on the workbench | Runs it; each row shows its keybinding, and unmet preconditions are disabled rather than inert |
+| **Recent sessions** / **Sessions** | Session titles and message bodies | Open the session and jump to the matching message |
+| **Settings** | Settings options | Open Settings, locate the section, and highlight the row |
+| **Quick actions** | Real workbench Actions | Run directly; each row shows its shortcut and disables when a precondition fails |
 
-- The palette draws its own query field at the top and rules between the three groups; an empty query lists only **Recent sessions**.
-- Session search indexes and highlights conversation text only — user messages, agent answers, reasoning, and plans — and tints just the matched keyword, with the current match painted stronger.
-- With a non-empty query, `escape` clears it on the first press and dismisses on the second.
-- The index is built in the background and kept, so reopening the palette is instant. Archived sessions are not searched.
+- The panel has its own query field and separators between groups; an empty query lists **Recent sessions**.
+- Session search indexes and highlights conversation text only—user messages, Agent replies, reasoning, and plans—and colors only the matched keywords, with the current hit stronger.
+- With a non-empty query, `escape` clears it first, then closes on the next press.
+- The index builds in the background and stays warm; archived sessions are not searched.
 
-Finding something inside one session still uses `cmd-f` (**Find in conversation**).
+Use `cmd-f` for **Find in current session**.
 
-## Importing local history
+## Import local history
 
-Import another Agent's history from the **More** menu in the sidebar or **Import sessions** in a project's context menu.
+Use **Import sessions** from the sidebar's **More** menu or a project's context menu.
 
-Fourteen sources are supported: **Claude Code**, **Codex**, **OpenCode**, **Gemini CLI**, **Cline**, **Hermes**, **CodeBuddy Code**, **Kimi Code**, **Pi**, **Grok**, **Cursor**, **DeepSeek Harness**, **ZCode**, **Google Antigravity**.
-
-The flow:
+Fourteen sources are supported: **Claude Code**, **Codex**, **OpenCode**, **Gemini CLI**, **Cline**, **Hermes**, **CodeBuddy Code**, **Kimi Code**, **Pi**, **Grok**, **Cursor**, **DeepSeek Harness**, **ZCode**, and **Google Antigravity**.
 
 1. Vibex scans local history and shows **Scanning local Agent sessions...**.
-2. In the preview list, tick the sessions you want, grouped by project. You can filter by Agent or scan again.
+2. Select sessions in the preview, grouped by project; filter by Agent or rescan.
 3. Click **Import {n} sessions** and wait for **Import complete**.
 
-Results fall into four groups: **Imported**, **Already imported**, **Not found**, and **Failed**.
+Results are grouped into **Imported**, **Gone**, **Failed**, and similar states.
 
 <Note>
-  The scanner reads metadata only: title, time, workspace path, message count, and source path. Content is re-read at import time and written to the timeline in one pass. Credentials, keys, and the full Agent home configuration are **not** imported. Sessions you already imported are never imported twice and are never overwritten by a refresh.
+  The scanner reads metadata only: title, time, workspace path, message count, and source path. Content is read only when importing and written to the timeline once. Credentials, keys, and the full Agent home configuration are **not** imported. An already imported session is not imported twice or overwritten by a refresh.
 </Note>
 
-## Notifications and unread
+## Notifications and unread state
 
-The authoritative runtime can send desktop notifications when a session completes, fails, or waits for input. The three notification types can be toggled separately under **Settings → Session → Agent notifications**; they moved there from **General**.
+When a session completes, fails, or needs input, the authoritative runtime can send a desktop notification. The three kinds can be toggled separately under **Settings → Session → Agent notifications**.
 
-Sessions with unread completions show a dot in the sidebar; opening the session clears the dot, and the authoritative timeline is the source of truth. The system tray menu also offers shortcuts to **New chat**, **Config Center**, and **Settings**.
+A session with an unread completion shows a dot in the sidebar; opening it clears the dot and the authoritative timeline wins. The tray menu also offers **New session**, **Config Center**, and **Settings**.
+
+## Archive and restore
+
+Archiving keeps the full timeline and only removes the session from the sidebar:
+
+- Archive from a session row menu, the multi-select menu, or the bulk bar; it is reversible, so no confirmation appears.
+- **Settings → Archived sessions** restores or permanently deletes.
+- Automatic archiving can be set per project/folder to an idle window (off, or 1–14 days).
+- A mistaken archive can be undone; a delete cannot.
 
 ## Child Agent timelines
 
-When a session uses delegation, a **Child Agent timelines** entry appears in the right sidebar. From there you can open a child Agent's own timeline and jump to it from the parent session.
+When a session delegates, the right rail shows a **Child Agent timeline** entry. A child has its own timeline, and its updates are attributed so they never fold into the parent's rows.
+
+## Continue in the terminal
+
+The Vibex TUI attaches to the same runtime and reads the same sessions, sends messages, handles approvals, and manages the queue. `vibex` opens the new-session page for the current directory; `Ctrl+L` opens the session list. See [Vibex TUI](/en/tui).

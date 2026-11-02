@@ -1,9 +1,9 @@
 ---
 title: "安装"
-description: "下载并安装 Vibex 桌面端，准备移动端和自托管运行时。"
+description: "下载并安装 Vibex 桌面端、移动端和 TUI，或准备自托管运行时。"
 ---
 
-Vibex 为桌面端、Android 和自托管服务端提供现成的发布产物。**普通使用者不需要安装 Rust、Node.js 或 pnpm**：桌面端安装包是自包含的。
+Vibex 为桌面端、Android、iOS 和自托管服务端提供现成的发布产物。**普通使用者不需要安装 Rust、Node.js 或 pnpm**：桌面端安装包是自包含的，TUI 也随桌面安装包一起发布。
 
 所有产物都在同一个页面：
 
@@ -48,10 +48,12 @@ Linux 的 `.deb` 依赖 `libvulkan1`、`libxcb1`、`libxcb-xkb1`、`libxkbcommon
 
 ### 升级
 
-桌面端内置签名自动更新。在 **设置 → 关于 → 软件更新** 中：
+桌面端内置签名自动更新，**默认开启**。在 **设置 → 常规** 或 **设置 → 关于 → 软件更新** 中：
 
 - 应用启动约 30 秒后自动检查一次，之后 RC / 预览通道每 2 小时、Stable 通道每 6 小时检查一次。
 - 更新清单经过 Ed25519 签名校验，产物再做 SHA-256 校验，校验失败不会安装。
+- 自动更新开启时，发现新版本会自动下载；已下载的版本可以在应用内立即安装，或在退出应用时安装。
+- 关闭 **自动更新** 后，发现的新版本会等你确认；关闭 **更新提示** 后，标题栏按钮和浮层不再出现，但后台安全检查仍然运行。
 - 安装方式取决于包格式：**AppImage 会原地自我替换**；`.deb`、macOS `.app` 和 NSIS 会**拉起系统安装器**，完成后需要重启应用。
 
 只有同通道的版本会被接受：RC 安装包只看 `-rc.*` 版本。如果自动更新不可用，手动下载新安装包覆盖安装即可。
@@ -64,30 +66,64 @@ Android 客户端从 GitHub Releases 侧载安装：
 2. 在系统设置中允许来自该来源的安装。
 3. 打开 APK 完成安装（应用 ID 为 `ai.vibex.mobile`）。
 
+Android 客户端没有应用商店，更新也走同一份发布清单：
+
+- 客户端只跟随 **Stable** 通道；预发布安装仍会知道它之后对应的稳定版。
+- 应用会校验发布清单签名和 APK 的 SHA-256，然后把已暂存的文件交给系统安装器；Android 再校验签名密钥连续性。
+- 可以在应用内下载并安装，也可以打开浏览器里的签名下载链接。
+- 如果新 APK 的签名密钥与已安装版本不同，系统会拒绝覆盖安装。RC / 预览在未配置仓库密钥时使用一次性 CI 密钥，因此 **不同 RC 之间可能需要先卸载再安装**；卸载会清除本地配对凭据。
+
 <Warning>
-  候选版本之间**不能覆盖升级**。未配置发布密钥时，每次 RC 发布使用一次性的 CI 签名密钥，因此不同 RC 的签名不同。跨版本升级需要先卸载旧版，再安装新版；卸载会清除本地保存的配对凭据，需要重新配对。
+  **Stable 发布必须配置固定的 Android 发布密钥**。没有配置时发布流水线会失败，而不是悄悄生成一个无法覆盖升级的包。
 </Warning>
 
 ## iOS
 
+iOS 发布产物包括：
+
+- `vibex-<版本>-ios-unsigned.ipa`：完整的 arm64 真机构建，**未签名**。
+- `vibex-<版本>-ios-simulator.app.zip`：未签名模拟器构建。
+- `vibex-<版本>-ios-xcframework.zip`：供集成使用。
+
+iOS 拒绝运行未签名的代码，所以真机 IPA 需要安装者用自己的 Apple ID 重新签名。免费 Apple ID 的签名有效期为 7 天，到期后需要重新签名。
+
+常见安装方式：
+
+| 方式 | 说明 |
+| --- | --- |
+| **Sideloadly** | Windows 或 macOS，拖入 IPA，用免费 Apple ID 签名并通过 USB 安装。 |
+| **AltStore / SideStore** | 用免费 Apple ID 签名并后台刷新；AltStore 需要一台常开的电脑，SideStore 可以设备内刷新。 |
+| **Xcode 个人团队** | 打开工程，选择自己的 Apple ID 和 **Automatically manage signing**，直接跑到真机。 |
+| **TrollStore** | 仅适用于 iOS 14.0–16.6.1 和 17.0；客户端要求 iOS 17.0+，所以只覆盖恰好 17.0 的设备。 |
+
+从 [Unsigned iOS install guide](https://github.com/vibex-ai/vibex/blob/main/docs/operations/ios-unsigned-install.md) 可以看到完整的重签名步骤和校验方法。
+
 <Warning>
-  **iOS 目前没有可分发给最终用户的构建。** 发布产物只有未签名的**模拟器**应用包（`ios-simulator.app.zip`）和 `VibexFFI.xcframework`，两者都需要 macOS 与 Xcode 才能运行或集成。真机安装、TestFlight 和 App Store 分发尚未提供。
+  重签名会替换整个签名，不能证明二进制是谁构建的。只安装来自可信来源的 IPA。
 </Warning>
 
-如果你要在模拟器里试用，需要 macOS、Xcode、XcodeGen，以及 `aarch64-apple-ios` 和 `aarch64-apple-ios-sim` 两个 Rust target，然后从源码构建：
+## TUI
 
-```bash
-pnpm build:mobile:ios
-```
+Vibex TUI 随桌面安装包一起发布，不需要单独下载：
+
+| 平台 | 入口 |
+| --- | --- |
+| Linux | `.deb` / AppImage 里的 `/usr/bin/vibex` |
+| macOS | `.app` 旁边的 `vibex`，安装器会链接到 `PATH` |
+| Windows | NSIS 安装的 `vibex.exe` |
+| 容器 | `docker exec -it <container> vibex-server tui` |
+
+在项目目录里运行 `vibex` 即可。详见 [Vibex TUI](/tui)。
 
 ## 自托管
 
 跨网络使用、或不想把会话数据留在某台常开的个人电脑上时，可以自建服务端：
 
 - **[自托管无头运行时](/self-hosted-server)** —— `vibex-server` 是与你桌面端能力相同的权威运行时，适合放在服务器或家用常开机器上。
+- **[SSH 与 WSL 远程运行时](/ssh-runtime)** —— 让桌面端通过 SSH 在另一台机器上安装运行时，或在本机 WSL2 里运行它。
 - **[自托管 Relay](/relay)** —— 只转发端到端加密帧的中继，不做业务授权，也不保存业务数据。
 
-两者都发布了多架构容器镜像（`linux/amd64`、`linux/arm64`）。
+服务端和 Relay 都发布了多架构容器镜像（`linux/amd64`、`linux/arm64`）。
 
 ## 从源码构建
 
@@ -100,6 +136,8 @@ pnpm build:mobile:ios
 | Linux（deb） | `sudo apt remove vibex-rc`（按通道替换包名） |
 | Linux（AppImage） | 删除 AppImage 文件 |
 | macOS | 把应用拖到废纸篓 |
-| Windows | 使用"应用和功能"卸载 |
+| Windows | 使用“应用和功能”卸载 |
+| Android | 在系统设置里卸载应用；会清除本地配对凭据 |
+| iOS | 删除应用；重签名安装的版本到期后需要重新签名 |
 
 卸载程序**不会**删除数据目录。要彻底清除，请先阅读[隐私与恢复](/privacy-and-recovery)，再手动删除对应通道的数据目录。

@@ -1,6 +1,6 @@
 ---
 title: "MCP and Skills"
-description: "Add reusable tools and context to your Agents."
+description: "Install or add MCP servers and Skills from markets, then enable them per Agent."
 ---
 
 MCP servers and Skills expand what your Agents can do and know. Both are managed in the Config Center, and both are enabled **per Agent**.
@@ -11,65 +11,105 @@ MCP (Model Context Protocol) servers give Agents extra tools. Vibex supports thr
 
 | Transport | When to use it |
 | --- | --- |
-| **stdio** | A local process. Provide the launch command, arguments, and environment variables. |
+| **stdio** | A local process. Provide the command, arguments, and environment. |
 | **HTTP** | A remote service. Provide the URL and headers. |
-| **SSE** | A remote service over Server-Sent Events. Provide the URL and headers. |
+| **SSE** | A remote service using Server-Sent Events. Provide the URL and headers. |
 
-### Add an MCP server
+### Install from the market
 
-1. Open **Config Center → MCP** and click **New MCP server**.
-2. Enter a **Name** and choose the transport.
-3. Depending on the transport, fill in **Command** / **Arguments** / **Environment**, or **URL** / **Headers**.
-4. Choose the scope: **User** or **Workspace**.
+Open **Config Center → MCP**; the **MCP market** opens by default:
+
+1. Search or page through the grid. A card shows the transport, source, command summary, and enabled Agents.
+2. Click **Install**, then review the command, transport, environment, and headers that will be saved.
+3. Choose which Agents receive the server.
+4. After installation the entry appears in the installed list; you can **Reinstall** or edit it.
+
+<Note>
+  Market search queries the upstream catalog as you type. Review the source and command before installing; a market entry is not an executable endorsed by Vibex.
+</Note>
+
+### Add manually
+
+1. Click **New MCP server** in the MCP list.
+2. Fill in **Name** and choose a transport.
+3. Fill in **Command** / **Arguments** / **Environment**, or **URL** / **Headers**.
+4. Choose a scope: **User** or **Workspace**.
 5. Save, then click **Validate** on the resource card.
-6. In the **Agent enablement** area below the card, switch on each Agent that should use it.
+6. Under **Agent enablement**, turn on the Agents that should use it.
+
+You can also use **Import existing MCP** to read candidates from another Agent's native configuration. Import shows a preview and never silently overwrites.
 
 <Info>
-  Validation is **offline**: it only checks required fields and the URL format (HTTP/SSE must start with `http://` or `https://`). It starts no processes and makes no network requests, so passing validation does not mean the server is actually reachable.
+  Validation is **offline**: it checks required fields and URL format (HTTP/SSE must start with `http://` or `https://`), but starts no process and makes no network request. Passing validation does not prove the server is reachable.
 </Info>
 
 <Warning>
-  MCP tools can read files, access the network, or modify external systems. Confirm the server's origin and permissions before you attach it to an Agent.
+  MCP tools may read files, access the network, or change external systems. Confirm the server's source and permissions before enabling it for an Agent.
 </Warning>
 
 ## Skills
 
-A Skill is a `SKILL.md` file plus the supporting resources it references. It gives an Agent reusable domain knowledge or a repeatable procedure. Sources can be:
+A Skill is a `SKILL.md` plus any referenced assets, giving an Agent reusable domain knowledge or a workflow. Sources include:
 
 | Source | Description |
 | --- | --- |
 | `manual` | Written directly in Vibex. |
 | `local_folder` | A local folder. |
 | `git_repo` | A Git repository. |
-| `marketplace` | A marketplace source. |
+| `marketplace` | A market source. |
 
-### Add a Skill
+### Install from the market
 
-1. Open **Config Center → Skills** and click **New Skill** or **Import Existing Skills**.
-2. Fill in **Name**, **Description**, and **Instructions** (the body of `SKILL.md`).
+Open **Config Center → Skills**; the **Skill market** opens by default:
+
+1. Search or page through the grid. A card shows the source, install count, official marker, and enabled Agents.
+2. Click **Install**, then read the full `SKILL.md` body, file list, and refused files before committing.
+3. Choose which Agents receive the Skill.
+4. After installation you can **Reinstall**; removed entries explain themselves first.
+
+### Add manually
+
+1. Open **Config Center → Skills** and click **New Skill** or **Import existing Skills**.
+2. Fill in **Name**, **Description**, and the **Skill body** (the `SKILL.md` text).
 3. Save and **Validate**.
-4. In **Agent enablement**, switch on each Agent that needs it.
+4. Under **Agent enablement**, turn on the Agents that need it.
 
-Once configured, type `$` in the Composer to find and insert an enabled Skill.
+Once configured, type `$` in the composer to find and insert an enabled Skill.
+
+<Warning>
+  A Skill's body and files enter the Agent's context. Read what you install, especially from the market; do not install one that asks for credentials or runs unknown commands.
+</Warning>
+
+## Prompts
+
+Prompts are another reusable resource in the Config Center, for instructions you type repeatedly:
+
+- Create one under **Config Center → Prompts** with a name and body.
+- Type `/` in the composer to search and insert it.
+- A Prompt can be enabled per Agent.
+- A Prompt is plain text and carries no files or tools; use a Skill when you need those.
 
 ## Export to Agent-native configuration
 
-Both MCP and Skills can be written into an Agent's own configuration files, so the Agent's other entry points (such as its external CLI) use the same configuration.
+MCP, Skills, and Prompts can be written into an Agent's own configuration files so external CLIs see the same setup.
 
 On a resource card, use **Preview export** → **Apply** → **Rollback**:
 
-1. **Preview export** lists the files that will be changed or created.
-2. Review the list, then **Apply**.
-3. If something goes wrong, restore from the same place with **Rollback**.
+1. **Preview export** lists the files that will change or be created.
+2. Review them, then **Apply**.
+3. If something goes wrong, **Rollback** from the same place.
 
-The write target depends on the Agent—for example Codex's `~/.codex/config.toml`, Claude's `~/.claude/settings.json`, and each Agent's Skills directory.
+The target depends on the Agent, for example Codex's `~/.codex/config.toml`, Claude's `~/.claude/settings.json`, and each Agent's Skills directory.
 
 <Warning>
   **Always review the preview before you Apply.** By default Vibex does not rewrite an Agent's native home configuration; it writes only when you explicitly apply.
 </Warning>
 
-## Scope and safety
+## Scope and security
 
-Use the smallest scope so you do not expose project-specific tools to every project. MCP servers currently offer only the **User** and **Workspace** scopes.
+Use the smallest scope so project-specific tools do not leak into every project. MCP servers currently offer **User** and **Workspace** scopes.
 
-Strip tokens, private keys, environment variable values, prompts, and file contents from any logs or diagnostics.
+- Disable before deleting; disabling keeps the record so you can restore it.
+- Deleting a resource does not delete files already written into an Agent's native directory; use the export preview's rollback.
+- Logs and diagnostics must omit tokens, private keys, environment values, prompts, and file contents.
+- Market installs write into the runtime home; do not enable an untrusted market entry for every Agent.

@@ -25,6 +25,7 @@ Search never modifies files on its own. Large files, undecodable content, and pa
 - The toolbar toggles **soft wrap** and **whitespace** display.
 - The status bar shows `Ln N, Col N`, the total line count, language, encoding (`UTF-8` / `UTF-8 BOM` / `Binary`), line endings (`LF` / `CRLF` / `Mixed EOL`), and file size.
 - The title bar shows **Modified** (unsaved changes), **Saving**, or **Saved**.
+- An open file follows changes made on disk by another process. If you have unsaved edits, Vibex keeps your buffer and reports the conflict instead of silently overwriting it.
 
 <Note>
   The editor has **no** Save As: saving always writes back to the original path. There is also no in-file find bar — `cmd-f` opens **Find in conversation**.
@@ -63,6 +64,8 @@ After the authoritative runtime restarts, Vibex restores unsaved buffers. They a
 | Other | Every other text format | Opens in the editor. |
 
 The Markdown preview offers a **Contents** outline, **Copy document text**, per-block **Copy code** / **Copy diff**, diagram source viewing, and full screen. Workspace-relative links open inside the preview; external links go to the system browser.
+
+A rendered Markdown preview can be searched directly: `cmd-f` opens a find bar, highlights matches, and wraps around. Large previews are virtualized and spread their work across frames, so opening one does not block the workbench.
 
 Office previews are a **read-only extracted view**, not a faithful rendering:
 
@@ -105,6 +108,8 @@ Drag a tab, or use **Split right** / **Split down** in the tab menu, to split th
 **Pop out preview window** in the panel header rehosts the whole multi-tab panel in a window of its own, and **Dock preview into the main window** brings it back. The panel entity never changes hands, so every open tab, editor buffer, and terminal moves with it, and exactly one panel exists at a time. Closing the detached window hands the panel back to the workbench column instead of taking it down; closing the panel closes its window. The detached window keeps the shell's editor actions, so `cmd-s` and go-to-line still work there.
 
 Full screen gives the panel the workbench column, so the sidebar and the right rail keep their place, their width, and their activity bar, and the rail keeps its resize handle.
+
+The preview panel uses the width currently available in the workbench column instead of a fixed narrow strip; resizing the window or collapsing a sidebar reflows code, diffs, and documents.
 
 **Settings → Workbench** has a **Preview window** option that chooses where the panel opens by default: **Inline** (the default, inside the workbench column) or **Separate window**. The header's pop-out and dock controls write the same preference.
 

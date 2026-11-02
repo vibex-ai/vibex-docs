@@ -1,57 +1,62 @@
 ---
 title: "Vibex 文件"
-description: "面向使用者與開發者的 Vibex 本機優先 AI 程式設計工作台指南。"
+description: "面向使用者和開發者的 Vibex 本地優先 AI 程式設計工作台指南。"
 ---
 
-Vibex 將 Agent 會話、工作區檔案、編輯器、Git、終端機與預覽放進同一個原生工作台。你可以讓 Agent 修改程式碼，再檢查計畫、工具呼叫與差異，最後在同一個工作區裡執行並交付變更。
+Vibex 把 Agent 會話、工作區檔案、編輯器、Git、終端機、內嵌瀏覽器、電腦操作和預覽放進同一個原生工作台。你可以讓 Agent 修改程式碼，再檢查計劃、工具呼叫和差異，最後在同一個工作區裡執行和交付改動。
 
-Vibex 採用**權威執行環境 + 型別化投影**的結構：
+Vibex 採用**權威執行階段 + 型別化投影**的結構：
 
-- **權威執行環境**持有 Agent 程序、會話時間線、工作區檔案、Git、終端機與供應商憑證。它有兩種形態，能力完全一致：
-  - **桌面端內嵌的本機執行環境**（預設）。
-  - **無頭執行環境 `vibex-server`**，執行在你自己的伺服器或家用機器上。
-- **客戶端**是桌面工作台與 iOS / Android 行動端。它們渲染權威執行環境送來的投影，並傳送型別化操作。行動端不在本機執行 Agent，也不複製一份工作區。
+- **權威執行階段**持有 Agent 程序、會話時間線、工作區檔案、Git、終端機、瀏覽器、電腦操作、供應商憑據和持久化狀態。它有三種形態，能力一致：
+  - **桌面端內嵌的本地執行階段**（預設）。
+  - **無頭執行階段 `vibex-server`**，執行在你自己的伺服器或家用機器上。
+  - **SSH / WSL 遠端執行階段**，由桌面端在另一臺機器或本機 WSL2 裡配置和管理（測試版）。
+- **客戶端**是桌面工作台、iOS / Android 行動端和 **Vibex TUI**。它們渲染權威執行階段發來的投影，併發送型別化操作。行動端和 TUI 不在本地執行 Agent，也不復制一份工作區。
 
-也就是說，桌面端既可以**自己作為權威執行環境**，也可以**連線到遠端權威執行環境**。詳見[遠端存取與行動端](/zh-TW/remote-mobile)和[自託管無頭執行環境](/zh-TW/self-hosted-server)。
+也就是說，桌面端既可以**自己作為權威執行階段**，也可以**連線到一個遠端權威執行階段**。詳見[遠端訪問與行動端](/zh-TW/remote-mobile)、[SSH 與 WSL 遠端執行階段](/zh-TW/ssh-runtime)和[自託管無頭執行階段](/zh-TW/self-hosted-server)。
 
 <Columns>
-  <Card title="從這裡開始" icon="rocket" href="/zh-TW/quickstart">
+  <Card title="從這裡開始" icon="rocket" href="/quickstart">
     安裝桌面端並完成第一次 Agent 任務。
   </Card>
-  <Card title="核心概念" icon="book-open" href="/zh-TW/concepts">
-    釐清專案、工作區、會話、權威執行環境和供應商設定的關係。
+  <Card title="核心概念" icon="book-open" href="/concepts">
+    搞清專案、工作區、會話、執行階段和供應商的關係。
   </Card>
-  <Card title="安裝" icon="download" href="/zh-TW/install">
-    下載桌面端安裝套件，或準備行動端與自託管環境。
+  <Card title="Vibex TUI" icon="terminal" href="/tui">
+    在終端機、SSH 或 tmux 裡使用同一個執行階段。
   </Card>
-  <Card title="開發者指南" icon="code" href="/zh-TW/developer">
-    了解架構、建置、測試和 Remote v2 契約。
+  <Card title="供應商與閘道器" icon="network" href="/providers-and-gateway">
+    共享 Provider、路由組和本地模型閘道器。
   </Card>
-  <Card title="更新日誌" icon="history" href="/zh-TW/changelog">
-    查看各版本的新功能、修復與內部改動。
+  <Card title="更新日誌" icon="history" href="/changelog">
+    檢視各版本的新功能、修復與內部改動。
   </Card>
 </Columns>
 
 ## 你可以用 Vibex 做什麼
 
-- 在結構化時間線中查看 Markdown 回覆、推理、計畫、工具呼叫、程序詳情、附件、核准和詢問表單。
-- 用 `/` 指令、`@` 檔案引用、`$` 技能和附件組織輸入框的內容。
-- 讓 Vibex 自行下載、升級和解除安裝受支援的 Agent 執行環境。
-- 在檔案樹和編輯器中搜尋、編輯、儲存、重新命名和預覽檔案。
-- 查看 Git 狀態、差異、歷史和 blame，建立分支並提交或推送變更；用隔離的 Git worktree 並行推進多個任務。
-- 使用帶 ANSI 模擬的原生 PTY，在多個終端機分頁中執行專案命令。
-- 設定 Agent、模型供應商、MCP 和技能。
-- 依時間、Agent、供應商、模型、專案和會話篩選用量，並區分完整、推導、部分和未知資料。
-- 跨全部會話和訊息本文搜尋。
-- 把桌面端會話安全地配對到行動端，在手機上查看進度、回覆問題和處理核准。
-- 把桌面端或行動端配對到自託管的無頭執行環境，從任意裝置繼續同一批會話。
+- 在結構化時間線中檢視 Markdown 回覆、推理、計劃、工具呼叫、程序詳情、附件、核准和詢問表單。
+- 用 `/` 命令與 Prompt、`@` 檔案與 Agent、`$` 技能和附件組織輸入框的內容。
+- 把任務委派給子 Agent，保持任務開啟、追加跟進、接受或取消，並用目標跟蹤長回合。
+- 讓 Vibex 自己下載、升級和解除安裝受支援的 Agent 執行階段，並按 Agent 配置模型供應商。
+- 在共享 Provider、路由組和本地閘道器之間做故障轉移和協議轉換。
+- 在檔案樹和編輯器中搜索、編輯、儲存、重新命名和預覽檔案。
+- 檢視 Git 狀態、差異、歷史和 blame，建立分支並提交或推送改動；用隔離的 Git worktree 並行推進多個任務。
+- 使用帶 ANSI 模擬的原生 PTY，在多個終端機標籤和分屏中執行專案命令。
+- 在內嵌瀏覽器裡檢視頁面，讓 Agent 讀取和操作它；在批准後讓 Agent 操作本機桌面。
+- 從應用內市場安裝 MCP 伺服器和 Skill，編寫可複用 Prompt，並按 Agent 限定作用域。
+- 把訊息排進佇列、引導執行中的回合、安排稍後傳送，或讓自動繼續推進回合。
+- 按時間、Agent、供應商、模型、專案和會話篩選用量，並區分完整、推導、部分和未知資料。
+- 跨全部會話和訊息正文搜尋，匯入本地 Agent 歷史，歸檔並恢復會話。
+- 把桌面會話安全地配對到行動端，在手機上檢視進度、回覆問題、處理核准和使用終端機。
+- 在終端機裡用 TUI 繼續同一批會話，或通過 SSH / WSL / 自託管執行階段從任意裝置繼續工作。
 
 ## 下一步
 
-<Card title="快速開始" icon="arrow-right" href="/zh-TW/quickstart">
+<Card title="快速開始" icon="arrow-right" href="/quickstart">
   安裝桌面端並完成第一次會話。
 </Card>
 
-<Card title="更新日誌" icon="list" href="/zh-TW/changelog">
-  查看每個版本的新增能力、修正與內部變更。
+<Card title="更新日誌" icon="list" href="/changelog">
+  檢視每個版本的新增能力、修復與內部改動。
 </Card>

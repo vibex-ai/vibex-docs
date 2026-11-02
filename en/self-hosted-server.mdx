@@ -38,21 +38,33 @@ Regenerate a pairing code whenever you need a new one:
 ```bash
 docker exec vibex-server vibex-server pairing-code
 docker exec vibex-server vibex-server pairing-code --permission read-only --ttl-ms 600000
+docker exec vibex-server vibex-server pairing-code --json
 ```
 
 ## Commands
 
 ```text
-Usage: vibex-server [serve|status|pairing-code|revoke|config-check]
+Usage: vibex-server [serve|status|stop|pairing-code|revoke|config-check|tui]
 
   serve [--no-pairing]                    run the authoritative headless runtime
-  pairing-code [--permission <level>] [--ttl-ms N]
+  status [--json]                         report runtime and pairing state
+  stop                                    safely stop the runtime started by this home
+  pairing-code [--permission <level>] [--ttl-ms N] [--json]
                                           mint a one-time code plus its pairing link
   revoke DEVICE_ID [--reason TEXT]        revoke a paired device
   config-check                            validate VIBEX_* deployment settings
+  tui                                     start Vibex TUI inside the container
 ```
 
-With no arguments it behaves like `serve`. `--permission` accepts `read-only`, `approve-only`, or `full-control` (the default is `full-control`).
+With no arguments it behaves like `serve`. `--permission` accepts `read-only`, `approve-only`, or `full-control` (the default is `full-control`). `status --json` is suitable for scripts and container health checks; `stop` only stops this home's runtime and deletes no data.
+
+The container can also run the TUI directly:
+
+```bash
+docker exec -it vibex-server vibex-server tui
+```
+
+The TUI is the same kind of client as the desktop and mobile apps: it connects to this runtime and reads the same sessions. It never starts a second backend inside the container. See [Vibex TUI](/en/tui).
 
 ## Deployment shapes
 
