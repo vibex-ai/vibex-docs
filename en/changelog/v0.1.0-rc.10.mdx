@@ -1,0 +1,126 @@
+---
+title: "v0.1.0-rc.10"
+description: "Agent sessions in a real terminal, a terminal that reads like one, MCP servers delivered to native CLIs, nothing left running behind the app, and a release page that assembles itself."
+---
+
+## Highlights
+
+* **Agent sessions in a real terminal** — A session can now be created in terminal mode, where the Agent's own CLI owns the conversation inside a PTY instead of Vibex drawing a timeline. Thirteen Agents are verified for it, and the sidebar, search, notifications, mobile and TUI all keep working on the same row.
+* **A terminal that reads like one** — Scrollback search with match navigation, a draggable scrollbar, box-drawing characters painted from their arms, a bundled Symbols Nerd Font, ligatures, URL click-to-open, OSC clipboard and title support, and mouse reports in three dialects.
+* **Your MCP servers reach native CLIs** — The reader's configured MCP servers, Vibex delegation, the embedded browser and computer use are handed to each terminal-mode CLI through the launch input it actually reads, with credentials kept out of the argv.
+* **Nothing left running behind the app** — Detached Agent daemons are reclaimed by what they run, the computer-use driver gives its memory back after five idle minutes, and abandoned frame pumps retire themselves.
+* **gpui-kit 0.9.0** — The workspace moves to the new kit and `gpui-pre` `0.3.11`, and puts two of its affordances to work: an overview ruler in the editor's find bar, and a caret that follows Reduce Motion on both clients.
+* **A release page that assembles itself** — The publish job composes one page from the tagged notes, the assets the run actually produced, and GitHub's contributor credit. The macOS app bundle is ad-hoc signed so Gatekeeper stops calling it damaged.
+
+## New Features
+
+**Terminal sessions**
+
+* `SessionTransport` names how a session runs: an ACP session owns a timeline and a runtime binding, a terminal session starts a CLI and owns neither; terminal creation is its own entry point rather than a flag on ACP creation (`35916d16`, `55c0c32d`)
+* Thirteen Agent CLIs are verified for terminal mode — Claude, Codex, OpenCode, Gemini, pi, Grok, Cline, Copilot, Cursor, Kimi, CodeBuddy, Devin and Hermes; each Agent's prompt interface, model/effort/mode flags, restart command and exit-notice session id live in one `TerminalCli` table (`35916d16`, `46f2e6be`)
+* The configured model rides the command line, because a terminal session has no other channel; an Agent default passes nothing rather than a guessed id, and an Agent with no known flag gets none. Terminal mode carries a Provider Profile only, and the switch now says so (`cb2b971d`, `d4057bc1`, `4f35c253`)
+* The new session's draft is passed to the CLI as its positional prompt and the attachments follow as paths, so the Agent starts on the turn the reader already described (`f7794fdb`, `35916d16`)
+* What Vibex still owes the reader outside the terminal rectangle is recorded as observation facts — liveness, activity, the Agent's own session id, and the timestamps the unread and notification paths read. `Unknown` is a first-class value (`2c4bd796`, `35d2bd87`)
+* Activity is read from the bottom of the screen rather than the viewport, so scrolling up does not change what the Agent is doing; a `working -> idle` transition needs several agreeing scans because it is what fires completions (`b8d60159`)
+* A session whose process ends is closed rather than left looking healthy, and a restart re-offers the same argv, working directory and Provider Profile — the profile is re-resolved rather than read back, so secrets stay in the keychain (`8fc9391b`, `e9f9822f`)
+* A restart rebuilds the PTY from the recorded argv; a session whose command cannot be rebuilt keeps its row and is marked error, so the reader sees which session did not come back (`ccb44e41`, `ca8c955f`)
+* The desktop wraps the grid in a rounded embedded window, and the prompt box takes the terminal's own shape when the mode is chosen, so the page says which interface it is about to hand over before it does (`c8e67a4b`, `23cef5d8`, `0591f9f9`)
+* The phone can reach a terminal session's Agent: the session snapshot names its terminal, selecting the session attaches it through the ordinary path, and the attach survives racing the asynchronous session list (`95d56253`, `c391662f`)
+* The TUI and the phone report a terminal session's Agent activity through the same projection the desktop uses, and the TUI names the desktop instead of drawing an empty transcript for a conversation it cannot show (`35d2bd87`)
+
+**Terminal rendering**
+
+* Search every retained line rather than only the painted viewport, highlight all matches, and step through them with previous/next that scrolls the match into view (`9efd0d49`)
+* A draggable scrollbar over the grid, `Shift+PageUp/PageDown` and `Shift+Home/End`, and a wheel that becomes arrow keys in the alternate screen so a full-screen Agent scrolls (`9efd0d49`)
+* Box Drawing characters are painted from their arms as joined vector lines — heavy, double, dashed, rounded and diagonal forms included — so tables and panel borders line up across cells (`9efd0d49`, `7412cf2d`)
+* `Symbols Nerd Font Mono` ships with the app and private-use symbol glyphs are fitted to the cell outline, which removes the tofu an Agent's status icons used to paint (`9efd0d49`)
+* Cell metrics come from the font's own advance rather than a fixed 8x18 constant, rows are shaped as runs instead of one glyph at a time, and wide cells keep the font's advance so CJK still spans two columns (`9efd0d49`, `bef85503`)
+* Ligatures are a preference, plain HTTP(S) URLs open on click, and a word or a line is selected by double or triple click (`9efd0d49`)
+* OSC 52 clipboard stores and reads, OSC 0/2 titles, OSC 4/10/11/12 colour queries, and mouse reports in the 1005, 1015 and 1016 dialects are answered (`9efd0d49`)
+* A terminal background opacity setting, and theme ink lifted to a minimum contrast while a program's own true colour is left alone (`9efd0d49`)
+
+**MCP delivery**
+
+* Terminal-mode CLIs receive the reader's MCP servers through the additive launch input each one reads — `--mcp-config` for Claude Code and CodeBuddy, `--additional-mcp-config` for Copilot, `-c` overrides for Codex, `OPENCODE_CONFIG_CONTENT` for OpenCode, a managed scope for Hermes, `CLINE_MCP_SETTINGS_PATH` for Cline, and the process environment for pi (`06e89ac7`)
+* When a Provider projection relocates the Agent home, the servers in the reader's real home are restated so they are not lost (`06e89ac7`)
+* Credentials stay out of the argv: files are `0600` in a per-session directory that is removed with the session, and Codex receives environment variable names instead of values. Delivery is re-minted on create, restart and crash restore (`06e89ac7`)
+* Cursor, Gemini, Grok, Kimi Code and Devin have no per-process MCP input, so both tool panels are shown as unavailable in terminal mode rather than advertised and then silently dropped (`7b30af79`)
+
+**Desktop**
+
+* Sidebar session filters are a multi-select set rather than one posture, and a second filter widens the column instead of emptying it; sessions inside a project can be sorted by creation, update, title or a manual arrangement (`125bea0c`, `7d99b489`)
+* A typed path in the `@` file mention list browses that directory directly, so a directory deep in a large workspace is reachable even when the workspace-wide listing is bounded out first (`9df4fb9e`)
+* Each Agent's delegation row keeps its own runtime configuration, chosen with the row's edit button, which outranks both the default source and the Agent's last used pair (`dde83cf9`)
+* The computer-use panel opens when an Agent starts driving, floating without taking the keyboard, with its own on-by-default setting and the exclusion that a refused call cannot pop a panel open (`f924abb7`)
+* A session with no project now reads as "Temporary session" in the sidebar, its context menu, the new-session picker and search, with a green sparkle resolved rather than stored as its default logo (`0226fb90`)
+* The new-session page offers an Agent whose Adapter is still downloading, with a working pulse in the Agent's own logo footprint and a top-center card that points at Config Center, and the same button creates the session the moment the download lands (`b7460d3e`)
+* The transport switch moved out of the prompt box to the far end of the workspace row, because "who owns the interface" is not another "where does this run" control; it is hidden entirely for an Agent with no terminal mode, and each segment's tooltip says what it gains and gives up (`0591f9f9`, `732d7102`, `2d4a941c`)
+* The composer placeholder describes quick phrases, references and history, and the `@` popup draws conversation references on their own tab so a conversation no longer sits under Agent delegation (`9da2b062`, `b7fda5dc`)
+* The editor's find bar marks every hit on an overview ruler, and a closed bar clears its marks because they belong to the search rather than the document (`252329db`, `e3526e36`)
+* Runtime failures arrive as top light hints, one Agent failure reads as one hint with copyable details, and a failed turn is no longer repeated in the composer's error strip (`8a070d22`, `999dedde`, `59f08d87`)
+
+**Mobile**
+
+* Reduce Motion now reaches gpui's own flag, so kit components that ask the context stop animating, and the caret is steady in both the theme and the base layer the inputs paint from (`252329db`)
+* An open session keeps its own workspace and conversation: the rail is retargeted from the session row before the snapshot read, and a read that fails no longer leaves the previous conversation's files, changes and terminals under the new page (`5d88cbf5`)
+* A timeline window that had to cut the live turn is retried without a turn band, so all three shells install a contiguous window instead of painting "No messages yet" over a session that was never empty (`5d88cbf5`)
+* Backspace on the phone's terminal reaches the shell: the IME sink holds one space and is re-seeded from the change it forwarded, so a held or fast Backspace is measured against the document it will actually edit (`b9ef6f7d`)
+
+**TUI**
+
+* Run options are refreshed after runtime probes answer, so a probe that lands late no longer leaves the page on a stale catalogue (`6474902b`)
+
+**Release engineering**
+
+* `scripts/release-notes.mjs` writes a range brief, scaffolds the bilingual document and rejects one that lost a language section or still carries only comments; `scripts/release-body.mjs` composes the page from the tagged notes, a Downloads table rendered from the assets the run publishes, and the contributor credit with the comparison link (`bd62fe97`, `07ad58a5`, `ffb2b245`)
+* The publish job runs the validator before uploading, fails when the per-change list appears in the body, and drops a platform whose job produced nothing instead of linking a file that 404s (`07ad58a5`)
+* `scripts/sign-macos-app.mjs` seals the macOS bundle inside out — nested Mach-O executables under `<bundle identifier>.<file name>`, then the bundle — before the dmg is assembled, and the packager names both `app,dmg` so the app format runs ahead of the hook (`347a622c`)
+* The macOS signature stays ad hoc: no Developer ID, no notarization, no hardened runtime, no secure timestamp. That turns "damaged" into the ordinary unidentified-developer prompt the user can allow once (`347a622c`)
+
+## Fixes
+
+* Fixed starting a terminal session and its model: Claude and Codex start from their native CLIs, OpenCode's model moved out of the argv into its config document, the projected model id reaches native CLIs, and the selected Provider is honoured in Claude terminal sessions (`18d2c5ae`, `063bfd96`, `d4057bc1`, `27a1e83c`)
+* Fixed a terminal session's state: it is read from the Agent's own reports, an ended session is shown as ended instead of looking healthy, and a restart keeps history when the CLI printed no session id (`b8d60159`, `e9f9822f`, `2806ec37`)
+* Fixed terminal restarts: a restart resumes instead of repeating the first prompt, the terminal surface is rebuilt after a restart, and a missing exit notice no longer drops the history (`ca8c955f`, `ccb44e41`, `2806ec37`)
+* Fixed terminal rendering: the grid is measured from its font and repainted cleanly, the prompt mark sits on the first line without restyling the input, and `Ctrl+F` works again in a plain source editor (`bef85503`, `9255cdd4`, `a11cf3f2`)
+* Fixed terminal layout: the embedded terminal is inset and scrolls by the pointer, the terminal keeps its size when its panel reopens, and terminal panes plus session group menus render again (`05590d57`, `b6187929`, `8b3f3832`)
+* Fixed the transport switch: it is hidden for an Agent with no terminal mode, terminal mode drops when the chosen Agent has none, it falls back out without a Provider Profile, and it stays selectable (`2d4a941c`, `6034d162`, `4f35c253`, `8ec0cca3`)
+* Fixed session rows and filters: a native terminal's activity shows in the session rows, the session sort reaches placed sidebar rows, and session-group pane views are keyed by group as well as pane (`a547d578`, `7d99b489`, `6e01decf`)
+* Fixed Config Center: requests are no longer aborted before they answer, writes moved off the frame thread, newer provider state survives a catalog race, and the provider creator keeps the selected Agent (`fe1be501`, `dfdaf81e`, `aa41d696`, `379e9740`)
+* Fixed run options: they are restored after startup catalog races, a remembered thinking depth survives an unprobed catalogue, and route model options are filled from profile evidence (`8eb47140`, `3cc7cd7a`, `f7d30acb`)
+* Fixed the gateway: refusals are refreshed and stale invalid keys are revived (`9424b27d`)
+* Fixed mobile: the terminal's Backspace reaches the shell, and an open session keeps its own workspace and conversation (`b9ef6f7d`, `5d88cbf5`)
+* Fixed the theme: the kit's new line-status colours entered the catalog along with a `deleted` tone (`129d7887`)
+* Fixed platform compilation: a Linux-only `OsStr` import, unused imports and parameters only one `cfg` branch reads now compile on macOS and Windows (`74a1dbfe`)
+* Fixed CI: macOS release jobs moved to the supported `macos-15` image (`e6656a37`)
+* Fixed clippy: the 1.99 lints the workspace now sees are satisfied (`3673cf8d`)
+
+## Performance
+
+* The terminal grid caches shaped rows by text, style and size, reshapes only damaged rows through the prepaint cache, and paints each row as runs rather than positioning every glyph by hand (`9efd0d49`)
+* A resize now fills the pane instead of leaving the painted grid at its old size until the round trip finishes, and the whole paint pass is clipped to the grid's own content mask (`9efd0d49`)
+* Config Center writes, Provider probes, route-group saves, gateway reads and terminal start/restart run off the frame thread, with a source guard that fails when an awaited statement names the backend outside the bridge or a Tokio spawn (`dfdaf81e`)
+* The computer-use driver daemon is stopped after five idle minutes — `stop` first so it removes its own socket, then killed if it does not leave — and only a daemon this client started is stopped (`1347dea8`)
+* A frame pump checks for a live receiver before each capture and retires itself and its channel when nobody watches; a failed capture is retried with a doubling delay capped at ten seconds instead of at the frame rate (`1347dea8`)
+* Short-lived driver subcommands lead their own process group, and a call past its deadline kills the group, so a timeout no longer leaves an orphaned release waiting on the daemon (`1347dea8`)
+* Detached Agent daemons are reaped by what they run: a candidate is adopted by init or the user's `systemd --user` manager and its command line names a file under `<home>/acp-agents/agents/<agent>/`, and it is ended only when no attached process of the same Agent remains anywhere and that has held for two minutes (`8675b314`)
+
+## Internal, Build & Docs
+
+* Version numbers were bumped to `0.1.0-rc.10` across the workspace, the desktop packager inputs, the Android versionName fallback, the READMEs, the deployment docs and the reviewed asset bundles
+* The license SBOM and third-party notices were regenerated for the current graph: 1110 Cargo packages, 11 asset and font bundles, and 5 native and installer inputs, all approved
+* The bundled Symbols Nerd Font is registered as a reviewed font input — `vibex-desktop-nerd-symbols`, MIT, two files tied to a tree hash — so the font that removes tofu is covered by the same provenance gate as every other embedded face
+* The database schema moved from 87 to 88: `transport` on the session row and a `session_terminals` link table, with `provider_profile_id` added in place for databases that already ran the migration
+* The workspace moved to `gpui-kit` `0.9.0` and `gpui-pre` `0.3.11`; the kit's theme structs are now `#[non_exhaustive]`, `ScrollWheelEvent` became `ScrollEvent`, and the mobile facade's `insets()` became `safe_insets()`
+* The default theme's diff status colours follow the kit's new green/amber/red family and gain a `deleted` tone; the other eighteen palettes keep their own authored colours
+* Reviewed Agent pins moved to the releases their channels publish: Claude `0.101.0`, Codex `2.5.0` (runtime `0.165.0`), ZCode `0.82.3`, OpenCode `2.2.6`, Antigravity `1.4.5`, Cline `3.0.74`, CodeBuddy `2.181.0`, Copilot `1.0.107`, Cursor `2026.11.05`, DeepSeek Harness `0.4.40`, Gemini `0.67.0`, Grok `1.0.78` and Kimi `2.5.2`, each keeping its previous release as the compatibility floor (`6c827cc8`)
+* `_session/steering` accepts `queued` and `startedNewTurn` as answers that mean the Agent owns the text, because treating them as `PromptRequired` would submit the same message twice
+* User-facing text is no longer replaced with `[redacted-sensitive-output]`: vendor refusals, permission titles, model ids, gateway and browser ledger entries, typed form values and Provider endpoints survive, and secret references stay the storage boundary (`e4c76e26`)
+* Version literals in the SSH and WSL test fixtures stay on `rc.8` on purpose: the upgrade and rollback tests need a real previous release to upgrade from and to keep installed beside the new one
+
+## Related links
+
+* [View the full diff on GitHub](https://github.com/vibex-ai/vibex/compare/v0.1.0-rc.9...v0.1.0-rc.10)
+* [Previous release: v0.1.0-rc.9](/en/changelog/v0.1.0-rc.9)
+* [Next release: v0.1.0](/en/changelog/v0.1.0)
+* [Back to the changelog](/en/changelog)

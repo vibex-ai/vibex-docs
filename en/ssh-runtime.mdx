@@ -8,7 +8,7 @@ The desktop can install `vibex-server` on another machine, drive it over SSH, an
 You do not need Docker, a public port, an HTTPS certificate, or a manually copied pairing code. You need SSH access to the host. If a Linux host has no sshd, Vibex can generate a one-time bootstrap command. A WSL2 distro on Windows works as a local Linux environment without sshd.
 
 <Warning>
-  **Beta, off by default.** Turn it on in **Settings → Developer → SSH remote runtime**, or set `VIBEX_SSH_REMOTE_RUNTIME=1` for one launch. Turning it off only hides entry points; it never deletes connections, credentials, or the remote runtime.
+  **Beta, available by default.** The entry point is **Settings → Remote instances**, listed beside the other runtime surfaces; nothing has to be switched on first. Once an SSH or WSL runtime is active in the registry, it boots and switches like any other remote runtime.
 </Warning>
 
 ## Before you start
@@ -27,7 +27,7 @@ The remote host needs:
 
 ## Quick start (Linux over SSH)
 
-1. Open **Settings → Connections → Add SSH connection**. Vibex lists hosts it finds in your SSH config.
+1. Open **Settings → Remote instances → Add remote instance** and choose **Add SSH connection**. Vibex lists hosts it finds in your SSH config.
 2. Pick a host and choose **Probe and add**. The probe checks OS, architecture, glibc, disk, tools, and the runtime port, then saves the connection and starts provisioning.
 3. Provisioning walks through resolve → check environment → upload → install → start → open tunnel → pair → connect → ready. A failure shows a diagnostics card and the next step.
 4. When ready, the runtime appears in the Runtime Manager and becomes active. Switch back to the local runtime from the same menu at any time.
@@ -60,7 +60,7 @@ Sleep pauses the runtime and drops the tunnel; the desktop reconnects after the 
 A WSL2 distro on the same Windows machine is treated as a local Linux environment, with no sshd or SSH keys.
 
 1. Install WSL2 and at least one distro (`wsl --install`).
-2. Open **Settings → Connections → Add WSL runtime**, pick the distro, and choose **Connect WSL**.
+2. Open **Settings → Remote instances → Add remote instance**, choose **Add WSL runtime**, pick the distro, and choose **Connect WSL**.
 
 Vibex runs the Linux x86_64 artifact inside the distro through `wsl.exe`, installs it under the distro user's `~/.local/share/vibex/server`, and reaches it through WSL2 localhost forwarding. The Runtime Manager shows `WSL · <distro>`.
 
@@ -74,7 +74,7 @@ Native Windows hosts are not supported as remote runtimes.
 
 A fresh VM may have no SSH server. If you can reach a root shell through a cloud console, serial console, or cloud-init, Vibex can generate a one-time command that sets SSH up.
 
-1. Open **Settings → Connections → Bootstrap SSH**.
+1. Open **Settings → Remote instances → Add remote instance** and choose **Bootstrap SSH**.
 2. Enter the **existing** Linux account Vibex will connect as (for example `ubuntu`, `debian`, `ec2-user`) and choose **Generate command**. The desktop reads `~/.ssh/id_ed25519.pub` (or `id_rsa.pub` / `id_ecdsa.pub`).
 3. Copy the command and run it in the console within 15 minutes.
 4. Add a matching entry to `~/.ssh/config`, compare and accept the printed host-key fingerprint, then choose **Recheck SSH**. Provisioning continues over SSH as usual.

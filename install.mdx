@@ -19,19 +19,21 @@ Vibex 为桌面端、Android、iOS 和自托管服务端提供现成的发布产
 
 | 平台 | 产物 | 说明 |
 | --- | --- | --- |
-| Linux x86_64 | `.deb` / `.AppImage` | 需要可用的 Vulkan 驱动 |
+| Linux x86_64 | `.deb` / `.AppImage` / AUR `vibex-bin` | 需要可用的 Vulkan 驱动 |
 | Linux aarch64 | `.deb` | 该架构不提供 AppImage |
 | macOS（Apple 芯片 / Intel） | `.dmg` | 需要较新的 macOS 与原生图形会话 |
 | Windows x86_64 / ARM64 | `.exe`（NSIS） | 按当前用户安装，无需管理员权限 |
 
 Linux 的 `.deb` 依赖 `libvulkan1`、`libxcb1`、`libxcb-xkb1`、`libxkbcommon0`、`libxkbcommon-x11-0`、`libdbus-1-3`、`libfontconfig1`，以及一个 appindicator 库（`libayatana-appindicator3-1` 或 `libappindicator3-1`）。发行版包管理器通常会自动解决这些依赖。
 
+Arch 用户也可以从 AUR 安装 `vibex-bin`：它把审核过的 Linux `.deb` 重新打包，只在稳定版发布时更新，因此版本号永远与最新正式版一致。
+
 <Warning>
-  **macOS 与 Windows 的安装包目前没有代码签名。**
-  - macOS 首次打开会被 Gatekeeper 拦截：在 **访达** 里按住 Control 点击应用图标，选择**打开**，再确认一次；或执行 `xattr -d com.apple.quarantine /Applications/Vibex*.app`。
+  **macOS 与 Windows 的安装包没有经过公证或 Developer ID 签名。**
+  - macOS 的应用包做了 **ad-hoc 签名**，Gatekeeper 不再报告它「已损坏」；但首次打开仍会提示来自未识别开发者：在 **访达** 里按住 Control 点击应用图标，选择**打开**，再确认一次即可。若仍被拦截，执行 `xattr -d com.apple.quarantine /Applications/Vibex*.app`。
   - Windows 会弹出 SmartScreen 提示：选择**更多信息** → **仍要运行**。
 
-  这些提示来自缺少签名证书，不代表安装包有问题。每个产物旁边都提供了 `.sha256` 校验文件，`SHA256SUMS` 汇总了全部校验值。
+  ad-hoc 签名只保证包在组装后没有被改动，不能证明是谁构建的。每个产物旁边都提供了 `.sha256` 校验文件，`SHA256SUMS` 汇总了全部校验值。
 </Warning>
 
 ### 发布通道
@@ -134,6 +136,7 @@ Vibex TUI 随桌面安装包一起发布，不需要单独下载：
 | 平台 | 方式 |
 | --- | --- |
 | Linux（deb） | `sudo apt remove vibex-rc`（按通道替换包名） |
+| Linux（AUR） | `sudo pacman -Rns vibex-bin` |
 | Linux（AppImage） | 删除 AppImage 文件 |
 | macOS | 把应用拖到废纸篓 |
 | Windows | 使用“应用和功能”卸载 |

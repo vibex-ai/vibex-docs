@@ -94,6 +94,23 @@ Vibex does not currently provide a one-click backup button. The reliable approac
 
 A headless runtime stores data under `/data` by default; mount it as a persistent volume or sessions disappear when the container is recreated. An SSH/WSL runtime stores data under `~/.local/share/vibex/server` in the remote home.
 
+## Import data from a release candidate
+
+Stable and RC are separate applications with their own application identity and data directory (`desktop-stable` and `desktop-rc`), so a stable install starts empty.
+
+To carry RC work forward, open **Settings → Data & Diagnostics → Local storage → Import RC data** and confirm:
+
+1. Vibex snapshots the RC database.
+2. The snapshot is migrated to the current schema and the copy is verified.
+3. It is swapped in on the next start; workspaces, sessions and Provider configuration come with it.
+4. If the import fails, the current data is kept and nothing is imported.
+
+On the first launch, RC data sitting next to the stable install also raises a one-time prompt offering **Import data** and **Not now**. The RC install itself is never modified, so you can keep using it as a fallback.
+
+<Warning>
+  **The import runs one way: RC to stable.** Do not copy a stable database into an RC directory; their schemas may not agree.
+</Warning>
+
 ## Cleanup
 
 **Settings → Data & Diagnostics** offers per-category cleanup: sessions and attachments, terminal data, and diagnostic data. These actions **cannot be rolled back**.

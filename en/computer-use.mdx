@@ -52,6 +52,8 @@ Open the panel from **Settings → Computer use → Panel**:
 - **Window**: a separate window for longer observation.
 - **Floating**: a small strip that stays above other windows where the platform allows it.
 
+The panel opens by itself when an Agent starts using computer use (**Settings → Computer use → Open automatically**, on by default). It floats without taking the keyboard, so you can keep typing. It is a switch of its own rather than a side effect of the master switch: turn it off when you want the capability without a window appearing. Closing the panel keeps it closed until the next Agent starts, and a refused call never pops one open.
+
 The panel shows what the Agent sees, the current action, and the redacted ledger. Its **emergency stop**:
 
 1. refuses new desktop calls;
@@ -64,6 +66,15 @@ The panel shows what the Agent sees, the current action, and the redacted ledger
 Step 3 matters most: a stuck modifier key can make the whole machine unusable.
 
 When the client disconnects, new actions are refused and pending approvals are void. A longer disconnect clears the queue and releases held keys. Recovery requires your confirmation, through the same path as the emergency stop.
+
+### Idle and background cleanup
+
+The computer-use driver is a separate daemon, so Vibex reclaims it when you stop using it:
+
+- The driver is stopped after **five idle minutes**: it is asked to `stop` first so it removes its own socket, and killed if it does not leave. Only a daemon this client started is stopped.
+- Once the panel closes, the capture loop checks for a live receiver before each capture; with nobody watching it retires itself and its channel.
+- A failed capture is retried with a doubling delay capped at ten seconds, not at the frame rate.
+- A single desktop call past its deadline kills the whole process group its driver subcommand leads, so a timeout no longer leaves an orphaned process waiting on the daemon.
 
 ## Platform support
 

@@ -19,13 +19,15 @@ MCP (Model Context Protocol) servers give Agents extra tools. Vibex supports thr
 
 Open **Config Center → MCP**; the **MCP market** opens by default:
 
-1. Search or page through the grid. A card shows the transport, source, command summary, and enabled Agents.
-2. Click **Install**, then review the command, transport, environment, and headers that will be saved.
-3. Choose which Agents receive the server.
+1. Search or page through the grid. A card shows the publisher's own picture, the transport, source, command summary, and enabled Agents.
+2. **Click the card to install**, or review the command, transport, environment, and headers that will be saved first.
+3. Choose which Agents receive the server. A per-feature **Agent capsule** selects several at once.
 4. After installation the entry appears in the installed list; you can **Reinstall** or edit it.
 
+Market search asks the upstream registry the reader's own question as you type instead of walking a capped background catalogue, so a name deep in the published order is reachable immediately; paging walks the registry cursor. A remote entry's required headers become install inputs routed to the server's **headers** rather than its environment.
+
 <Note>
-  Market search queries the upstream catalog as you type. Review the source and command before installing; a market entry is not an executable endorsed by Vibex.
+  Review the source and command before installing; a market entry is not an executable endorsed by Vibex.
 </Note>
 
 ### Add manually
@@ -63,9 +65,11 @@ A Skill is a `SKILL.md` plus any referenced assets, giving an Agent reusable dom
 Open **Config Center → Skills**; the **Skill market** opens by default:
 
 1. Search or page through the grid. A card shows the source, install count, official marker, and enabled Agents.
-2. Click **Install**, then read the full `SKILL.md` body, file list, and refused files before committing.
-3. Choose which Agents receive the Skill.
+2. **Click the card to install**, or read the full `SKILL.md` body, file list, and refused files before committing.
+3. Choose which Agents receive the Skill. A per-feature **Agent capsule** selects several at once.
 4. After installation you can **Reinstall**; removed entries explain themselves first.
+
+The market reads a public catalogue that answers in about a second: a ranked home page parsed once and shared for six hours, a browse page that folds one repository to at most four entries, and installs lifted out of the repository the catalogue names.
 
 ### Add manually
 

@@ -89,9 +89,22 @@ Agent requests appear in place:
 - In the queue, `Alt+↑↓` selects a row, `Alt+E` pulls it back into the draft, `Alt+X` drops it, `Alt+J/K` reorders it, and `Alt+Enter` interrupts the turn and sends it now.
 - `Alt+D` opens the Dock, which collects running child Agents, the plan, and held messages.
 
+## Clickable key legends
+
+Every `key label` legend the interface draws is a press target: the queue and dock bands, modal footers, the settings footer and the new-session page's bracketed hints all publish their rect with the chord they name.
+
+- Clicking one presses exactly the key it names, through the same dispatcher the keyboard uses, so there is no "only some buttons respond" exception.
+- A legend is parsed the way a reader reads it: `^S`, `Space`, `↑`, `J/K` and `Alt+↑↓` all resolve.
+- A paired arrow splits into two one-cell targets, and the arrow under the pointer picks the direction.
+- The queue band and the dock scroll to keep their cursors visible, and a click maps through the window the band actually drew instead of counting lines from the top of the rect.
+
 ## Management, pairing, and settings
 
 Management is a desktop-style configuration centre: **Agents**, **Providers**, **Model**, **MCP**, **Skills**, **Prompts**, and **Pairing & remote access**. Only operations the runtime can actually serve are shown; an operation this device's grant does not permit explains itself instead of disappearing.
+
+The Providers table can switch the gateway it uses and shows plan presets with their prices; imported Keys are named by what they do, and columns that cannot fit are dropped instead of being squeezed.
+
+A terminal session shows only its Agent activity in the TUI, and names the desktop instead — drawing an empty timeline for a conversation it cannot display would be misleading.
 
 The pairing page puts **Pair**, **Paired devices**, and **Remote access** on one tab strip:
 
@@ -100,7 +113,7 @@ The pairing page puts **Pair**, **Paired devices**, and **Remote access** on one
 - Local-network pairing uses `a` to allow and `r` to refuse.
 - Paired devices can be revoked and the remote-protocol audit can be inspected.
 
-Settings include theme and light/dark mode (20 themes), language (`en` / `zh-CN` / `zh-TW`), icon set, landing logo, motion, reasoning display, default workspace, and key bindings. Choices are written to `~/.vibex/tui-interface.json`; bindings to `~/.vibex/tui-keys.toml`.
+Settings include theme and light/dark mode (20 themes), language (ten: `en`, `zh-CN`, `zh-TW`, `ja`, `ko`, `de`, `fr`, `es`, `pt-BR`, `ru`), icon set, landing logo, motion, reasoning display, default workspace, and key bindings. Choices are written to `~/.vibex/tui-interface.json`; bindings to `~/.vibex/tui-keys.toml`.
 
 ## Shortcuts
 

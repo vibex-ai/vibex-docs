@@ -8,15 +8,42 @@ A session stores the input, Agent output, and tool activity of one development t
 ## Create a session
 
 1. Choose the target project and location (**Local**, **New Worktree**, or **Temporary session**—see [Projects and workspaces](/en/workspaces)).
-2. At the top of the composer, choose the Agent, provider profile, model, **Thinking depth**, **Conversation mode**, and the built-in tools available to this session.
-3. Enter your task. Use `/` to pick a command or Prompt, `@` to reference a workspace file or an Agent, `$` to insert a Skill, or `↑` / `↓` to recall an earlier message from this session; you can also add attachments.
-4. Confirm the workspace and permission scope before sending. The Agent may need to read files, run terminal commands, or request extra authorization.
+2. At the far end of the workspace row, choose the **transport**: **Vibex interface** (the default, where Vibex draws the GUI timeline) or **Native terminal** (where the Agent's own CLI owns the conversation inside a PTY). See [Terminal mode](#terminal-mode).
+3. At the top of the composer, choose the Agent, provider profile, model, **Thinking depth**, **Conversation mode**, and the built-in tools available to this session.
+4. Enter your task. Use `/` to pick a command or Prompt, `@` to reference a workspace file or an Agent, `$` to insert a Skill, or `↑` / `↓` to recall an earlier message from this session; you can also add attachments.
+5. Confirm the workspace and permission scope before sending. The Agent may need to read files, run terminal commands, or request extra authorization.
 
 Switching Agent or model only affects later runs. Messages already written to the timeline keep their original run identity.
 
 <Note>
-  A **temporary session** belongs to no project and is useful for one-off questions or prompt tests. It is still stored by the same runtime, can be archived, and cannot create a worktree.
+  A **temporary session** belongs to no project and is useful for one-off questions or prompt tests. It is still stored by the same runtime, can be archived, and cannot create a worktree. The sidebar, its context menu, the new-session picker and search all read "Temporary session", with a green sparkle resolved rather than stored as its default logo.
 </Note>
+
+## Terminal mode
+
+Terminal mode hands the session to the Agent's own command-line interface: the conversation happens in a native PTY, and Vibex stops drawing a timeline. Use it when you already know an Agent's TUI well, or need something only that CLI offers.
+
+| | **Vibex interface** | **Native terminal** |
+| --- | --- | --- |
+| Who draws the conversation | The Vibex timeline | The Agent's own CLI |
+| Vibex extensions (goals, delegation, approval cards, queue, scheduled sends, usage) | Yes | No |
+| Session row, search, notifications, mobile, TUI | Yes | Yes, on the same row |
+| Credential source | Provider profile or Agent account | **Provider profile only** |
+
+Thirteen Agent CLIs are verified: Claude, Codex, OpenCode, Gemini, Pi, Grok, Cline, Copilot, Cursor, Kimi, CodeBuddy, Devin and Hermes. An Agent with no terminal mode does not show the switch at all.
+
+How it behaves:
+
+- The new-session draft is passed to the CLI as its positional prompt, and attachments follow as paths, so the Agent starts on the turn you already described.
+- The configured model rides the command line; an Agent default passes nothing rather than a guessed id.
+- Terminal mode carries a **provider profile** only. When the page has no profile to hand over, the switch's tooltip says the CLI will use its own login.
+- The session row still reports the Agent's activity, unread state and notifications, drawn from the observation facts Vibex records outside the terminal rectangle. When a reading is unavailable the state is unknown rather than guessed as idle.
+- A session whose process ends is closed and marked as an error; a restart re-offers the same argv, working directory and provider profile, and rebuilds the PTY from the recorded argv.
+- MCP servers, Vibex delegation, the embedded browser and computer use reach the CLI through the launch input it actually reads, with credentials kept out of the command line. Agents with no per-process MCP input (Cursor, Gemini, Grok, Kimi Code, Devin) show both tool panels as unavailable.
+
+<Warning>
+  Terminal mode has no Vibex approval cards. The Agent CLI's own permission prompts are answered in the terminal, and Vibex does not confirm them for you. Stopping a session also does not undo external work already done.
+</Warning>
 
 ## Reading the timeline
 
