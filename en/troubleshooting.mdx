@@ -97,7 +97,7 @@ Vibex's terminal scrollback buffer is fixed at 10000 lines; earlier output has a
 
 ## The phone cannot connect
 
-1. Confirm the authoritative runtime is running and that a connection method is enabled (**Tailscale Serve** / **Direct HTTPS** / **Self-hosted Relay** / **Local network pairing**).
+1. Confirm the authoritative runtime is running and that a connection method is enabled (**Official relay** / **Local network pairing** / **Tailscale Serve** / **Direct HTTPS** / **Self-hosted Relay**).
 2. Check the network between the phone and the authority; if Direct fails, try Tailnet or Relay.
 3. Generate a new QR code or connection string; do not reuse old pairing credentials.
 4. When `revoked` appears, you must pair again; when `resync_required` appears, wait for the authority to finish synchronizing.

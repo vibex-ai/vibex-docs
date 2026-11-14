@@ -10,7 +10,6 @@ description: "自托管运行时、Relay 和桌面端的配置项参考。"
 | `VIBEX_HOME` | 覆盖运行时 home 的基目录。通道专属目录（`desktop-preview` / `desktop-rc` / `desktop-stable`）建在它下面。 |
 | `VIBEX_PROVIDER_SECRET_STORE` | `keychain`（默认）或 `file`。没有可用钥匙串的主机需要设为 `file`。 |
 | `VIBEX_DISABLE_REMOTE_CLIENT` | 设为 `1` 时强制使用本地权威运行时，忽略已保存的远程凭据。 |
-| `VIBEX_SSH_REMOTE_RUNTIME` | `1` 打开 SSH/WSL 远程运行时入口，`0` 关闭；覆盖开发者设置并在界面上锁定。 |
 | `VIBEX_CHANNEL` | 构建期变量，不能在运行时覆盖。试图像运行时切换通道会返回 `release_channel_override_rejected`。 |
 
 ## Vibex TUI
@@ -95,6 +94,7 @@ description: "自托管运行时、Relay 和桌面端的配置项参考。"
 | `VIBEX_RELAY_MAX_BODY_BYTES` | `1048576` | 请求体上限。 |
 | `VIBEX_RELAY_MAX_REQUESTS_PER_WINDOW_PER_ROOM` | `120` | 每房间每窗口请求数。 |
 | `VIBEX_RELAY_MAX_QUEUE_BYTES_PER_CONNECTION` | `4194304` | 每连接队列上限。 |
+| `VIBEX_RELAY_MAX_WEBSOCKET_FRAME_BYTES` | `2097152` | Relay WebSocket 帧上限；远程时间线页被限制在 512 KiB，为 E2EE 信封留出余量。 |
 | `VIBEX_RELAY_MAX_BANDWIDTH_BYTES_PER_WINDOW` | `16777216` | 每窗口带宽上限。 |
 | `VIBEX_RELAY_PUSH_PROVIDER` | 未设置 | 可选推送提供方。 |
 | `VIBEX_RELAY_PUSH_AUTH_TOKEN` | 未设置 | 推送认证令牌。 |

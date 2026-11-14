@@ -116,6 +116,8 @@ Settings include theme and light/dark mode (20 themes), language (`en` / `zh-CN`
 
 Bindings can be edited in Settings. A chord another action already owns is refused and the owner is named. The TUI also reads `~/.vibex/tui-keys.toml`.
 
+Every `key label` legend on screen is a press target: clicking it presses exactly the key it names, through the same dispatcher the keyboard uses. Legends are read the way a reader reads them, so `^S`, `Space`, `↑`, `J/K` and `Alt+↑↓` all work, and a paired arrow is split into two one-cell targets. The mouse can also select transcript text and copy it through OSC 52, in SSH and tmux alike.
+
 ## Notifications and terminal behaviour
 
 Notifications are delivered through terminal escape sequences. When attached to a desktop, the desktop's channel takes precedence, so one event arrives from one channel.

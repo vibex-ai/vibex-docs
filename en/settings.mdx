@@ -1,6 +1,6 @@
 ---
 title: "Settings"
-description: "Adjust Vibex's interface, workbench, sessions, connections, terminal, browser, computer use, and diagnostics."
+description: "Adjust Vibex's interface, workbench, sessions, remote instances, terminal, browser, computer use, and diagnostics."
 ---
 
 Open **Settings** (`cmd-,`) to change the desktop's local preferences. Settings do not replace the Agent, Provider, MCP, or Skill configuration in the Config Center.
@@ -14,7 +14,7 @@ A **Search settings** field at the top jumps straight to an option by name or ke
 | **General** | Language, close to tray, Vibex TUI, network proxy, startup, launch at login, notifications, updates. |
 | **Appearance** | Theme, workbench background, window scale, interface and code fonts, motion, contrast. |
 | **Workbench** | Sidebar view, default new-session location, preview window host, layout memory, Git change count, editor autosave. |
-| **Connections** | SSH / WSL remote runtimes. Hidden by default; enable it under **Developer**. |
+| **Remote instances** | SSH / WSL remote runtimes, pairing links, and paired devices. |
 | **Session** | Conversation content width, timeline display, message queue, auto-continue, Agent notifications. |
 | **Archived sessions** | Automatic archiving window, restore, and permanent delete. |
 | **Terminal** | Default shell and the starting directory for new terminals. |
@@ -22,7 +22,7 @@ A **Search settings** field at the top jumps straight to an option by name or ke
 | **Computer use** | Driver installation, system permissions, approval policy, panel, and timeout. |
 | **Shortcuts** | View, change, and reset keyboard shortcuts. |
 | **Data & Diagnostics** | Local storage usage and cleanup, diagnostics and recovery entry points. |
-| **Developer** | FPS monitor and the SSH remote runtime switch. |
+| **Developer** | FPS monitor. |
 | **About** | Version, channel, software updates, license, and platform information. |
 
 ## General
@@ -68,14 +68,15 @@ Fonts are listed from those installed on the system, with a fallback when one is
 | **Autosave** | **Manual** (save shortcut only), **After delay**, or **On focus loss**. |
 | **Autosave delay** | 250–5000 ms, default 1000 ms; shown only for **After delay**. |
 
-## Connections
+## Remote instances
 
-SSH and WSL remote runtimes are **beta and off by default**. Turn on **Settings → Developer → SSH remote runtime** to show this section.
+SSH and WSL remote runtimes are managed here. The entry is always visible; there is no Developer switch or environment variable to enable first.
 
-When enabled, you can:
+You can:
 
 - **Add SSH connection**: discover hosts from your SSH config, probe the environment, and start provisioning.
-- **Add WSL runtime**: pick a local WSL2 distro.
+- **Add WSL runtime**: pick a local WSL2 distro and set its **Runtime port** (default `8765`).
+- **Connect with pairing link**: paste `vibex://pair#/code/...`, or enter an address and numeric pairing code.
 - **Bootstrap SSH**: generate a one-time command for a Linux host without sshd.
 - Watch provisioning progress, diagnostics, logs, and runtime compatibility.
 - Edit or remove a connection, or uninstall the remote runtime.
@@ -84,7 +85,7 @@ See [SSH and WSL remote runtimes](/en/ssh-runtime).
 
 ## Session
 
-Controls conversation content width (narrow / standard / full), timeline display (**turn preview rail**, **Agent generation status**, **reasoning display**, **expand reasoning by default**, **command card rendering**, **file edit card rendering**), and queue behavior:
+Controls conversation content width (narrow / standard / full), timeline display (**turn preview rail**, **Agent generation status**, **reasoning display**, **expand reasoning by default**, **command card rendering**, **file edit card rendering**, **Auto-collapse tool calls**), and queue behavior:
 
 - **Queue sending**: automatic or manual.
 - **Message send key**: Enter or Cmd/Ctrl+Enter.
@@ -163,7 +164,6 @@ Shows local storage usage (database, sessions, terminals, attachments, diagnosti
 ## Developer
 
 - **FPS monitor**: show frame rate and repaint information for diagnosing performance.
-- **SSH remote runtime**: show or hide the SSH / WSL Connections section. `VIBEX_SSH_REMOTE_RUNTIME` overrides this switch and locks it in the UI.
 
 ## About
 

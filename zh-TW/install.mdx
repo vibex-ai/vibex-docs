@@ -12,23 +12,30 @@ Vibex 為桌面端、Android、iOS 和自託管服務端提供現成的釋出產
 </Card>
 
 <Tip>
-  Vibex 仍在候選階段：除穩定版外，也可能釋出形如 `-rc.N` 或 `-preview.N` 的預釋出版本。**latest 頁面會解析到當前最新的一個**；需要指定版本時改用 [全部發佈列表](https://github.com/vibex-ai/vibex/releases)。
+  Vibex 已進入穩定版階段。**latest** 頁面指向最新穩定版；形如 `-rc.N` 的候選版本與預釋出版本列在 [全部發佈列表](https://github.com/vibex-ai/vibex/releases) 裡，需要固定版本時從那裡選擇。
 </Tip>
 
 ## 桌面端
 
 | 平台 | 產物 | 說明 |
 | --- | --- | --- |
-| Linux x86_64 | `.deb` / `.AppImage` | 需要可用的 Vulkan 驅動 |
-| Linux aarch64 | `.deb` | 該架構不提供 AppImage |
+| Linux x86_64 | `.deb` / `.rpm` / `.AppImage` | 需要可用的 Vulkan 驅動 |
+| Linux aarch64 | `.deb` / `.rpm` | 該架構不提供 AppImage |
 | macOS（Apple 晶片 / Intel） | `.dmg` | 需要較新的 macOS 與原生圖形會話 |
 | Windows x86_64 / ARM64 | `.exe`（NSIS） | 按當前使用者安裝，無需管理員權限 |
 
-Linux 的 `.deb` 依賴 `libvulkan1`、`libxcb1`、`libxcb-xkb1`、`libxkbcommon0`、`libxkbcommon-x11-0`、`libdbus-1-3`、`libfontconfig1`，以及一個 appindicator 庫（`libayatana-appindicator3-1` 或 `libappindicator3-1`）。發行版包管理器通常會自動解決這些依賴。
+
+<Note>
+  從 0.1.3 起，Windows 安裝包透過一個小助手讀取使用者 `Path` 的真實長度並保留它的型別，不會再覆蓋超過 1023 個字元的值。如果更早的版本已經替換過你的 `Path`，本次更新無法重建遺失的項目；請從備份還原，或手動重新新增目錄。
+</Note>
+
+Linux 的 `.deb` 依賴 `libvulkan1`、`libxcb1`、`libxcb-xkb1`、`libxkbcommon0`、`libxkbcommon-x11-0`、`libdbus-1-3`、`libfontconfig1`，以及一個 appindicator 庫（`libayatana-appindicator3-1` 或 `libappindicator3-1`）。發行版包管理器通常會自動解決這些依賴。`.rpm` 與 `.deb` 使用同一份已審核的載荷，安裝的檔案與權限一致。
+
+Arch 使用者可以在穩定版發佈後用 `paru -S vibex-bin` 或 `yay -S vibex-bin` 安裝；`vibex-bin` 重新發佈同一份 Linux `.deb`，並用 `namcap` 校驗。
 
 <Warning>
-  **macOS 與 Windows 的安裝包目前沒有程式碼簽名。**
-  - macOS 首次開啟會被 Gatekeeper 攔截：在 **訪達** 裡按住 Control 點選應用圖示，選擇**開啟**，再確認一次；或執行 `xattr -d com.apple.quarantine /Applications/Vibex*.app`。
+  **macOS 與 Windows 的安裝包沒有 Developer ID 簽名或公證。**
+  - macOS 應用包做 ad-hoc 簽名，Gatekeeper 不再把包報告為已損壞；首次開啟仍會顯示「無法驗證開發者」：在 **訪達** 裡按住 Control 點選應用圖示，選擇**開啟**，再確認一次；或執行 `xattr -d com.apple.quarantine /Applications/Vibex*.app`。
   - Windows 會彈出 SmartScreen 提示：選擇**更多資訊** → **仍要執行**。
 
   這些提示來自缺少簽名證書，不代表安裝包有問題。每個產物旁邊都提供了 `.sha256` 校驗檔案，`SHA256SUMS` 彙總了全部校驗值。
@@ -44,7 +51,7 @@ Linux 的 `.deb` 依賴 `libvulkan1`、`libxcb1`、`libxcb-xkb1`、`libxkbcommon
 | RC | Vibex RC | `desktop-rc` |
 | Stable | Vibex | `desktop-stable` |
 
-每個通道有**獨立的 SQLite 資料庫和配置**。切換通道不會遷移資料；如果你在 RC 裡配置好了 Agent 和供應商，裝 Stable 之後需要重新配置一次。通道由安裝包決定，不能在應用內切換。
+每個通道有**獨立的 SQLite 資料庫和配置**。通道由安裝包決定，不能在應用內切換。Stable 與 RC 的資料目錄彼此隔離，但可以把 RC 的工作帶進 Stable：開啟 **設定 → 資料與診斷 → 本地儲存 → 從 RC 版本匯入資料** 並確認。Vibex 會先快照 RC 資料庫、遷移並校驗副本，在下次啟動時換入；工作區、會話和供應商設定會一併帶過來，匯入失敗時保留當前資料。RC 安裝本身不會被修改。
 
 ### 升級
 
@@ -54,7 +61,7 @@ Linux 的 `.deb` 依賴 `libvulkan1`、`libxcb1`、`libxcb-xkb1`、`libxkbcommon
 - 更新清單經過 Ed25519 簽名校驗，產物再做 SHA-256 校驗，校驗失敗不會安裝。
 - 自動更新開啟時，發現新版本會自動下載；已下載的版本可以在應用內立即安裝，或在退出應用時安裝。
 - 關閉 **自動更新** 後，發現的新版本會等你確認；關閉 **更新提示** 後，標題欄按鈕和浮層不再出現，但後臺安全檢查仍然執行。
-- 安裝方式取決於包格式：**AppImage 會原地自我替換**；`.deb`、macOS `.app` 和 NSIS 會**拉起系統安裝器**，完成後需要重啟應用。
+- 安裝方式取決於包格式：**AppImage 會原地自我替換**；`.deb`、`.rpm`、macOS `.app` 和 NSIS 會**拉起系統安裝器**，完成後需要重啟應用。透過 AUR 安裝時，用 `paru -Syu vibex-bin` 或 `yay -Syu vibex-bin` 升級。
 
 只有同通道的版本會被接受：RC 安裝包只看 `-rc.*` 版本。如果自動更新不可用，手動下載新安裝包覆蓋安裝即可。
 
@@ -108,7 +115,7 @@ Vibex TUI 隨桌面安裝包一起釋出，不需要單獨下載：
 
 | 平台 | 入口 |
 | --- | --- |
-| Linux | `.deb` / AppImage 裡的 `/usr/bin/vibex` |
+| Linux | `.deb` / `.rpm` / AppImage 裡的 `/usr/bin/vibex` |
 | macOS | `.app` 旁邊的 `vibex`，安裝器會連結到 `PATH` |
 | Windows | NSIS 安裝的 `vibex.exe` |
 | 容器 | `docker exec -it <container> vibex-server tui` |
@@ -133,7 +140,7 @@ Vibex TUI 隨桌面安裝包一起釋出，不需要單獨下載：
 
 | 平台 | 方式 |
 | --- | --- |
-| Linux（deb） | `sudo apt remove vibex-rc`（按通道替換包名） |
+| Linux（deb / rpm） | 用發行版的包管理器移除對應包（包名隨通道而定） |
 | Linux（AppImage） | 刪除 AppImage 檔案 |
 | macOS | 把應用拖到廢紙簍 |
 | Windows | 使用“應用和功能”解除安裝 |

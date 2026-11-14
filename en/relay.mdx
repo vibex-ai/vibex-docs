@@ -7,6 +7,8 @@ Relay is a **zero-knowledge room router**. When a PC and a paired device cannot 
 
 Relay does **not** decrypt, authorize, store, or log any business payload, and it provides no mobile web UI and no business API.
 
+Desktop pairing uses the **built-in relay** by default: its official origin lives in `vibex-core`, needs no address, and cannot be mistaken for a configurable endpoint. Deploy the self-hosted Relay here only when you want to own the relay or the built-in origin is unreachable from your network.
+
 <Note>
   Relay only forwards. To actually host sessions and Agents on a server, use the [Self-hosted headless runtime](/en/self-hosted-server).
 </Note>
@@ -82,6 +84,9 @@ Every Relay limit is bounded. The defaults are:
 | Requests per room per window | 120 (window 1000 ms) |
 | Queue per connection | 4 MiB |
 | Bandwidth per window | 16 MiB |
+| WebSocket frame limit | 2 MiB |
+
+Rate limits are charged to the client address: behind a loopback reverse proxy the right-most `X-Forwarded-For` entry is used, otherwise the peer address. `/api/info` reports the effective limits.
 
 ## Zero-knowledge verification
 

@@ -22,7 +22,7 @@ If you only need to forward traffic and do not need a hosted runtime, [Relay](/e
 The container image is multi-arch (`linux/amd64`, `linux/arm64`) and is updated with every release:
 
 ```bash
-export VIBEX_SERVER_IMAGE=ghcr.io/vibex-ai/vibex-server:rc
+export VIBEX_SERVER_IMAGE=ghcr.io/vibex-ai/vibex-server:latest
 docker compose -f deploy/server/docker-compose.yml pull vibex-server
 docker compose -f deploy/server/docker-compose.yml up -d --no-build vibex-server
 docker logs vibex-server | grep -E 'pairing_(code|link)|tls_fingerprint'

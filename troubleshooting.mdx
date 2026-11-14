@@ -96,7 +96,7 @@ Vibex 的终端滚动缓冲区固定为 10000 行，更早的输出已经丢弃�
 
 ## 手机无法连接
 
-1. 确认权威运行时正在运行，并且已经启用了一种连接方式（**Tailscale Serve** / **Direct HTTPS** / **Self-hosted Relay** / **局域网配对**）。
+1. 确认权威运行时正在运行，并且已经启用了一种连接方式（**官方中继服务** / **局域网配对** / **Tailscale Serve** / **Direct HTTPS** / **自建 Relay**）。
 2. 检查手机和权威端的网络；Direct 失败时改试 Tailnet 或 Relay。
 3. 重新生成二维码或连接串，不要复用旧的配对凭据。
 4. 显示 `revoked` 时必须重新配对；显示 `resync_required` 时等待权威端同步完成。

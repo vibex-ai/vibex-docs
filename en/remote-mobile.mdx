@@ -37,7 +37,7 @@ services:
   vibex-server:
     # Use a moving channel tag: rc follows the newest release candidate,
     # latest follows the newest stable release; pin a version only if you need to
-    image: ghcr.io/vibex-ai/vibex-server:rc
+    image: ghcr.io/vibex-ai/vibex-server:latest
     container_name: vibex-server
     # Restart the runtime after a reboot; the healthcheck below decides when it is up
     restart: unless-stopped
@@ -164,11 +164,11 @@ Your firewall only needs `80`, `443`, and SSH. Keep `8765` on loopback and out o
 
 ### Step 2: connect the desktop
 
-1. Select the **Runtime** button in the title bar to open the runtime manager.
-2. Select **Add runtime…**, choose the **Connection string** tab, paste the whole `vibex://pair#/code/...` value, and select **Pair**. This also works when the server uses a self-signed certificate, because the fingerprint travels inside the string.
-3. Alternatively, choose the **Pairing code** tab and enter the **Server address** and **One-time pairing code**.
-4. After pairing, the runtime's **Certificate** row shows a `sha256:` fingerprint. Compare it with `tls_fingerprint` in the server log.
-5. Select **Switch to this runtime** to make it current. From now on, sessions, files, Git, and terminals in the desktop come from the server. To go back to your own machine, select **This device** in the list and switch to it. To remove the runtime, select **Remove** in its details — that deletes only the local device credential; the server-side authorization stays until it is revoked on the server.
+1. Open **Settings → Remote instances**.
+2. Select **Connect with pairing link** and paste the whole `vibex://pair#/code/...` value. This also works when the server uses a self-signed certificate, because the fingerprint travels inside the string; if you only have the numeric code, enter the address as well.
+3. After pairing, the runtime is registered in the list. Its certificate row shows a `sha256:` fingerprint when available; compare it with `tls_fingerprint` in the server log.
+4. Select the runtime to switch to it. From now on, sessions, files, Git, and terminals in the desktop come from the server. To go back to your own machine, select **This device** in the list.
+5. To remove the runtime, select **Remove** on its row — that deletes only the local device credential; the server-side authorization stays until it is revoked on the server.
 
 ### Step 3: connect the mobile client
 
@@ -207,15 +207,16 @@ Your computer stays the authority: Agents, files, Git, and terminals all run on 
 ### Before you start
 
 - The desktop app is running and the computer stays awake; sleep drops the connection.
-- The phone and the computer can reach each other: the same Wi-Fi is easiest, and Tailnet or a self-hosted Relay cover the rest.
+- The phone and the computer can reach each other: the same Wi-Fi is easiest, and the official relay, Tailscale or a self-hosted Relay cover the rest.
 
 ### Step 1: publish remote access from the desktop
 
 1. Select the **pair mobile device** icon in the top toolbar. The dialog has two tabs: **Pair** publishes a new pairing, and **Paired devices (N)** manages the devices that already hold a grant.
 2. Choose how the phone will connect:
-   - **Tailnet** (recommended) — private access through Tailscale or another private network; good when you are not on the same Wi-Fi.
-   - **Direct HTTPS** — you have your own HTTPS address that points at this computer.
-   - **Self-hosted Relay** — the phone and computer cannot reach each other directly, so your own Relay forwards encrypted traffic.
+   - **Official relay** (recommended) — pair through the relay built into Vibex; no address to fill in. The entry reports a live relay only while the runtime actually serves the official origin.
+   - **Local network pairing** — discover this computer on the same network.
+   - **Tailscale Serve** — private access through Tailscale or another private network; good when you are not on the same Wi-Fi.
+   - **Other ways** holds **Direct HTTPS** and **Self-hosted Relay**.
 3. Fill in the address the dialog asks for (Direct expects `https://your-address`, Relay expects `https://your-relay`), choose what this phone may do (the default is **Read only**; see [Permission levels](#permission-levels)), and select **Publish**.
 4. A QR code and a pairing link appear: **scan to pair**, or select **Copy link** and send it to the phone. The link expires quickly; select **Regenerate** when it does.
 
@@ -231,7 +232,7 @@ Your computer stays the authority: Agents, files, Git, and terminals all run on 
 
 The permission level is chosen on the desktop when it publishes the pairing offer, and the desktop asks you to confirm the device when the phone claims it. The phone then shows the desktop's session list.
 
-The desktop can also connect to an **SSH or WSL remote runtime** (beta). That runtime is reachable only through the desktop's SSH tunnel; the phone cannot pair with it directly. The phone still connects to the desktop, which forwards to the remote runtime. See [SSH and WSL remote runtimes](/en/ssh-runtime).
+The desktop can also connect to an **SSH or WSL remote runtime** (beta) under **Settings → Remote instances**, which is always visible. That runtime is reachable only through the desktop's SSH tunnel; the phone cannot pair with it directly. The phone still connects to the desktop, which forwards to the remote runtime. See [SSH and WSL remote runtimes](/en/ssh-runtime).
 
 ### Step 3: what the phone can do
 

@@ -81,10 +81,10 @@ and have no user-facing entry point in the current release. Scheduled *messages*
 in the composer are a separate, reachable feature and belong in the session
 guide.
 
-SSH / WSL **Connections** is reachable only after **Settings → Developer → SSH
-remote runtime** is enabled; document it as beta and off by default. Computer
-use is reachable from Settings but requires an installed driver and the master
-switch.
+SSH / WSL remote runtimes live under **Settings → Remote instances**, which is
+always visible; document them as beta, without a Developer switch or
+environment variable. Computer use is reachable from Settings but requires an
+installed driver and the master switch.
 
 When an entry point moves or is removed, update the page in the same change
 and add a redirect in `docs.json` for any renamed page.

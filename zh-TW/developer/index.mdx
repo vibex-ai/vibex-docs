@@ -31,7 +31,7 @@ Vibex 是 Rust workspace 驅動的原生應用。`DesktopRuntime` 是唯一的�
 - `DesktopRuntime` 負責 Agent、會話、時間線、檔案、Git、PTY、供應商、權限和持久化。
 - **同一個核心有兩種前端**：`apps/desktop` 加 GPUI 視窗，`apps/server` 加守護程序生命週期。新增能力要同時適用於兩者。
 - 客戶端只消費共享的遠端投影併發送型別化操作，不復制業務狀態。
-- 新能力應經 `BackendFacade` 觸達權威端，而不是隻走本地執行階段路徑。
+- 新能力應經 `BackendFacade` 觸達權威端，而不是只走本地執行階段路徑。
 - Remote v2 的 DTO、錯誤、能力和序列號契約位於共享 `crates/core` 層。
 - Relay 只轉發加密幀，不擁有業務授權、檔案或會話資料庫。
 - 跨層行為變更必須補充確定性檢查或證據，並執行與風險匹配的最小測試集。

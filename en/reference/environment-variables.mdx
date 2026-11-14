@@ -10,7 +10,6 @@ description: "Reference for self-hosted runtime, Relay, and desktop configuratio
 | `VIBEX_HOME` | Overrides the base directory of the runtime home. Channel-specific directories (`desktop-preview` / `desktop-rc` / `desktop-stable`) are created under it. |
 | `VIBEX_PROVIDER_SECRET_STORE` | `keychain` (default) or `file`. Hosts without a usable keychain must set `file`. |
 | `VIBEX_DISABLE_REMOTE_CLIENT` | Set to `1` to force the local authoritative runtime and ignore saved remote credentials. |
-| `VIBEX_SSH_REMOTE_RUNTIME` | `1` enables SSH/WSL remote runtime entry points, `0` disables them; overrides the Developer setting and locks it in the UI. |
 | `VIBEX_CHANNEL` | A build-time variable that cannot be overridden at runtime. Trying to switch channels at runtime returns `release_channel_override_rejected`. |
 
 ## Vibex TUI
@@ -95,6 +94,7 @@ description: "Reference for self-hosted runtime, Relay, and desktop configuratio
 | `VIBEX_RELAY_MAX_BODY_BYTES` | `1048576` | Request body limit. |
 | `VIBEX_RELAY_MAX_REQUESTS_PER_WINDOW_PER_ROOM` | `120` | Requests per room per window. |
 | `VIBEX_RELAY_MAX_QUEUE_BYTES_PER_CONNECTION` | `4194304` | Queue limit per connection. |
+| `VIBEX_RELAY_MAX_WEBSOCKET_FRAME_BYTES` | `2097152` | Relay WebSocket frame limit; remote timeline pages are clamped to 512 KiB to leave room for the E2EE envelope. |
 | `VIBEX_RELAY_MAX_BANDWIDTH_BYTES_PER_WINDOW` | `16777216` | Bandwidth limit per window. |
 | `VIBEX_RELAY_PUSH_PROVIDER` | unset | Optional push provider. |
 | `VIBEX_RELAY_PUSH_AUTH_TOKEN` | unset | Push authentication token. |

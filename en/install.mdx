@@ -12,23 +12,30 @@ Every artifact lives on the same page:
 </Card>
 
 <Tip>
-  Vibex is still in a candidate phase: besides stable builds, releases may be `-rc.N` or `-preview.N` prereleases. **The latest page resolves to the newest one**; use the [full release list](https://github.com/vibex-ai/vibex/releases) for a specific version.
+  Vibex now ships stable releases. **latest** resolves to the newest stable build; `-rc.N` release candidates and prereleases are listed on the [full release page](https://github.com/vibex-ai/vibex/releases), where you can pick a specific version.
 </Tip>
 
 ## Desktop
 
 | Platform | Artifact | Notes |
 | --- | --- | --- |
-| Linux x86_64 | `.deb` / `.AppImage` | Needs a working Vulkan driver |
-| Linux aarch64 | `.deb` | No AppImage for this architecture |
+| Linux x86_64 | `.deb` / `.rpm` / `.AppImage` | Needs a working Vulkan driver |
+| Linux aarch64 | `.deb` / `.rpm` | No AppImage for this architecture |
 | macOS (Apple silicon / Intel) | `.dmg` | Needs a recent macOS and a native graphical session |
 | Windows x86_64 / ARM64 | `.exe` (NSIS) | Per-user install, no administrator rights |
 
-The Linux `.deb` depends on `libvulkan1`, `libxcb1`, `libxcb-xkb1`, `libxkbcommon0`, `libxkbcommon-x11-0`, `libdbus-1-3`, `libfontconfig1`, and an appindicator library (`libayatana-appindicator3-1` or `libappindicator3-1`). The distribution's package manager usually resolves these.
+
+<Note>
+  Since 0.1.3, the Windows installer reads the real length of the user `Path` through a small helper and preserves its type, so it no longer replaces a value longer than 1023 characters. If an earlier release already replaced your `Path`, this update cannot reconstruct the missing entries; restore them from a backup or re-add the directories manually.
+</Note>
+
+The Linux `.deb` depends on `libvulkan1`, `libxcb1`, `libxcb-xkb1`, `libxkbcommon0`, `libxkbcommon-x11-0`, `libdbus-1-3`, `libfontconfig1`, and an appindicator library (`libayatana-appindicator3-1` or `libappindicator3-1`). The distribution's package manager usually resolves these. The `.rpm` is repacked from the same reviewed payload, so the installed files and modes match the `.deb`.
+
+On Arch, install the stable release from the AUR with `paru -S vibex-bin` or `yay -S vibex-bin`; `vibex-bin` republishes the same Linux `.deb` and is checked with `namcap`.
 
 <Warning>
-  **macOS and Windows packages are currently unsigned.**
-  - macOS blocks the first launch with Gatekeeper: Control-click the app in **Finder**, choose **Open**, and confirm; or run `xattr -d com.apple.quarantine /Applications/Vibex*.app`.
+  **macOS and Windows packages have no Developer ID signature or notarization.**
+  - The macOS bundle is ad-hoc signed, so Gatekeeper no longer reports it as damaged. The first launch still says the developer cannot be verified: Control-click the app in **Finder**, choose **Open**, and confirm; or run `xattr -d com.apple.quarantine /Applications/Vibex*.app`.
   - Windows shows a SmartScreen prompt: choose **More info** → **Run anyway**.
 
   These prompts come from the missing signing certificate, not from a bad package. Each artifact has a `.sha256` sidecar, and `SHA256SUMS` lists every digest.
@@ -44,7 +51,7 @@ Desktop packages carry a **compile-time channel identity**. Channels can be inst
 | RC | Vibex RC | `desktop-rc` |
 | Stable | Vibex | `desktop-stable` |
 
-Each channel has its own SQLite database and configuration. Switching channels does not migrate data; configure Agents and Providers again after installing a different channel. The channel is part of the package and cannot be changed in the app.
+Each channel has its own SQLite database and configuration, and the channel is part of the package, so it cannot be changed in the app. Stable and RC data directories are isolated, but you can bring RC work into Stable: open **Settings → Data & Diagnostics → Local storage → Import RC data** and confirm. Vibex snapshots the RC database, migrates and verifies the copy, and swaps it in on the next start; workspaces, sessions and Provider configuration come with it, and the current data is kept if the import fails. The RC install is never modified.
 
 ### Upgrade
 
@@ -54,7 +61,7 @@ The desktop has signed automatic updates, **on by default**. In **Settings → G
 - The manifest is verified with Ed25519 and each artifact with SHA-256; a failed check never installs.
 - With automatic updates on, a discovered release downloads automatically; install it in-app or when you quit.
 - With **Automatic updates** off, a discovered release waits for your confirmation. With **Update prompts** off, the title-bar button and panel are hidden, but background checks still run.
-- Installation depends on the package: **AppImage replaces itself in place**; `.deb`, macOS `.app`, and NSIS launch the system installer and need a restart.
+- Installation depends on the package: **AppImage replaces itself in place**; `.deb`, `.rpm`, macOS `.app`, and NSIS launch the system installer and need a restart. An AUR install upgrades with `paru -Syu vibex-bin` or `yay -Syu vibex-bin`.
 
 Only same-channel versions are accepted: an RC build sees only `-rc.*`. If automatic updates are unavailable, install a newer package over the old one.
 
@@ -108,7 +115,7 @@ The Vibex TUI ships inside every desktop package:
 
 | Platform | Entry point |
 | --- | --- |
-| Linux | `/usr/bin/vibex` from the `.deb` / AppImage |
+| Linux | `/usr/bin/vibex` from the `.deb` / `.rpm` / AppImage |
 | macOS | `vibex` next to the `.app`; the installer links it onto `PATH` |
 | Windows | `vibex.exe` from the NSIS installer |
 | Containers | `docker exec -it <container> vibex-server tui` |
@@ -133,7 +140,7 @@ See [Build from source](/en/from-source) when you need to change code or your pl
 
 | Platform | How |
 | --- | --- |
-| Linux (deb) | `sudo apt remove vibex-rc` (replace the package name per channel) |
+| Linux (deb / rpm) | Remove the package with your distribution package manager (the name follows the channel) |
 | Linux (AppImage) | Delete the AppImage |
 | macOS | Move the app to the Trash |
 | Windows | Use "Apps & features" |

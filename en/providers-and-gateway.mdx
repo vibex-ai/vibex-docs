@@ -14,6 +14,8 @@ Vibex separates model access into four layers. Learn the difference once and the
 
 An Agent can still use only its own Model Provider profile and never touch shared Providers. Shared Providers and route groups exist for "one set of keys should serve several Agents" and "I need failover".
 
+A shared Provider is the **write authority**: editing its address, models or keys on the Providers page reaches every Agent and route group bound to it, including writes from a paired device. Delete a model on the Providers page; saving one Agent page never removes models another Agent can still reach.
+
 ## Config Center → Providers
 
 The **Providers** page lists every shared Provider once and shows which Agents use it. The sidebar has two tabs:
@@ -51,9 +53,11 @@ The flow asks for a source first, then for fields. A preset prefills the protoco
 
 Each Provider has its own model list:
 
-- **Fetch models** reads the Provider's model-list endpoint without writing configuration.
+- **Fetch models** opens a picker: the endpoint's models with checkboxes and a filter on the left, the selected model's settings on the right. Nothing is written until you confirm; the confirm **adds** the checked models without replacing rows you authored, and existing rows keep their capabilities, display name and enabled state.
+- `autoRefreshModels` only decides whether the vendor's new rows arrive checked; with it off, every row starts unchecked.
 - Checking a model enables it; unchecking removes it from the draft but keeps declared capabilities, so re-checking restores them.
 - Each model can declare its **wire protocol** (inherit, OpenAI Chat, OpenAI Responses, Anthropic Messages, Gemini, Mistral, and others), **reasoning efforts**, **context window**, and **maximum output tokens**.
+- When the models.dev catalogue publishes `reasoning_options` for the model, **Thinking levels** offers those values with an explicit **Apply** row. Nothing is adopted automatically, and a declaration that already names the same levels is left alone.
 - The **default model** is used when no model is named.
 - Model ids can be added by hand. A preset's model list may age, but it is never silently rewritten from the network.
 
