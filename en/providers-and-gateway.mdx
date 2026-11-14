@@ -81,21 +81,34 @@ A Provider can store several keys:
 
 ## Route groups
 
-A route group composes members into one model name an Agent can request. Members can be:
+A route group composes members into one model name an Agent can request. Every member is a `(Provider, model)` pair, so one group can express "the same model at three vendors, then a cheaper fallback".
 
-- A whole Provider (provider group), exposing the intersection of member catalogues.
-- A `(Provider, model)` pair (model group), exposing one stable model name.
+A route comes in two shapes:
+
+| Shape | Meaning |
+| --- | --- |
+| **Model group** (default) | The members you compose by hand, exposing one model name. |
+| **Direct** | A one-member route that names exactly one Provider and skips the gateway. It is materialised from an existing direct Provider profile rather than created by hand. |
+
+<Note>
+  Earlier releases also had a "provider group" shape, exposing the intersection of member catalogues. It retired: existing rows migrate to model groups from each member's enabled models, so routing rules only have one implementation.
+</Note>
 
 Open **Providers → Route groups → New route group**:
 
-1. Fill in **Name** and **Agent-facing model name**. The model name cannot contain `/`.
+1. Fill in **Name**. That name is the model name Agents ask for; it cannot contain `/`, and there is no second identity to fill in.
 2. Add members from the model palette below; each member picks a Provider and model.
 3. Adjust **Attempt order**; the gateway tries from the top down.
 4. Choose a **Strategy** (see below).
 5. Set **Pin a conversation**, **Switch on failure**, **Patience**, **First-token timeout**, **Context tokens**, and **Token ceiling** as needed.
 6. In **Agents**, click the Agents allowed to use this group.
-7. Use **Try it** to see which member would answer a request without sending one.
-8. Save.
+7. Save.
+
+A model several Providers serve appears as a suggestion card under the route-group list; one click turns it into a member group.
+
+<Note>
+  The older **Try it** panel is gone: it was a second, illustrative answer computed from the draft, and a group authored in the editor has no traffic to read. To see where a request actually went, use the ledger and replay under **Gateway → Routing**.
+</Note>
 
 ### Strategies
 

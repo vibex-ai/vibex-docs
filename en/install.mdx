@@ -19,7 +19,7 @@ Every artifact lives on the same page:
 
 | Platform | Artifact | Notes |
 | --- | --- | --- |
-| Linux x86_64 | `.deb` / `.rpm` / `.AppImage` | Needs a working Vulkan driver |
+| Linux x86_64 | `.deb` / `.rpm` / `.AppImage` / AUR `vibex-bin` | Needs a working Vulkan driver |
 | Linux aarch64 | `.deb` / `.rpm` | No AppImage for this architecture |
 | macOS (Apple silicon / Intel) | `.dmg` | Needs a recent macOS and a native graphical session |
 | Windows x86_64 / ARM64 | `.exe` (NSIS) | Per-user install, no administrator rights |
@@ -31,14 +31,14 @@ Every artifact lives on the same page:
 
 The Linux `.deb` depends on `libvulkan1`, `libxcb1`, `libxcb-xkb1`, `libxkbcommon0`, `libxkbcommon-x11-0`, `libdbus-1-3`, `libfontconfig1`, and an appindicator library (`libayatana-appindicator3-1` or `libappindicator3-1`). The distribution's package manager usually resolves these. The `.rpm` is repacked from the same reviewed payload, so the installed files and modes match the `.deb`.
 
-On Arch, install the stable release from the AUR with `paru -S vibex-bin` or `yay -S vibex-bin`; `vibex-bin` republishes the same Linux `.deb` and is checked with `namcap`.
+On Arch, install `vibex-bin` from the AUR with `paru -S vibex-bin` or `yay -S vibex-bin`. It repacks the reviewed Linux `.deb`, updates only for stable releases, so its version always matches the newest stable build, and is checked with `namcap`.
 
 <Warning>
-  **macOS and Windows packages have no Developer ID signature or notarization.**
-  - The macOS bundle is ad-hoc signed, so Gatekeeper no longer reports it as damaged. The first launch still says the developer cannot be verified: Control-click the app in **Finder**, choose **Open**, and confirm; or run `xattr -d com.apple.quarantine /Applications/Vibex*.app`.
+  **macOS and Windows packages are not notarized and carry no Developer ID signature.**
+  - The macOS bundle is **ad-hoc signed**, so Gatekeeper no longer reports it as damaged; the first launch still says the developer cannot be verified: Control-click the app in **Finder**, choose **Open**, and confirm, or run `xattr -d com.apple.quarantine /Applications/Vibex*.app` if it is still blocked.
   - Windows shows a SmartScreen prompt: choose **More info** → **Run anyway**.
 
-  These prompts come from the missing signing certificate, not from a bad package. Each artifact has a `.sha256` sidecar, and `SHA256SUMS` lists every digest.
+  An ad-hoc signature only shows the bundle was not modified after assembly; it does not prove who built it. Each artifact has a `.sha256` sidecar, and `SHA256SUMS` lists every digest.
 </Warning>
 
 ### Release channels
@@ -141,6 +141,7 @@ See [Build from source](/en/from-source) when you need to change code or your pl
 | Platform | How |
 | --- | --- |
 | Linux (deb / rpm) | Remove the package with your distribution package manager (the name follows the channel) |
+| Linux (AUR) | `sudo pacman -Rns vibex-bin` |
 | Linux (AppImage) | Delete the AppImage |
 | macOS | Move the app to the Trash |
 | Windows | Use "Apps & features" |

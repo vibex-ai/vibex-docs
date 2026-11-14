@@ -8,7 +8,7 @@ The desktop can install `vibex-server` on another machine, drive it over SSH, an
 You do not need Docker, a public port, an HTTPS certificate, or a manually copied pairing code. You need SSH access to the host. If a Linux host has no sshd, Vibex can generate a one-time bootstrap command. A WSL2 distro on Windows works as a local Linux environment without sshd.
 
 <Warning>
-  **Beta.** Open **Settings → Remote instances** to use it; the entry is always visible, and there is no Developer switch or environment variable to enable first. Removing a connection deletes only the local profile and credentials, never the remote runtime or its data.
+  **Beta, available by default.** The entry is always listed under **Settings → Remote instances**; nothing has to be switched on first, and an SSH / WSL runtime already active in the registry starts and switches like any other remote runtime. Removing a connection deletes only the local profile and credentials, never the remote runtime or its data.
 </Warning>
 
 ## Connect an existing runtime with a pairing link

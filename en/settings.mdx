@@ -11,13 +11,13 @@ A **Search settings** field at the top jumps straight to an option by name or ke
 
 | Section | What you can adjust |
 | --- | --- |
-| **General** | Language, close to tray, Vibex TUI, network proxy, startup, launch at login, notifications, updates. |
+| **General** | Language, what closing Vibex does, Vibex TUI, network proxy, startup, launch at login, notifications, updates. |
 | **Appearance** | Theme, workbench background, window scale, interface and code fonts, motion, contrast. |
 | **Workbench** | Sidebar view, default new-session location, preview window host, layout memory, Git change count, editor autosave. |
-| **Remote instances** | SSH / WSL remote runtimes, pairing links, and paired devices. |
+| **Remote instances** | SSH / WSL remote runtimes, pairing links, paired devices, compatibility, and uninstall. |
 | **Session** | Conversation content width, timeline display, message queue, auto-continue, Agent notifications. |
 | **Archived sessions** | Automatic archiving window, restore, and permanent delete. |
-| **Terminal** | Default shell and the starting directory for new terminals. |
+| **Terminal** | Default shell, the starting directory for new terminals, and where a terminal opens. |
 | **Browser** | Start page, search engine, frame quality, downloads, and login state. |
 | **Computer use** | Driver installation, system permissions, approval policy, panel, and timeout. |
 | **Shortcuts** | View, change, and reset keyboard shortcuts. |
@@ -29,8 +29,8 @@ A **Search settings** field at the top jumps straight to an option by name or ke
 
 | Option | Description |
 | --- | --- |
-| **Language** | System default / 简体中文 / 繁體中文 / English. |
-| **Keep running after closing the window** | Keep Vibex in the system tray. |
+| **Language** | System default, plus English, 简体中文, 繁體中文, 日本語, 한국어, Deutsch, Français, Español, Português (Brasil), and Русский. |
+| **When closing Vibex** | One of two outcomes: **Run in background** (stays in the system tray, the default) or **Quit**. An older close-to-tray switch keeps its meaning through the migration. |
 | **Vibex TUI** | Let a TUI on this machine attach to this runtime. When off, the TUI reports the locked home and offers other ways in. |
 | **Network proxy** | Route Vibex requests and Agent tools through a local or corporate proxy. Supports `http`, `https`, `socks5`, and `socks5h`; the address is validated. |
 | **Startup** | Restore the workbench or start a new session. |
@@ -70,7 +70,7 @@ Fonts are listed from those installed on the system, with a fallback when one is
 
 ## Remote instances
 
-SSH and WSL remote runtimes are managed here. The entry is always visible; there is no Developer switch or environment variable to enable first.
+SSH and WSL remote runtimes are **beta**, and the entry is always visible; nothing has to be switched on first, and there is no Developer switch or environment variable.
 
 You can:
 
@@ -156,6 +156,7 @@ Shows local storage usage (database, sessions, terminals, attachments, diagnosti
 | **Data directory** | Open the data directory in the file manager. |
 | **Open Usage** | Jump to usage statistics. |
 | **Diagnostics & recovery** | Open the management center's diagnostics and recovery entry point. |
+| **Import RC data** | Bring the RC version's workspaces, sessions and Provider configuration into this version; the current data is kept when the import fails. See [Import data from a release candidate](/en/privacy-and-recovery#import-data-from-a-release-candidate). |
 
 <Warning>
   These cleanup actions are **destructive** and cannot be rolled back. Read [Privacy and recovery](/en/privacy-and-recovery) first.
@@ -163,7 +164,7 @@ Shows local storage usage (database, sessions, terminals, attachments, diagnosti
 
 ## Developer
 
-- **FPS monitor**: show frame rate and repaint information for diagnosing performance.
+- **FPS monitor**: show frame rate and repaint information for diagnosing performance. While it is on, one sample a second is recorded to the diagnostics folder.
 
 ## About
 

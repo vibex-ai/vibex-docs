@@ -1,48 +1,117 @@
 ---
 title: "v0.1.0"
-description: "The first stable Vibex release: PTY terminal sessions, a full workbench, a runtime you host yourself, three clients on one runtime, and an import path from the release candidates."
+description: "The first stable release: ten release candidates' worth of capability on one supported line, with desktop, mobile and terminal clients driving the same authoritative runtime."
 ---
 
 ## Highlights
 
-* **First stable release** — `0.1.0` is the boundary from release candidates into supported releases, with `latest` container tags and AUR publishing. Stable and RC installs use separate data directories.
-* **Real terminal sessions** — run Agents directly inside a PTY terminal through 13 verified Agent CLIs while keeping the sidebar, search, mobile and TUI integration.
-* **A true workbench** — sessions, source code, Git, terminals, an embedded browser, a local model gateway, Agent teams, goals and multi-pane session groups share one window.
-* **Your runtime, your machine** — the authoritative `DesktopRuntime` runs locally, on a LAN `vibex-server`, or on a remote runtime provisioned over SSH or WSL.
-* **Three surfaces, one runtime** — desktop, mobile and the terminal client (`vibex`) drive the same authoritative runtime and install from the same release.
-* **10 languages supported** — English, Simplified and Traditional Chinese, Japanese, Korean, German, French, Spanish, Brazilian Portuguese and Russian.
+* **First stable release** — `0.1.0` ends the candidate phase. The stable channel owns its own application identity and data directory, the `latest` container tag points at it, and the `vibex-bin` AUR package ships with it.
+* **Real terminal sessions** — An Agent can run in its own CLI with a PTY carrying the conversation; thirteen Agents are verified, and the sidebar, search, notifications, mobile and TUI still work on the same session row.
+* **One complete workbench** — Sessions, source, Git, terminals, an embedded browser, a local model gateway, Agent teams, goals and split-pane session groups live together, so context never has to be carried between tools.
+* **Your runtime, your machine** — The authoritative runtime runs locally, on your own `vibex-server`, or on another machine the desktop provisions over SSH / WSL.
+* **Three surfaces, one runtime** — The desktop, mobile, and the `vibex` terminal client drive the same authoritative runtime and install from the same release.
+* **Ten languages** — English, Simplified Chinese, Traditional Chinese, Japanese, Korean, German, French, Spanish, Brazilian Portuguese and Russian.
 
-## Key features
+## New Features
 
-**Sessions and workbench**
+**Sessions and the workbench**
 
-* ACP timelines and pure terminal sessions are separate transports, with split-pane session groups, command palette search, session filters, inline goals and lifecycle task delegation.
-* The sidebar, search, notifications, mobile and TUI all see a terminal-mode session and work on the same row.
+* A session runs one of two ways: an ACP session owns a timeline and a runtime binding, a terminal session starts an Agent CLI and records observation facts only; both are the same row in the sidebar, search and notifications (`35916d16`, `55c0c32d`)
+* Session groups keep several sessions from one worktree together, with split panes, merged panes, whole-group auto-continue, drag into a folder and dissolve (`7348c84b`, `e6f49bd7`)
+* The sidebar files drafts by folder, drops sessions into groups, and draws group members with branch guides (`7348c84b`, `0058ab32`, `cd6f299b`)
+* Sidebar filters are a multi-select set, and sessions sort by creation, update, title or a manual arrangement (`125bea0c`, `7d99b489`)
+* The command palette searches sessions, settings and quick actions from one query; session search indexes conversation text only and highlights the hit (`e30fdf14`)
+* Goals publish through ACP's `_meta.goal` extension and normalise into the goal bar's phase, statistics and controls
+* Delegation has a lifecycle: a task stays open, takes follow-ups, and is accepted or cancelled, with retries landing on the original acceptance
+* Built-in tool panels are chosen per session, an absent entry follows the Agent, and a fork or delegation copies the map (`2acc9b7a`, `3866693d`)
 
 **Terminal**
 
-* Scrollback search, vector box drawing, a bundled Nerd Font, ligatures, OSC clipboard, title and color queries, and mouse reporting.
+* Scrollback search covers every retained line, and previous/next scrolls a match into view (`9efd0d49`)
+* Box Drawing characters are painted from their arms as joined vector lines, so tables and panel borders align across cells (`9efd0d49`)
+* The bundled `Symbols Nerd Font Mono` stops an Agent's status icons painting as tofu (`9efd0d49`)
+* Cell metrics come from the font's own advance, CJK still spans two columns, and ligatures are a preference you can turn off (`9efd0d49`, `bef85503`)
+* OSC 52 clipboard, OSC 0/2 titles and colour queries, and the 1005, 1015 and 1016 mouse report dialects are answered (`9efd0d49`)
+* The terminal background can be made translucent, and theme ink is lifted to a minimum contrast (`9efd0d49`)
+* Terminal-mode CLIs receive MCP servers, Vibex delegation, the browser and computer use through the launch input each one reads, with credentials kept out of the argv (`06e89ac7`, `7b30af79`)
 
 **Desktop**
 
-* 20 built-in themes, system-following window frames, a Chrome-backed interactive embedded browser, the Provider workspace, and smart tray and exit options.
+* Twenty built-in light and dark themes, a theme mode that follows the system, and a window frame that can float (`f9e4bc2d`)
+* The workbench background takes a still image, GIF or WebP, with fill, fit, stretch and an adjustable scrim
+* The embedded browser is Chrome-backed, and Agents can read and drive the page
+* The Provider workspace keeps the gateway, Providers and route groups in one place with a foldable sidebar and in-place editing (`9c5f2498`, `e2b94939`)
+* Closing the main window is a two-way choice: keep running in the system tray, or quit (`6cc327a1`)
+* The title-bar runtime panel is a switcher over paired instances, and remote instances always appear in navigation and search (`33571d2e`, `ce9d6afa`)
 
 **Gateway and models**
 
-* A unified local model gateway (OpenAI, Anthropic, Google), customizable failover routing, and detailed model capabilities.
+* One loopback endpoint serves OpenAI Chat Completions, OpenAI Responses, Anthropic Messages and Google Generative AI, and translates between them (`6e7d1513`, `69dcf747`)
+* A route is composed of `(Provider, model)` members, with seven strategies, a first-token deadline, and per-Key concurrency and rate caps (`3bec21f2`, `41956368`, `c166d3b8`)
+* Presets ship as data and read model facts from the `models.dev` catalogue; a Provider you configured by hand can be saved as a reusable template (`f9dfd52c`, `c7e58564`)
+* The request ledger records which route a request actually took, carrying ids and failure kinds only, and the live route map replays one request's path (`60974688`, `37193353`)
+* Model capabilities are suggested from a maintained catalogue; context windows and thinking depths are declared data, never guessed from a model id
 
 **Remote and mobile**
 
-* QR pairing for `vibex-server`, SSH and WSL remote setup, and a mobile client with parity to the desktop.
+* The desktop installs `vibex-server` on a remote Linux or macOS host over SSH, opens a tunnel, pairs automatically, and rolls back a failed upgrade while keeping the runtime's identity (`4aa8b4a6`, `ec66c998`, `349d09bc`)
+* A WSL2 distro works as a local Linux runtime with no sshd, and restores itself after `wsl --shutdown` (`6de4ca9e`, `4ccdd60a`)
+* A Linux host without sshd can be bootstrapped with a one-time command that carries an expiry and verifies the payload hash (`c5df1c5c`, `bb67ef78`)
+* Mobile pairs to the same runtime by QR code, then follows progress, answers questions, handles approvals and uses a terminal
+* Mobile follows Reduce Motion, and an open session keeps its own workspace and conversation (`252329db`, `5d88cbf5`)
 
-## Performance and under the hood
+**TUI**
 
-* Terminal grid rendering dropped from 242 ms to 3 ms, session search became indexed and instant, timelines virtualize, and background cleanup cut the Android APK from 429 MB to 73 MB.
-* Stable and RC use isolated application directories with a safe database migration and import path, environment sanitization, and updated SBOM and license inventories.
+* `vibex` opens the current directory's new-session page with the directory and last-used runtime already filled in (`97ca1952`)
+* The interface is one column of full-width bands that reflows at any terminal size, with no minimum size
+* Every printed `key label` legend is a press target, and a press runs through the same dispatcher the keyboard uses (`7d031085`)
+* The management page is the desktop-style Config Center, and the pairing page merges pairing, paired devices and remote access
+* Language, theme and key bindings persist to `~/.vibex/tui-interface.json` and `~/.vibex/tui-keys.toml`
+
+**Languages and localisation**
+
+* The desktop, mobile and TUI all render ten languages; the seven added ones come from one shared catalogue, and an untranslated sentence falls back to English (`36d65e63`)
+* The language picker lists all ten languages plus "System" on both clients (`36d65e63`)
+* Korean spacing follows the bundled CJK face's real advances (`c1c421d3`)
+
+## Fixes
+
+* Fixed sidebar folders: a new session group stays in the folder its members came from, and the folder control sits with the other "where" triggers (`0058ab32`, `cd6f299b`)
+* Fixed the default code font staying monospaced on Linux (`8c998f58`, `00338bf5`)
+* Fixed the TUI resolving the user home the way each platform means it (`aa6fb94b`)
+* Fixed SSH runtimes: a runtime bound to another port is restarted instead of adopted (`b82873ae`)
+* Fixed terminal sessions: a closed session whose process outlived its exit notice is restarted (`e0021a4e`)
+* Fixed the temporary session root being hidden when lost; it is recreated instead (`6f1c64f5`)
+* Fixed computer use: the AppImage environment is stripped from every host child (`6bd67325`)
+* Fixed mobile keeping the reader's place when the timeline changes (`1d879532`)
+
+## Performance
+
+* The terminal grid caches shaped rows by text, style and size, reshapes only damaged rows, and paints each row as runs (`9efd0d49`)
+* A terminal resize fills the pane at once, and the whole paint pass is clipped to the grid's content mask (`9efd0d49`)
+* Config Center writes, Provider probes, gateway reads and terminal starts run off the frame thread (`dfdaf81e`)
+* The computer-use driver gives its memory back after five idle minutes, and abandoned frame pumps retire themselves (`1347dea8`)
+* Detached Agent daemons are reclaimed by what they run, so no orphans are left behind (`8675b314`)
+* Session search uses an index, and the timeline reads a bounded window with long bodies virtualized
+* The Android APK drops from 429 MB to 73 MB
+
+## Internal, Build & Docs
+
+* Version numbers were bumped to `0.1.0` across the workspace members, the desktop packaging inputs, the Android versionName fallback, the READMEs, the deployment docs and the reviewed asset bundle versions (`c8d7fb90`)
+* The license SBOM and third-party notices were regenerated for the current graph: 1110 Cargo packages, 11 asset and font bundles and 5 native and installer inputs, all approved
+* Stable and RC are separate applications with their own application identity and data directory, so a stable install starts empty (`c8d7fb90`)
+* The stable channel points the container `latest` tag at this release, and the `vibex-bin` AUR package ships with it
+* The database schema settles at 88, with `transport` on the session row and the `session_terminals` link table
+* The release notes became a one-page milestone summary grouped by product area, recording the RC-to-stable data import a reader needs (`558ed425`)
+* README status badges moved from the prerelease colour to stable green, and the deployment docs show `v0.1.0` as the stable tag (`c8d7fb90`)
 
 ## Upgrading from a release candidate
 
-Stable and RC are separate applications with their own data directories, so a stable install starts empty. To carry your RC work forward, open **Settings → Data & Diagnostics → Local storage → Import RC data** and confirm. Vibex snapshots the RC database, migrates and verifies the copy, then swaps it in on the next start; workspaces, sessions and Provider configuration come with it, and the current data is kept if the import fails. The RC install is never modified, so you can keep using it as a fallback.
+Stable and RC are separate applications with their own data directories, so a stable install starts empty. To carry your RC work forward, open **Settings → Data & Diagnostics → Local storage → Import RC data** and confirm.
+
+Vibex snapshots the RC database, migrates and verifies the copy, then swaps it in on the next start; your workspaces, sessions and Provider configuration come with it, and the current data is kept if the import fails. The RC install is never modified, so you can keep using it as a fallback.
+
+On the first launch, RC data sitting next to the stable install also raises a one-time prompt offering **Import data** or **Not now**.
 
 ## Related links
 

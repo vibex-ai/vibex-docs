@@ -22,15 +22,33 @@ The terminal button above the composer opens a **bottom terminal panel**. Press 
 | --- | --- |
 | Tabs | Create, close, rename (**Rename terminal** / `Terminal name`), and switch. |
 | Splits | The tab menu offers **Split right** and **Split down**; drag the split boundary to resize. |
-| Resize | Drag the panel boundary and the PTY receives the latest rows/columns. |
+| Resize | Drag the panel boundary and the PTY receives the latest rows/columns; the pane fills the new size at once instead of leaving the painted grid at its old size. |
 | Scrollback | Fixed at **10000 lines**, not configurable. |
-| Search | **Search terminal** opens the search bar and shows `0 matches` or `{n} / {total}`. **Only next-match is supported**, cycling forward. |
-| Copy and paste | **Copy** / **Paste** in the toolbar, or `ctrl-shift-c` / `ctrl-shift-v`. |
+| Search | **Search terminal** opens the search bar and shows `0 matches` or `{n} / {total}`. Search covers every retained line rather than only the painted viewport, and **Previous match** / **Next match** scrolls the hit into view. |
+| Scrolling | A draggable scrollbar sits over the grid; `shift-pageup` / `shift-pagedown` and `shift-home` / `shift-end` also scroll. In the alternate screen (a full-screen Agent) the wheel becomes arrow keys. |
+| Copy and paste | **Copy** / **Paste** in the toolbar, or `ctrl-shift-c` / `ctrl-shift-v`. Double-click selects a word and triple-click a line. |
 | Search shortcut | `ctrl-shift-f`. |
-| Open link | Hover the cursor over a hyperlink to see **Open link**. |
+| Open link | Hover the cursor over a hyperlink to see **Open link**; a plain `http(s)` address opens on click. |
 | Status | The tab shows `running`, `exited`, `killed`, or `stale`. |
 
 The terminal handles output and ANSI control sequences as raw bytes and never treats binary output as text.
+
+### Rendering
+
+- **Box Drawing** characters are painted from their arms as joined vector lines — heavy, double, dashed, rounded and diagonal forms included — so tables and panel borders line up across cells.
+- **`Symbols Nerd Font Mono`** ships with the app and private-use symbol glyphs are fitted to the cell outline, so an Agent's status icons no longer paint as tofu.
+- Cell metrics come from the font's own advance rather than a fixed 8x18 constant; wide cells keep the font's advance, so CJK still spans two columns.
+- **Ligatures** are a preference, toggled in **Settings → Appearance → Ligatures**. Off keeps every glyph on its own cell, which is what column-aligned output assumes.
+- The terminal background can be translucent (**Settings → Appearance → Terminal opacity**, 60%–100%); theme ink is lifted to a minimum contrast while a program's own true colour is left alone.
+
+### Terminal protocol support
+
+Beyond ordinary ANSI sequences, the terminal also answers:
+
+- **OSC 52** clipboard stores and reads, which is what makes copying work over SSH and in tmux.
+- **OSC 0 / 2** window and tab titles.
+- **OSC 4 / 10 / 11 / 12** colour queries.
+- **Mouse reports** in the 1005, 1015 and 1016 dialects.
 
 ## Shell selection
 
