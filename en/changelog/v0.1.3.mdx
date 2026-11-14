@@ -1,0 +1,43 @@
+---
+title: "v0.1.3"
+description: "The Windows installer stops overwriting long user Paths, pairing leads with the built-in relay, local HTML pages open in the embedded browser, and SSH runtimes reconnect without losing their tunnel."
+---
+
+## Highlights
+
+* **The Windows installer no longer replaces a long user `Path`** — the installer now edits the value through a small helper that reads its real length, preserves its type, and never writes after a failed read. A `Path` longer than 1023 characters used to read as empty, so writing the install directory wiped every other entry.
+* **Pairing starts with the built-in relay** — the dialog leads with an entry that needs no address, with local network and Tailscale next, and Direct HTTPS and the self-hosted relay move behind **Other ways**.
+* **Local pages open in the embedded browser** — double-clicking an HTML file previews the page with its stylesheets, scripts and images intact, served from a loopback origin confined to that file's directory.
+* **SSH runtimes reconnect cleanly** — switching back to a parked instance reuses its live tunnel instead of spawning a second `ssh -L`, and a rebuilt tunnel is probed until it is actually ready.
+* **One window per runtime home** — opening Vibex again asks the running shell to come forward and exits, instead of opening a second window that lands on `desktop_runtime_home_locked`.
+
+## New features
+
+**Remote access and Relay**
+
+* The built-in relay is the first pairing option and the only one that needs no input. The official origin lives in `vibex-core` and is never rendered, so it cannot be mistyped or mistaken for a configurable endpoint; the entry reports a live relay only while the runtime actually serves that origin.
+* Desktop relay rows, the mobile picker and the TUI route name the connection instead of printing a URL the reader cannot change.
+* The relay charges websocket handshakes and room registrations to the client address: behind a loopback reverse proxy it uses the right-most `X-Forwarded-For` entry, otherwise the peer address. The tracking table is bounded and pruned after two idle windows, and `/api/info` reports the effective limits.
+
+**Desktop**
+
+* Settings navigation scrolls the group list beneath the fixed search field at short heights, so every section stays reachable; reopening Settings resets the column to the top instead of restoring the previous offset.
+* The file tree, file search and **Open In → Embedded browser** all open local pages in the panel, as do web links in a rendered document or a conversation. Each directory gets a loopback server with a per-server token; path traversal, dotfiles, backslashes and symlinks that leave the directory are refused, and a server stops when its last tab closes.
+* Agent previews keep their existing boundary: `browser_preview_open` still requires one-off approval and serves a single approved file, so approving a file never exposes its directory.
+* The lock and activation endpoint are scoped to the runtime home, so preview, RC and stable installations do not contend with each other.
+
+**Skills and Marketplace**
+
+* Installing a Skill from a whole-repository source no longer fails at the old 16 MiB bundle ceiling: the download bound is 128 MiB, the file-count bound 16384, and the extracted-size bound 64 MiB, which still limits decompression bombs.
+* A repository that exceeds the download bound reports its own error code and repository name instead of surfacing the catalog's generic `market_response_too_large` under an unrelated search box.
+
+**Windows installer**
+
+* The installer and uninstaller delegate the `Path` edit to `vibex-installer-env.exe`, which asks the registry for the exact byte length, reads the whole value, matches whole entries case-insensitively, preserves `REG_SZ` versus `REG_EXPAND_SZ`, and fails without writing when the value cannot be read.
+* The uninstaller removes only entries that name the install directory. **If an earlier release already replaced your user `Path`, this update cannot reconstruct the missing entries**; restore them from a backup or re-add the directories manually.
+
+## Related links
+
+* [View the full diff on GitHub](https://github.com/vibex-ai/vibex/compare/v0.1.2...v0.1.3)
+* [Previous release: v0.1.2](/en/changelog/v0.1.2)
+* [Back to the changelog](/en/changelog)

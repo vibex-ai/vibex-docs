@@ -1,0 +1,93 @@
+---
+title: "v0.1.0-rc.9"
+description: "A local model gateway with failover routes, a rebuilt Provider workspace, SSH and WSL remote runtimes, self-publishing artifacts, and a timeline that reads like a document."
+---
+
+## Highlights
+
+* **A local model gateway** — one loopback endpoint now fronts every shared Provider. It speaks OpenAI Chat Completions, OpenAI Responses, Anthropic Messages and Google Generative AI, translates between them, and forwards each call to whichever Provider serves the requested model.
+* **Routes that fail over** — a route is one selectable model. Compose it from whole Providers or from `(Provider, model)` pairs, pick one of seven strategies, and let the gateway move to the next member when one cannot answer.
+* **A rebuilt Provider workspace** — Providers, route groups and the gateway share one workspace with a foldable sidebar, identity headers and in-place editing. A hand-configured Provider becomes a reusable template, and preset model lists come from the models.dev catalogue.
+* **SSH and WSL remote runtimes** — the desktop can put its authoritative runtime on another machine: install `vibex-server` over SSH, open a tunnel, pair automatically, and upgrade with a rollback that keeps the runtime's identity.
+* **Self-hosted artifacts that ship themselves** — headless server tarballs for Linux x86_64/aarch64 and macOS are built in a pinned Debian 12 builder, the release mirrors stable images to Docker Hub and CNB, an AUR package republishes the Linux `.deb`, and the Linux payload is a third smaller.
+* **The timeline reads like a document** — tool calls render as structure rather than JSON: path and value fields, todo checklists, questions as lists, and edits as diffs. Headers lead with intent, outcome and timing.
+* **Every printed key is a button** — in the TUI, a `key label` legend is now a control: clicking it presses exactly the key it names, through the same dispatcher the keyboard uses.
+* **Ten more guardians** — the new-session arena grew from six encounters to sixteen, each with its own entrance, lane rhythm and companion effect.
+
+## New features
+
+**Local model gateway**
+
+* One loopback endpoint serves the four wire APIs coding Agents already speak and forwards each request to the shared Provider that serves the requested model, with protocol translation through a single intermediate representation, including tool calls re-encoded across streaming shapes.
+* A conversation stays on the Key that holds its prompt cache, so pinning never costs a cache miss; routing state (cooldowns, pins, rotation, inflight) never enters an Agent process fingerprint, so replacing a Key never restarts a process.
+* Concurrency and request rate are bounded per Key: a lane caps in-flight requests, a full lane waits in a bounded FIFO queue and only then answers 429, and a rolling minute caps starts, so a burst degrades into a wait instead of an unbounded backlog.
+* Route groups have two shapes: `ProviderGroup` composes whole Providers and offers the **intersection** of their enabled catalogues, while `ModelGroup` names `(Provider, model)` pairs behind one Agent-facing id. A model only one Provider serves is deliberately not part of a group, because the group's strategy must never send a model to a Provider that has never heard of it.
+* Seven strategies — ordered, round-robin, least-used, smart, lowest-latency, weighted and manual — are all computable from local observations. A route may set a first-token deadline that bounds both the response headers and the first streamed token.
+* Circuit breakers are scoped to a route group rather than to a Provider, and an undeclared protocol is probed instead of being refused.
+* The request ledger records which route a request actually took: members skipped because they were unavailable are separate from attempts that failed, and the trace carries ids and failure kinds only — never a prompt, a reply or Key material.
+* The Gateway page is a workspace of its own: a live route map that replays each request, expandable request history, p50/p95 traffic with selectable ranges, alert thresholds, default timeouts, upstream ordering, and a clear action that states its retention window and asks first.
+
+**Providers and remote runtimes**
+
+* The shared Provider record is the write authority: editing one place reaches every Agent bound to it, and a binding may deliberately name no Provider when the Agent authenticates itself.
+* The Provider workspace is rebuilt: a left column folding the gateway, Providers and route groups under one **New** menu, a shared identity header, underline tabs and section cards, in-place settings, and route groups editing on their own page.
+* Sixty-five presets ship as data and no longer carry model ids: applying one reads the vendor's entry from the bundled models.dev catalogue (53 providers), including limits and capability flags.
+* A hand-configured Provider becomes a reusable template under **User-defined**: projected from the record on every read, carrying no secret-valued header, addressed with a `user:` prefix so it can never shadow a shipped preset, and dismissible and restorable without touching the Provider, its Key or its models.
+* Provider Key rows identify a credential by a masked fingerprint instead of a generated label, and an eye button reveals the value through an explicit read while ordinary snapshots carry only the mask.
+* Request-header overrides are projected to native Agents and to the gateway; import previews one source at a time, pages large model lists and tests a draft before it is saved; a draft address and Key fetch their models; per-key model scope and proxy are configurable.
+* The desktop installs `vibex-server` on a remote Linux host, starts it on loopback with a pinned TLS certificate, opens an `ssh -L` tunnel, claims the one-time pairing code over SSH itself and connects over Remote Protocol v2 — no Docker, no public port, no copied code.
+* A nine-step provisioning state machine owns the order, cancellation safe points, retry after failure and the invariant that a runtime id is exposed only once it is ready; a duplicate begin returns the attempt already running.
+* An environment probe checks Linux, architecture, glibc, disk headroom, home write access, `sha256sum` and the target port with typed blocking errors, and reports Git, `SHELL` and an unknown port as warnings.
+* The tunnel is supervised: a watchdog checks the child every 500 ms and rebuilds the same tunnel spec once, surfacing the restart or the failure instead of leaving a silent dead loopback endpoint.
+* Upgrades are transactional: the new artifact is installed beside the current one, the runtime identity survives, and a runtime that will not start rolls back to the previous version, which is started and checked.
+* Uninstall can preserve the home directory, an SSH profile can be edited, removed and re-provisioned, and a paired SSH connection can be removed even before it ever provisioned.
+* macOS remote hosts are supported through a LaunchAgent, with arm64 and x86_64 server artifacts; WSL2 distros are provisioned with no sshd at all — upload, install, start, wait for actual localhost forwarding, claim pairing on loopback, and restore after `wsl --shutdown`.
+* Remote instances now live under **Settings → Remote instances** in the workspace group and are always listed in navigation, search and the command palette; the earlier Developer switch and its environment variable are gone. The title-bar runtime panel became a switcher over the instances already paired, and its footer action opens Settings.
+
+**Timeline and sessions**
+
+* Tool calls render as readable structure: `path: value` fields, todo checklists, ask-user questions and answers as lists, unwrapped harness output envelopes, and edits or writes drawn as diffs with `+N/-M`, counted in the turn's changed files and on mobile too.
+* Titles that only named the tool defer to the call's own command, path or query, and the `cd <absolute path> &&` prefix no longer pushes the command past the truncation point.
+* Activity headers lead with intent and outcome: a failed call shows the first line it printed while collapsed, settled commands and Agent calls show how long they ran, fetches get their own kind and globe icon, and a group summary leads with the files it changed.
+* Workspace images referenced from a message — relative, root-relative, absolute or `file://` — render inline, confined to the workspace, and open a full-window preview on click; transcript images became clickable thumbnails.
+* Built-in tool panels are chosen per session rather than per Agent: the new-session page records an explicit on/off per panel, an absent entry follows the Agent, and a fork or delegation copies the map.
+* Long bodies are read through their own viewport, a running session opens onto its history rather than its live run, and the reader's place survives content landing above it.
+* The new-session composer gained a fullscreen control, and auto-continue became a shell-wide default that continues without an explicit opt-in.
+* The sidebar narrows its session list with the same funnel posture menu the session row already draws — all, running, waiting for you, unread, failed and pinned — and batch work follows the visible rows.
+* Open editor tabs follow a file that changed on disk, and the light theme was retuned to a cool neutral ladder with solid, opaque module fills.
+
+**Markets, TUI, mobile and arena**
+
+* The MCP market asks the registry the reader's own question instead of walking a capped background catalogue, so a name deep in the published order is reachable immediately; paging walks the registry cursor and a result set is kept per question.
+* Market entries carry the publisher's own picture and a remote entry's required headers, which become install inputs routed to the server's headers rather than its environment.
+* The Skill market reads a public catalogue that answers in about a second: a ranked home page parsed once and shared for six hours, a browse page that folds one repository to at most four entries, and installs lifted out of the repository the catalogue names.
+* Market cards install on click, search runs as you type across MCP servers and Skills, and per-feature Agent capsules choose which Agents receive a feature.
+* Every TUI `key label` legend is a press target: the queue and dock bands, modal footers, the settings footer and the new-session page's bracketed hints publish their rect with the chord they name, and a press runs through the same `handle_key` path the keyboard uses.
+* `Chord::from_hint` reads a legend the way a reader reads it — `^S`, `Space`, `↑`, `J/K`, `Alt+↑↓` — and a paired arrow is split into two one-cell targets.
+* The queue band and the dock scroll to keep their cursors visible, and a click maps through the window the band drew instead of counting lines from the top of the rect.
+* The Providers table can switch its gateway and shows plan presets with their prices; imported Keys are named by what they do rather than by a generic warning, and columns that cannot fit are dropped instead of being squeezed.
+* A settled tool call stays folded, the answer in front of the reader stays open, and `Ctrl+C` interrupts only the session page; the prompt band is sized at the width the composer actually paints.
+* Mobile reads its text ladder at the size it paints, the connecting page carries the Vibex wordmark, sync badges draw as text, and the CBDT emoji font ships as an APK asset; files and commits search while typing, the reader's place is kept when the timeline scrolls, and a session that ends hands the screen back; the resume path no longer aborts on a dead connection, new sessions open eagerly, and the terminal holds still while a keyboard closes.
+* Ten guardians joined the original six, for sixteen encounters: Cursor, Cline, Grok, ZCode, Kimi, CodeBuddy, Antigravity, Devin, Gemini and Hermes. Each owns its entrance, exit and lane rhythm, and each companion effect is unlocked by its own win.
+
+## Performance
+
+* The gateway virtualizes the request ledger and pages history, and a request appears in the ledger while it runs rather than only once it has finished.
+* Long transcript bodies are read in chunks through a viewport and windowed bodies fade at their edges instead of laying out everything they hold; the model list virtualizes, and a draft's endpoint and Key are probed once rather than on every keystroke.
+* The Skill market's search replaced an eight-to-thirteen-second round trip with roughly one second, and the MCP market no longer depends on a background walk finishing.
+* Linux x86_64 release links run through lld with `--icf=all`, folding duplicate monomorphised bodies.
+
+## Internal, build and docs
+
+* Versions were bumped to `0.1.0-rc.9`; the workspace gained `crates/model-gateway` and `crates/model-catalog`, and the database schema moved from 63 to 87.
+* The workspace moved to `gpui-kit` `0.8.0`, `rustls` to `0.23.46` and `zip` to `9.1.3`.
+* Open security findings were cleared, including a path-injection read in the Config Center, a test assertion that looked like credential logging, and the Linux GTK stack moving to gtk 0.19 with a `tray-icon` StatusNotifierItem backend that removes the `glib` 0.18 advisory.
+* The Linux `.deb` is repacked into xz and drops from 119.8 MB to 69.8 MB; the packaging host now needs `xz` and `ld.lld`.
+* The license SBOM and third-party notices were regenerated for the current graph: 1080 Cargo packages, 10 asset and font bundles and 5 native and installer inputs, all approved.
+
+## Related links
+
+* [View the full diff on GitHub](https://github.com/vibex-ai/vibex/compare/v0.1.0-rc.8...v0.1.0-rc.9)
+* [Previous release: v0.1.0-rc.8](/en/changelog/v0.1.0-rc.8)
+* [Next release: v0.1.0-rc.10](/en/changelog/v0.1.0-rc.10)
+* [Back to the changelog](/en/changelog)

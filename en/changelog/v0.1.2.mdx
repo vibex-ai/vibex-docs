@@ -1,0 +1,28 @@
+---
+title: "v0.1.2"
+description: "A new SSH host shows its progress on the click, a connected host appears in Remote instances, and the AUR build works again."
+---
+
+## Highlights
+
+* **A new SSH host answers on the click** — the step graph opens immediately instead of appearing only once the runtime package has finished downloading.
+* **A connected host appears in Remote instances** — the runtime a pairing created is listed in the panel and can be switched to, instead of being driven by the workbench while the list still shows only this device.
+* **`vibex-bin` builds again** — the AUR job upgrades its Arch container in the same transaction as its prerequisites, so a rolling-release image can no longer abort the build before packaging starts.
+
+## New features
+
+**Remote runtime**
+
+* Adding an SSH host publishes a provisioning placeholder before the deployment starts. A run begins with the SSH probe, the signed release manifest and a roughly 38 MB artifact download, all before the provisioning service exists; the dialog now opens at step 1 with a live line naming the stage, and the row's **Cancel** stops the download.
+* The placeholder survives the handoff to the service, so the dialog does not blank between the download finishing and the worker reporting its first step, and a dialog closed during the download stays closed.
+* A paired runtime is registered before it becomes active. Pairing writes the runtime registry from the provisioning worker thread while the workbench held the copy it read at boot; the registry now reloads on install, with the credential in hand as a fallback when the pairing never reached the store.
+
+**Packaging and release**
+
+* The AUR job upgrades its container before installing prerequisites. `pacman -Sy` refreshes the databases but not the installed packages, so an `archlinux:base-devel` image carried curl, pacman, sudo, libarchive and libngtcp2 built against `libcrypto.so=3-64` while pacman resolved a newer openssl, aborting the transaction before any packaging step ran. The container and its prerequisites are now upgraded in one transaction, and the shape is held under contract.
+
+## Related links
+
+* [View the full diff on GitHub](https://github.com/vibex-ai/vibex/compare/v0.1.1...v0.1.2)
+* [Previous release: v0.1.1](/en/changelog/v0.1.1)
+* [Back to the changelog](/en/changelog)

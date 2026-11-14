@@ -1,0 +1,62 @@
+---
+title: "v0.1.6"
+description: "Tuning a delegated Agent from the chip that named it, choosing fetched models before importing them, a parent Agent answering its child's approval, and context menus plus tool-call folding in the transcript."
+---
+
+## Highlights
+
+* **Tune a delegated Agent from the chip that named it** — the composer's runtime cascade now follows the caret. Landing on an `@Agent` chip edits that collaborator's Provider, model, thinking depth, conversation mode and feature toggles; moving the caret off returns them to the session. The tuning is encoded into the chip's token id, so a draft, the clipboard and a remote client all restore the exact configuration shown.
+* **Choose fetched Provider models before importing them** — the Models tab opens a picker where every advertised Model is a row. Nothing is written until the confirm, which adds the chosen rows without replacing the ones you authored. `autoRefreshModels` now only decides whether the vendor's new rows arrive checked.
+* **A parent Agent can answer its own child's approval** — a delegated child inherits the parent's sandbox and tool set, so approving its routine command widens no authority. `vibex_read_approvals` lets the parent read the card behind an explicit untrusted fence, and `vibex_decide_approval` is approve or deny only; irreversible actions stay with the human.
+* **The transcript gains context menus and folding** — right-click works on user messages, Agent answers, selections, process rows, turn headers and the timeline, and **Auto-collapse tool calls** draws a live run as its one-line summary until you open it. The folding preference ships off.
+* **A stopped delegation can no longer freeze the composer** — cancelling a task closes the approval cards its child raised, resolving a permission reads the cancellation fence, and a late approval answers `task_cancelled_before_approval`. The pre-send queue's dispatch fence is now keyed by session.
+
+## New features
+
+**Session transcript**
+
+* The context menu copies, quotes into the composer, forks at the row, edits and resends, or stops a streaming answer; process rows copy their command, output, input, diff or path and open files; a selection copies as text or Markdown, quotes, finds and opens one external link.
+* Menus carry the data they act on, so a menu opened on a group pane or the read-only child Agent rail acts on the transcript it was opened on; the child rail keeps copy and quote only.
+* Session settings gains **Auto-collapse tool calls**. With it on, a live run draws only its one-line summary — changed files, commands, reads and failures — and you open the run to see the calls; a run holding an approval-pending row keeps its live rule.
+* The preference lives in `SessionUiState`, is mirrored to mobile and remote through `AgentTimelineDisplaySettings`, and joins the turn shape key and every height fingerprint.
+
+**Providers and Agents**
+
+* A saved Provider's Models tab now opens a picker: fetched Models with checkboxes and a filter on the left, the selected Model's settings on the right. The confirm adds the chosen Models, and rows you authored keep their capabilities, display name and enabled state.
+* The picker is a full two-pane surface that takes the window and reads the viewport each frame, so a resize while it is open is followed; turning a row off closes the settings pane through the same command as its close button.
+* Both authoring dialogs now scroll inside their panes, so a wheel over either pane moves only that pane's content, never the form band or the dialog page.
+* **Custom provider** and **New route group** are pinned in a band under the Provider library, so a long library can no longer push them past the fold.
+* `vibex_read_approvals` returns the cards a caller's own children are parked on — title, risk category, deadline and details inside an untrusted fence — and without `taskRefs` it reports everything of that caller's that is waiting. `mayAnswer` reports the same rule the decision enforces, so an irreversible action reads as needing a human.
+* Only a delegated child that inherited the parent's sandbox and tool set can be answered, and only by the task's own parent; a sibling or ancestor is refused. A refusal leaves the card pending, and every resolution records its responder.
+
+**Delegation and collaboration**
+
+* The chip encodes thinking depth, conversation mode and feature values into its token id, and the resolver accepts either an exact option reference or one that matches a catalogue entry once the request's overrides are applied.
+* There is no separate panel or mode: landing on an `@Agent` chip edits that collaborator, and moving the caret off or deleting the chip is the whole exit gesture. The per-Agent choice map and the rule that read it are gone.
+* Picking an `@Agent` row leaves the caret on the chip's right edge, so one Enter both picks the collaborator and opens its parameters; the new-session page gained the **Delegating to** badge.
+* A new session starts on the configuration its draft names, and the first message now carries the chip's mention instead of dropping it on immediate send.
+* The Provider menu seeds from the chip's own Agent and auth source, and the chip writer follows the chosen Agent's id and name.
+* The tuning travels into the delegated child and writes the same preference store a session switch uses, so the next `@` row carries the configuration the chip chose.
+
+## Fixes
+
+* Cancelling a task no longer deadlocks its session: the approval cards its child raised are closed, a late approval cannot run the stopped work, and the pre-send queue's dispatch fence is scoped per session.
+* A Windows path echoed from a POSIX shell (`/C:/...`) and an editor location (`:line`) now open correctly; the workspace root is normalized the same way, while `file:` URLs and POSIX absolute paths are unchanged.
+* A removed remote instance leaves the list at once instead of waiting for the next refresh.
+* A chip no longer stays selected one character past its right edge, a chip being edited paints its selected state, and a chip on the new-session page takes the page into editing too.
+* A settlement no longer rewrites a round that finished before the stop was recorded, and a late result is marked as late.
+
+## Performance
+
+* The closed runtime menu is no longer rebuilt every frame: the Provider and Model panel is built only while the popover is open or playing its exit, so moving the pointer over a transcript no longer walks and copies the whole model catalogue each frame.
+
+## Internal, build and docs
+
+* Version numbers were bumped to `0.1.6`.
+* An untuned chip keeps the exact id it always had, so older drafts and existing `@Agent` tokens still parse.
+
+## Related links
+
+* [View the full diff on GitHub](https://github.com/vibex-ai/vibex/compare/v0.1.5...v0.1.6)
+* [Previous release: v0.1.5](/en/changelog/v0.1.5)
+* [Back to the changelog](/en/changelog)

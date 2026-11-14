@@ -5,15 +5,51 @@ description: "Vibex 各版本的变更记录：亮点、新功能、修复与内
 
 import { latestVersion, releasesUrl } from "/snippets/release.mdx";
 
-Vibex 按版本记录变更。每个版本页面汇总该版本区间内的亮点、新功能、修复与内部改动；条目末尾的短哈希对应 [vibex-ai/vibex](https://github.com/vibex-ai/vibex) 中的提交，方便回溯证据。
+Vibex 按版本记录变更。每个版本页面汇总该版本区间内的亮点、新功能、修复与内部改动，页尾给出该版本的完整差异链接，方便回溯证据。
 
 <Note>
-  Vibex 仍在 `0.1.0` 候选阶段，当前最新版本为 **{latestVersion}**。发布包与下载地址以 [GitHub Releases](https://github.com/vibex-ai/vibex/releases) 为准。
+  Vibex 已进入稳定版阶段，当前最新版本为 **{latestVersion}**。发布包与下载地址以 [GitHub Releases](https://github.com/vibex-ai/vibex/releases) 为准。正式版与候选版本使用彼此隔离的数据目录，升级时可以在 **设置 → 数据与诊断 → 本地存储** 里导入 RC 数据。
 </Note>
 
 ## 版本列表
 
 <Columns>
+  <Card title="v0.1.6" icon="tag" href="/changelog/v0.1.6">
+    2026-11-14 · 28 次提交 · 从所点名的 chip 调校委派 Agent、抓取模型先挑选再导入、父 Agent 回答子任务审批，以及转录的右键菜单与工具调用折叠。
+  </Card>
+
+  <Card title="v0.1.5" icon="tag" href="/changelog/v0.1.5">
+    2026-11-13 · 11 次提交 · 委派跟随输入框里选中的协作者、WSL 运行时可选端口、配对链接回归，以及 models.dev 建议思考档位。
+  </Card>
+
+  <Card title="v0.1.4" icon="tag" href="/changelog/v0.1.4">
+    2026-11-12 · 19 次提交 · Linux RPM 包、共享 Provider 的改动送达每个 Agent、Codex 读取声明的模型能力，以及更轻的串流重绘和移动端同步。
+  </Card>
+
+  <Card title="v0.1.3" icon="tag" href="/changelog/v0.1.3">
+    2026-11-11 · 13 次提交 · Windows 安装包不再覆盖过长的用户 Path、配对以内置 Relay 为首选、本地 HTML 页面进入嵌入式浏览器，以及 SSH 运行时复用隧道。
+  </Card>
+
+  <Card title="v0.1.2" icon="tag" href="/changelog/v0.1.2">
+    2026-11-11 · 3 次提交 · 添加 SSH 主机即刻显示进度、已连接的主机出现在远程实例列表，以及 AUR 构建恢复。
+  </Card>
+
+  <Card title="v0.1.1" icon="tag" href="/changelog/v0.1.1">
+    2026-11-11 · 18 次提交 · 连续添加远程主机、Windows 任务栏与 SSH 助手的行为、远程失败的说明、截图标注跟随光标，以及进入 AUR 的 vibex-bin。
+  </Card>
+
+  <Card title="v0.1.0" icon="tag" href="/changelog/v0.1.0">
+    2026-11-10 · 27 次提交 · 首个正式版：PTY 终端会话、全功能工作台、自主掌控的运行时、三端合一的客户端，以及从候选版本导入数据的升级路径。
+  </Card>
+
+  <Card title="v0.1.0-rc.10" icon="tag" href="/changelog/v0.1.0-rc.10">
+    2026-11-08 · 114 次提交 · 在真实终端里运行 Agent 会话、可读可搜的终端网格、把 MCP 服务器交给原生 CLI，以及不再留在后台的进程。
+  </Card>
+
+  <Card title="v0.1.0-rc.9" icon="tag" href="/changelog/v0.1.0-rc.9">
+    2026-11-05 · 503 次提交 · 本地模型网关与可故障转移的路由组、重建的 Provider 工作区、SSH 与 WSL 远程运行时，以及更像文档的时间线。
+  </Card>
+
   <Card title="v0.1.0-rc.8" icon="tag" href="/changelog/v0.1.0-rc.8">
     2026-10-18 · 723 次提交 · Vibex TUI 终端客户端、Agent 团队化协作、消息定时发送、自定义工作台背景、Agent 电脑操控、重建的移动端，以及默认开启的自动更新。
   </Card>
@@ -53,4 +89,4 @@ Vibex 按版本记录变更。每个版本页面汇总该版本区间内的亮�
 * **性能** — 响应速度与资源占用的改进。
 * **内部、构建与文档** — 依赖升级、构建与发布流程、文档和规范改动。
 
-条目末尾的短哈希（例如 `(ec6e378)`）标识 GitHub 上的对应提交。
+版本页面按发布说明整理，页尾的完整差异链接指向 GitHub 上的提交范围。较早的候选版本页面还会在条目末尾标注提交短哈希（例如 `(ec6e378)`）。

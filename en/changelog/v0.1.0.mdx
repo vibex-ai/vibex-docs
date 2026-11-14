@@ -1,0 +1,52 @@
+---
+title: "v0.1.0"
+description: "The first stable Vibex release: PTY terminal sessions, a full workbench, a runtime you host yourself, three clients on one runtime, and an import path from the release candidates."
+---
+
+## Highlights
+
+* **First stable release** — `0.1.0` is the boundary from release candidates into supported releases, with `latest` container tags and AUR publishing. Stable and RC installs use separate data directories.
+* **Real terminal sessions** — run Agents directly inside a PTY terminal through 13 verified Agent CLIs while keeping the sidebar, search, mobile and TUI integration.
+* **A true workbench** — sessions, source code, Git, terminals, an embedded browser, a local model gateway, Agent teams, goals and multi-pane session groups share one window.
+* **Your runtime, your machine** — the authoritative `DesktopRuntime` runs locally, on a LAN `vibex-server`, or on a remote runtime provisioned over SSH or WSL.
+* **Three surfaces, one runtime** — desktop, mobile and the terminal client (`vibex`) drive the same authoritative runtime and install from the same release.
+* **10 languages supported** — English, Simplified and Traditional Chinese, Japanese, Korean, German, French, Spanish, Brazilian Portuguese and Russian.
+
+## Key features
+
+**Sessions and workbench**
+
+* ACP timelines and pure terminal sessions are separate transports, with split-pane session groups, command palette search, session filters, inline goals and lifecycle task delegation.
+* The sidebar, search, notifications, mobile and TUI all see a terminal-mode session and work on the same row.
+
+**Terminal**
+
+* Scrollback search, vector box drawing, a bundled Nerd Font, ligatures, OSC clipboard, title and color queries, and mouse reporting.
+
+**Desktop**
+
+* 20 built-in themes, system-following window frames, a Chrome-backed interactive embedded browser, the Provider workspace, and smart tray and exit options.
+
+**Gateway and models**
+
+* A unified local model gateway (OpenAI, Anthropic, Google), customizable failover routing, and detailed model capabilities.
+
+**Remote and mobile**
+
+* QR pairing for `vibex-server`, SSH and WSL remote setup, and a mobile client with parity to the desktop.
+
+## Performance and under the hood
+
+* Terminal grid rendering dropped from 242 ms to 3 ms, session search became indexed and instant, timelines virtualize, and background cleanup cut the Android APK from 429 MB to 73 MB.
+* Stable and RC use isolated application directories with a safe database migration and import path, environment sanitization, and updated SBOM and license inventories.
+
+## Upgrading from a release candidate
+
+Stable and RC are separate applications with their own data directories, so a stable install starts empty. To carry your RC work forward, open **Settings → Data & Diagnostics → Local storage → Import RC data** and confirm. Vibex snapshots the RC database, migrates and verifies the copy, then swaps it in on the next start; workspaces, sessions and Provider configuration come with it, and the current data is kept if the import fails. The RC install is never modified, so you can keep using it as a fallback.
+
+## Related links
+
+* [View the full diff on GitHub](https://github.com/vibex-ai/vibex/compare/v0.1.0-rc.10...v0.1.0)
+* [Previous release: v0.1.0-rc.10](/en/changelog/v0.1.0-rc.10)
+* [Next release: v0.1.1](/en/changelog/v0.1.1)
+* [Back to the changelog](/en/changelog)

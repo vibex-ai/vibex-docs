@@ -5,29 +5,65 @@ description: "Vibex 各版本的變更記錄：亮點、新功能、修復與內
 
 import { latestVersion, releasesUrl } from "/snippets/release.mdx";
 
-Vibex 按版本記錄變更。每個版本頁面彙總該版本區間內的亮點、新功能、修復與內部改動；條目末尾的短雜湊值對應 [vibex-ai/vibex](https://github.com/vibex-ai/vibex) 中的提交，方便回溯證據。
+Vibex 按版本記錄變更。每個版本頁面彙總該版本區間內的亮點、新功能、修復與內部改動，頁尾給出該版本的完整差異連結，方便回溯證據。
 
 <Note>
-  Vibex 仍在 `0.1.0` 候選階段，目前最新版本為 **{latestVersion}**。發佈包與下載位址以 [GitHub Releases](https://github.com/vibex-ai/vibex/releases) 為準。
+  Vibex 已進入穩定版階段，當前最新版本為 **{latestVersion}**。發佈包與下載位址以 [GitHub Releases](https://github.com/vibex-ai/vibex/releases) 為準。正式版與候選版本使用彼此隔離的資料目錄，升級時可以在 **設定 → 資料與診斷 → 本地儲存** 裡匯入 RC 資料。
 </Note>
 
 ## 版本列表
 
 <Columns>
+  <Card title="v0.1.6" icon="tag" href="/zh-TW/changelog/v0.1.6">
+    2026-11-14 · 28 次提交 · 從所點名的 chip 調校委派 Agent、抓取模型先挑選再匯入、父 Agent 回答子任務核准，以及轉錄的右鍵選單與工具呼叫摺疊。
+  </Card>
+
+  <Card title="v0.1.5" icon="tag" href="/zh-TW/changelog/v0.1.5">
+    2026-11-13 · 11 次提交 · 委派跟隨輸入框裡選中的協作者、WSL 執行環境可選埠、配對連結回歸，以及 models.dev 建議思考檔位。
+  </Card>
+
+  <Card title="v0.1.4" icon="tag" href="/zh-TW/changelog/v0.1.4">
+    2026-11-12 · 19 次提交 · Linux RPM 包、共享 Provider 的改動送達每個 Agent、Codex 讀取宣告的模型能力，以及更輕的串流重繪和移動端同步。
+  </Card>
+
+  <Card title="v0.1.3" icon="tag" href="/zh-TW/changelog/v0.1.3">
+    2026-11-11 · 13 次提交 · Windows 安裝包不再覆蓋過長的使用者 Path、配對以內建 Relay 為首選、本地 HTML 頁面進入嵌入式瀏覽器，以及 SSH 執行環境複用隧道。
+  </Card>
+
+  <Card title="v0.1.2" icon="tag" href="/zh-TW/changelog/v0.1.2">
+    2026-11-11 · 3 次提交 · 新增 SSH 主機即刻顯示進度、已連線的主機出現在遠端執行個體列表，以及 AUR 建構恢復。
+  </Card>
+
+  <Card title="v0.1.1" icon="tag" href="/zh-TW/changelog/v0.1.1">
+    2026-11-11 · 18 次提交 · 連續新增遠端主機、Windows 工作列與 SSH 助手的行為、遠端失敗的說明、截圖標註跟隨游標，以及進入 AUR 的 vibex-bin。
+  </Card>
+
+  <Card title="v0.1.0" icon="tag" href="/zh-TW/changelog/v0.1.0">
+    2026-11-10 · 27 次提交 · 首個正式版：PTY 終端會話、全功能工作臺、自主掌控的執行環境、三端合一的客戶端，以及從候選版本匯入資料的升級路徑。
+  </Card>
+
+  <Card title="v0.1.0-rc.10" icon="tag" href="/zh-TW/changelog/v0.1.0-rc.10">
+    2026-11-08 · 114 次提交 · 在真實終端裡執行 Agent 會話、可讀可搜的終端網格、把 MCP 伺服器交給原生 CLI，以及不再留在後臺的程序。
+  </Card>
+
+  <Card title="v0.1.0-rc.9" icon="tag" href="/zh-TW/changelog/v0.1.0-rc.9">
+    2026-11-05 · 503 次提交 · 本地模型閘道器與可故障轉移的路由組、重建的 Provider 工作區、SSH 與 WSL 遠端執行環境，以及更像文件的時間線。
+  </Card>
+
   <Card title="v0.1.0-rc.8" icon="tag" href="/zh-TW/changelog/v0.1.0-rc.8">
-    2026-10-18 · 723 次提交 · Vibex TUI 終端客戶端、Agent 團隊化協作、訊息定時傳送、自訂工作台背景、Agent 電腦操控、重建的行動端，以及預設開啟的自動更新。
+    2026-10-18 · 723 次提交 · Vibex TUI 終端客戶端、Agent 團隊化協作、訊息定時傳送、自訂工作臺背景、Agent 電腦操控、重建的移動端，以及預設開啟的自動更新。
   </Card>
 
   <Card title="v0.1.0-rc.7" icon="tag" href="/zh-TW/changelog/v0.1.0-rc.7">
-    2026-09-29 · 92 次提交 · 工作台內建瀏覽器與 Agent 瀏覽器工具、頁面與程式碼雙向跳轉、Prompt 成為一級物件、Skill 市場改讀 ClawHub、閒置重繪削減，以及 GPUI 套件 0.7.0。
+    2026-09-29 · 92 次提交 · 工作臺內建瀏覽器與 Agent 瀏覽器工具、頁面與程式碼雙向跳轉、Prompt 成為一級物件、Skill 市場改讀 ClawHub、空閒重繪削減，以及 GPUI 套件 0.7.0。
   </Card>
 
   <Card title="v0.1.0-rc.6" icon="tag" href="/zh-TW/changelog/v0.1.0-rc.6">
-    2026-09-23 · 96 次提交 · 會話組與分屏工作區、MCP 與技能市場、可點擊回應的通知、執行環境與裝置的命名管理、託管 Agent 版本回溯，以及行動端掃碼配對。
+    2026-09-23 · 96 次提交 · 會話組與分屏工作區、MCP 與技能市場、可點選響應的通知、執行環境與裝置的命名管理、託管 Agent 版本回滾，以及移動端掃碼配對。
   </Card>
 
   <Card title="v0.1.0-rc.5" icon="tag" href="/zh-TW/changelog/v0.1.0-rc.5">
-    2026-09-20 · 95 次提交 · 目標成為會話的一部分、可獨立成窗的預覽面板、工作台命令面板、自動更新與發佈說明、原生引導，以及二十套內建配色。
+    2026-09-20 · 95 次提交 · 目標成為會話的一部分、可獨立成窗的預覽面板、工作臺命令面板、自動更新與發佈說明、原生引導，以及二十套內建配色。
   </Card>
 
   <Card title="v0.1.0-rc.4" icon="tag" href="/zh-TW/changelog/v0.1.0-rc.4">
@@ -39,7 +75,7 @@ Vibex 按版本記錄變更。每個版本頁面彙總該版本區間內的亮�
   </Card>
 
   <Card title="v0.1.0-rc.2" icon="tag" href="/zh-TW/changelog/v0.1.0-rc.2">
-    2026-09-10 · 42 次提交 · 遠端雲端執行環境落地、桌面端客戶端模式、雲端部署與行動端改版。
+    2026-09-10 · 42 次提交 · 遠端雲端執行環境落地、桌面端客戶端模式、雲端部署與移動端改版。
   </Card>
 </Columns>
 
@@ -50,7 +86,7 @@ Vibex 按版本記錄變更。每個版本頁面彙總該版本區間內的亮�
 * **亮點** — 該版本最重要的行為變化。
 * **新功能** — 該版本新增的能力，按受影響的產品面分組。
 * **修復** — 已修正的問題，按受影響的介面分組。
-* **效能** — 回應速度與資源佔用的改進。
-* **內部、建置與文件** — 依賴升級、建置與發佈流程、文件和規範改動。
+* **效能** — 響應速度與資源佔用的改進。
+* **內部、建構與文件** — 依賴升級、建構與發佈流程、文件和規範改動。
 
-條目末尾的短雜湊值（例如 `(ec6e378)`）標識 GitHub 上的對應提交。
+版本頁面按發佈說明整理，頁尾的完整差異連結指向 GitHub 上的提交範圍。較早的候選版本頁面還會在條目末尾標註提交短雜湊（例如 `(ec6e378)`）。

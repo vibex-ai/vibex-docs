@@ -1,0 +1,48 @@
+---
+title: "v0.1.5"
+description: "Delegation follows the collaborator selected in the composer, WSL runtimes take a port you choose, pairing links return, models.dev can suggest thinking levels, and an Agent update keeps its account catalogue."
+---
+
+## Highlights
+
+* **Delegation follows what the composer showed** — the TUI carries the selected runtime-option reference through the draft, the held-message queue and the send path; the desktop rewrites an inserted `@Agent` chip when its row is edited; and the authority binds a child session to the newest user message's Agent mention. A delegation that disagrees with that mention is refused with `target_mismatch` instead of silently running another Provider or model.
+* **WSL runtimes take a port you choose** — the add dialog accepts a custom **Runtime port** (default `8765`), checks it before the download starts, and names a busy port so it can be corrected in place. The port is stored in the connection profile and reused for install, start, pairing and every reconnect.
+* **Pairing links are back** — **Settings → Remote instances → Connect with pairing link** adds a runtime from the `vibex://pair#/code/...` line it printed, with no SSH, tunnel or Docker image. A completed pairing sheet now offers **Done**, so it can be dismissed without revoking the device.
+* **Thinking levels can be suggested** — the model editor offers the effort values published by models.dev under **Thinking levels**, with an explicit **Apply** row. Nothing is adopted automatically, and a declaration that already names the same levels is left alone.
+* **An Agent update no longer loses the account catalogue** — a managed update or an application upgrade can change the launch identity before the catalogue is rediscovered. The previous complete catalogue keeps explicit-model sessions working until the refresh lands, and runtime-only launch inputs no longer change the catalogue's identity.
+* **A failed turn keeps its answer** — a turn that answered and then hit a boundary error now keeps the answer as its conclusion, with the error behind the fold; the reader's exact row also stays in place when an older history page is prepended.
+
+## New features
+
+**Desktop**
+
+* **Add WSL runtime** now includes a **Runtime port** field, default `8765`. The port is validated locally and probed inside the distro before the download starts; a busy port keeps the dialog open with the chosen number in the message.
+* **Remote instances** accepts pairing links again. The dialog hides the address field when the link carries it, accepts a numeric code plus an address when only the code is available, and keeps a rejected or expired code next to the field with its reason. A successful claim registers the runtime, lists it under **Remote connections**, and connects to it.
+* A completed pairing sheet shows **Done**; dismissing it leaves the pairing in place without revoking the new grant.
+* The live-label gate floors its budget at the app's 33 ms animation interval, so a deliberate 30 fps frame is no longer treated as late and the title and status sweeps keep running.
+
+**Providers and Agents**
+
+* The model editor shows the effort values published by models.dev under **Thinking levels**, with an explicit **Apply** action. Only applying writes the field, and a declaration that already matches by level hides the suggestion.
+* An account catalogue falls back to the newest complete catalogue for the same account revision instead of failing every explicit-model session with `agent_auth_model_catalog_unavailable`.
+* Terminal capabilities and environment values inherited from the launching process are excluded from the catalogue fingerprint, so a restart under a different shell or a headless start finds the same durable catalogue.
+* An empty rediscovery borrows the previous Models and stays marked incomplete for the next background refresh; the refresh loop publishes after each repaired Agent instead of waiting for the whole inventory.
+* One unreachable Agent no longer holds the others back: a failed discovery or a lost operation lock is logged and skipped, while the rest of the catalogue refresh continues, and a failed write is retried later.
+
+**Delegation and collaboration**
+
+* `vibex_delegate` and `vibex_create_session` bind to the Agent mention carried by the newest user message. A conflicting `selectionRef` is refused with `target_mismatch`; an unspecified target adopts the single mention; several mentions require the caller to name one or narrow the choice with an `agentId`. The direct human **Delegate** action carries its own exact reference and is exempt.
+* The TUI remembers the stable runtime-option reference when an `@Agent` row is accepted. It travels with the draft, through the held-message queue and into the send request; deleting the visible label withdraws the reference.
+* Changing a delegation row's Provider or Model on the desktop rewrites any matching `@Agent` token in the draft, so the visible label stays `@Agent` while the encoded mention id points at the configuration just chosen.
+
+**Mobile and terminal**
+
+* An empty tail on a cold start no longer replaces the restored prefix: only a non-empty answer with a gap may replace it, so a paired session stays visible instead of briefly showing and then reporting no messages.
+* A TUI turn that produced a final answer and then reported a boundary error keeps the answer as its conclusion, with the error left in the turn's work.
+* Loading an older history page anchors both the block and the row within it, so a reader parked inside a long answer is not snapped back to its first line.
+
+## Related links
+
+* [View the full diff on GitHub](https://github.com/vibex-ai/vibex/compare/v0.1.4...v0.1.5)
+* [Previous release: v0.1.4](/en/changelog/v0.1.4)
+* [Back to the changelog](/en/changelog)

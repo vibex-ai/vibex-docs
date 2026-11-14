@@ -5,15 +5,51 @@ description: "Release-by-release record of Vibex highlights, features, fixes, an
 
 import { latestVersion, releasesUrl } from "/snippets/release.mdx";
 
-Vibex records changes per release. Each version page summarizes the highlights, new features, fixes, and internal work in that release range. The short hashes at the end of an entry point to commits in [vibex-ai/vibex](https://github.com/vibex-ai/vibex) so you can trace the evidence.
+Vibex records changes per release. Each version page summarizes the highlights, new features, fixes and internal work in that release range, and links the full diff at the bottom so the evidence is one click away.
 
 <Note>
-  Vibex is still in the `0.1.0` candidate phase. The newest release is **{latestVersion}**. Packages and download links follow [GitHub Releases](https://github.com/vibex-ai/vibex/releases).
+  Vibex has reached stable releases. The newest release is **{latestVersion}**. Packages and download links follow [GitHub Releases](https://github.com/vibex-ai/vibex/releases). Stable and release candidates use separate data directories; when upgrading, you can import RC data under **Settings → Data & Diagnostics → Local storage**.
 </Note>
 
 ## Releases
 
 <Columns>
+  <Card title="v0.1.6" icon="tag" href="/en/changelog/v0.1.6">
+    November 14, 2026 · 28 commits · Tuning a delegated Agent from the chip that named it, choosing fetched models before importing them, a parent Agent answering its child's approval, and context menus plus tool-call folding in the transcript.
+  </Card>
+
+  <Card title="v0.1.5" icon="tag" href="/en/changelog/v0.1.5">
+    November 13, 2026 · 11 commits · Delegation following the collaborator selected in the composer, WSL runtimes on a port you choose, pairing links back, and thinking levels suggested by models.dev.
+  </Card>
+
+  <Card title="v0.1.4" icon="tag" href="/en/changelog/v0.1.4">
+    November 12, 2026 · 19 commits · Linux RPM packages, a shared Provider reaching every bound Agent, Codex honouring declared model capabilities, and lighter streaming repaints and mobile sync.
+  </Card>
+
+  <Card title="v0.1.3" icon="tag" href="/en/changelog/v0.1.3">
+    November 11, 2026 · 13 commits · The Windows installer preserving long user Paths, pairing led by the built-in relay, local HTML pages in the embedded browser, and SSH runtimes reusing their tunnel.
+  </Card>
+
+  <Card title="v0.1.2" icon="tag" href="/en/changelog/v0.1.2">
+    November 11, 2026 · 3 commits · A new SSH host showing its progress on the click, a connected host appearing in Remote instances, and the AUR build working again.
+  </Card>
+
+  <Card title="v0.1.1" icon="tag" href="/en/changelog/v0.1.1">
+    November 11, 2026 · 18 commits · Adding remote hosts back to back, Windows taskbar and SSH helper behavior, remote failures that explain themselves, screenshot markup that keeps up, and vibex-bin on the AUR.
+  </Card>
+
+  <Card title="v0.1.0" icon="tag" href="/en/changelog/v0.1.0">
+    November 10, 2026 · 27 commits · The first stable release: PTY terminal sessions, a full workbench, a runtime you host yourself, three clients on one runtime, and an import path from the release candidates.
+  </Card>
+
+  <Card title="v0.1.0-rc.10" icon="tag" href="/en/changelog/v0.1.0-rc.10">
+    November 8, 2026 · 114 commits · Agent sessions in a real terminal, a terminal grid that reads and searches like one, MCP servers handed to native CLIs, and nothing left running behind the app.
+  </Card>
+
+  <Card title="v0.1.0-rc.9" icon="tag" href="/en/changelog/v0.1.0-rc.9">
+    November 5, 2026 · 503 commits · A local model gateway with failover routes, a rebuilt Provider workspace, SSH and WSL remote runtimes, and a timeline that reads like a document.
+  </Card>
+
   <Card title="v0.1.0-rc.8" icon="tag" href="/en/changelog/v0.1.0-rc.8">
     October 18, 2026 · 723 commits · The Vibex TUI terminal client, Agent teams, scheduled sends, custom workbench backgrounds, Agent computer use, a rebuilt mobile client, and automatic updates on by default.
   </Card>
@@ -53,4 +89,4 @@ Vibex records changes per release. Each version page summarizes the highlights, 
 * **Performance** — improvements to responsiveness and resource use.
 * **Internal, Build & Docs** — dependency bumps, build and release plumbing, documentation, and specs.
 
-The short hash at the end of an entry, such as `(ec6e378)`, identifies the commit on GitHub.
+Release pages are compiled from the published release notes, and the full diff link at the bottom points at the commit range on GitHub. Older release-candidate pages also mark entries with a short commit hash, such as `(ec6e378)`.

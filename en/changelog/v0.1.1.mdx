@@ -1,0 +1,55 @@
+---
+title: "v0.1.1"
+description: "Adding remote hosts back to back, Windows taskbar and SSH helper behavior, remote failures that say what went wrong, screenshot markup that keeps up, pages that need a real browser, and vibex-bin on the AUR."
+---
+
+## Highlights
+
+* **Several remote hosts at once** — adding SSH hosts one after another provisions every one of them. Each request waits its turn instead of cancelling the download already in flight, and a host that cannot be reached no longer parks the rest of the queue.
+* **`vibex-bin` on the AUR** — the stable release hands the AUR job the tag, so Arch users install the reviewed Linux package with `paru -S vibex-bin` or `yay -S vibex-bin` instead of unpacking a `.deb` by hand.
+* **A labelled window on Windows** — the taskbar button carries "Vibex" instead of a bare icon, and the shell no longer flashes a console window while it talks to a remote host.
+* **Remote hosts that stay connected, and say why when they cannot** — provisioning now runs on the workbench runtime, so the session opened right after a successful SSH connect keeps working instead of failing its first read with a socket-shutdown error. A failing `wsl.exe` reports its own message, a hung WSL read gives up in 15 seconds, and an authentication failure carries what the server actually said.
+* **Annotation that keeps up with the cursor** — boxes, lines, arrows, brush and mosaic strokes no longer blink out mid-gesture or stall the window while a 4K screenshot is marked up, and undo history is bounded by bytes as well as entries.
+* **A Providers → Models tab that stays readable** — rows are measured, so an open inline editor pushes the rows below it instead of having their names and switches paint over its fields.
+
+## New features
+
+**Remote runtime**
+
+* Provisioning is a queue: a second host no longer replaces the first start task, which used to abort the running download and leave a `.part` file behind with the row stuck at **Offline / Not installed**.
+* Provisioning failures — an unreachable host, an unavailable runtime configuration, a stopped task — arrive as top-level hints. The WSL dialog closes on submit, so the error used to be written into a body that was already gone.
+* A stalled artifact download fails within a minute of silence instead of holding the run open for five minutes; the connection has its own 30-second budget and the stream may take as long as it needs while bytes keep arriving.
+* Every SSH, `ssh-keygen` and `wsl.exe` child starts hidden, so Windows no longer opens a console window for each of them during connect, tunnel and host-key probing.
+* A remote runtime borrows the workbench's process-lifetime Tokio runtime instead of building one and dropping it with the provisioning worker; the backend no longer outlives its reactor, so a catalogue read right after a successful connect does not report `remote_socket_write_failed`.
+* Listing WSL distros drains both pipes against a 15-second deadline, distinguishes a spawn failure, a non-zero exit with stderr and exit code, and a timeout, and runs off the UI thread; the dialog shows reading, failed with **Retry**, and the distro list as separate states.
+* WSL errors are diagnosed as WSL: every `wsl_*` code no longer classifies as unknown or answers with SSH advice for a transport with no SSH hop, and the guidance names `wsl --update` and `wsl -l -v`.
+* An authentication failure carries the server's stderr, so a locked key, an empty agent and a wrong `IdentityFile` no longer all read "SSH authentication failed".
+
+**Desktop**
+
+* The workbench, the tray-restored window and the computer-use panel are titled from the release channel's product name, so Windows taskbar buttons and the window switcher show a label.
+* Screenshot annotation draws from one working image instead of encoding a PNG per pointer sample. A stroke extends the working image in place, a shape redraws over the gesture baseline, at most one upload happens per frame, and a retired texture is released after the frame that drew it.
+* The Providers → Models tab places its rows with GPUI's measured list; opening or closing the editor re-measures the rows, the list owns the scrollbar gutter, and the card scrolls its rows rather than the page scrolling the card.
+
+**Embedded browser**
+
+* The Windows build reads the Chromium version from the version-named build directory next to the launcher, with no process started, so the embedded browser sends `Chrome/<version>` instead of `HeadlessChrome` and bot checks serve the page instead of a challenge.
+
+**Packaging and release**
+
+* A stable GitHub Release dispatches the AUR workflow with the tag, because an event created by the default token does not start another workflow; the dispatch is reported rather than fatal so a release is never failed over it.
+* The AUR job hands the PKGBUILD tree and its `SRCDEST` to the unprivileged `builder` account before the first `makepkg` run.
+* The quality gate runs again: formatting compares bytes, the macOS clippy job no longer fails on a Windows-only helper, and the MCP secret test no longer reaches the real keychain.
+* The license gate ignores Gradle's build tree, so a local Android build's copy of the emoji font no longer fails `pnpm check:licenses`.
+
+**Performance**
+
+* The embedded browser no longer starts a Chromium process to learn its version; reading the build directory is instant and leaves no stray window behind on every runtime start.
+* Marking up a 4K screenshot no longer re-encodes the picture on every pointer sample, removing roughly 100 ms of UI-thread work per move.
+* Listing WSL distros no longer runs on the UI thread, so a half-installed WSL, a stopped `LxssManager` or an AppLocker prompt cannot freeze the settings window.
+
+## Related links
+
+* [View the full diff on GitHub](https://github.com/vibex-ai/vibex/compare/v0.1.0...v0.1.1)
+* [Previous release: v0.1.0](/en/changelog/v0.1.0)
+* [Back to the changelog](/en/changelog)
